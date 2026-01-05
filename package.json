@@ -1,0 +1,70 @@
+{
+  "name": "migration-framework",
+  "version": "4.3.0",
+  "description": "Framework de Migración Automatizada de Sistemas Legacy a Arquitecturas Modernas",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "migration",
+    "legacy-systems",
+    "clean-architecture",
+    "ai",
+    "automation",
+    "fastapi",
+    "nextjs",
+    "typescript",
+    "react"
+  ],
+  "author": "Migration Framework Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/constantinostrada/migration-framework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/migration-framework/issues"
+  },
+  "homepage": "https://github.com/yourusername/migration-framework#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.4",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "next": "^14.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "lucide-react": "^0.400.0",
+    "react-hook-form": "^7.52.0",
+    "@hookform/resolvers": "^3.4.2",
+    "zod": "^3.23.8"
+  }
+}
