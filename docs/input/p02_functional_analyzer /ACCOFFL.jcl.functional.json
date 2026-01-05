@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:25:38.744699",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.54
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/ACCOFFL.jcl",
+    "filename": "ACCOFFL.jcl",
+    "size_bytes": 191,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/ACCOFFL.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The JCL script is designed to compile and link-edit a batch COBOL program named ACCOFFL. It includes default settings and executes a batch job using a specified member.",
+    "api_like_spec": {
+      "function_name": "ACCOFFL",
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": null,
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL",
+      "DEFAULT"
+    ],
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL to use modern job scheduling tools.",
+      "Evaluate the use of modern build automation tools for COBOL programs."
+    ],
+    "confidence": 0.6,
+    "complexity_score": 2,
+    "analysis_notes": "The JCL script is minimal and primarily serves as a build script for a COBOL program. It lacks detailed functional logic or data processing steps.",
+    "source_file": "etc/install/base/buildjcl/ACCOFFL.jcl",
+    "file_name": "ACCOFFL.jcl",
+    "file_size": 191,
+    "analysis_timestamp": "2025-11-24T23:25:38.744640",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.54,
+    "has_parsing_error": false,
+    "confidence_level": 0.6,
+    "metadata_complete": true,
+    "content_completeness": 0.6
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCOFFL.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCOFFL.jcl.functional.json"
+  }
+}

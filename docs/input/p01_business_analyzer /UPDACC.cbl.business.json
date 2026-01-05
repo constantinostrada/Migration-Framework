@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:37:03.952638",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/UPDACC.cbl",
+    "filename": "UPDACC.cbl",
+    "size_bytes": 13946,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/UPDACC.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program updates specific fields of an account record in a DB2 datastore, excluding balance updates. It ensures that only permissible fields such as account type, interest rate, overdraft limit, and statement dates are modified.",
+    "business_entities": [
+      "Account",
+      "Customer"
+    ],
+    "business_rules": [
+      "Only account type, interest rate, overdraft limit, and statement dates can be updated.",
+      "Balance updates are not allowed through this program.",
+      "Account type must not be spaces or start with a space to be valid."
+    ],
+    "business_dependencies": [
+      "DB2 datastore",
+      "CICS environment"
+    ],
+    "business_workflows": [
+      "Receive account update request",
+      "Validate permissible fields",
+      "Update account record in DB2",
+      "Return success or failure flag"
+    ],
+    "data_transformations": [
+      "Date fields are reformatted for DB2 operations",
+      "Account details are moved between host variables and communication area"
+    ],
+    "error_handling": [
+      "If SQL SELECT or UPDATE fails, a failure flag is returned and an error message is displayed.",
+      "Invalid account type results in a rejection of the update."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "medium",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for maintaining account data integrity by restricting updates to non-balance fields and ensuring proper validation.",
+    "extracted_constants": {
+      "business_constants": null,
+      "validation_rules": [
+        "Account type must not be spaces or start with a space."
+      ]
+    },
+    "source_file": "src/base/cobol_src/UPDACC.cbl",
+    "file_name": "UPDACC.cbl",
+    "file_size": 13946,
+    "analysis_timestamp": "2025-11-20T00:37:03.952567",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/UPDACC.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/UPDACC.cbl.business.json"
+  }
+}

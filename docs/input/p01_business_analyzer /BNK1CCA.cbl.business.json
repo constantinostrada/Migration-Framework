@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:39:32.152721",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1CCA.cbl",
+    "filename": "BNK1CCA.cbl",
+    "size_bytes": 30482,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1CCA.cbl",
+    "analysis_type": "business",
+    "business_summary": "This program lists accounts belonging to a specified customer number. It interacts with a CICS system to retrieve and display customer account information.",
+    "business_entities": [
+      "Customer",
+      "Account"
+    ],
+    "business_rules": [
+      "If the customer number is not numeric, prompt for a valid customer number.",
+      "If no matching customer is found, display a message indicating the customer was not found.",
+      "If no accounts are found for a customer, display a message indicating no accounts were found."
+    ],
+    "business_dependencies": [
+      "CICS system",
+      "INQACCCU program"
+    ],
+    "business_workflows": [
+      "Retrieve customer account data based on customer number input.",
+      "Display account information on a screen map."
+    ],
+    "data_transformations": [
+      "Conversion of account balances from numeric to display format with signs.",
+      "String concatenation for displaying account information."
+    ],
+    "error_handling": [
+      "If CICS response is not normal, preserve response codes and link to an Abend Handler program.",
+      "Display error messages for invalid key presses and failed map sends."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "medium",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program heavily relies on CICS for transaction processing and error handling. It involves user interaction through screen maps and requires validation of input data.",
+    "extracted_constants": {
+      "business_constants": [
+        "INQACCCU",
+        "BNK1CCA"
+      ],
+      "validation_rules": [
+        "Customer number must be numeric"
+      ]
+    },
+    "source_file": "src/base/cobol_src/BNK1CCA.cbl",
+    "file_name": "BNK1CCA.cbl",
+    "file_size": 30482,
+    "analysis_timestamp": "2025-11-20T00:39:32.152648",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CCA.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CCA.cbl.business.json"
+  }
+}

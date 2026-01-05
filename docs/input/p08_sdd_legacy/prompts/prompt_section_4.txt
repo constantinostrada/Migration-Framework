@@ -1,0 +1,397 @@
+You are a legacy system analyst specializing in REVERSE ENGINEERING documentation from actual system analysis. Your task is to document WHAT THE LEGACY SYSTEM ACTUALLY CONTAINS based on real code analysis, not what it should contain.
+
+## CRITICAL MANDATE: DOCUMENT REALITY, NOT IDEALS
+- Document ACTUAL programs, files, and functionality found in the system analysis
+- Use REAL component names, file names, and business logic discovered
+- Base ALL content on the provided database analysis of actual legacy code
+- NEVER use generic templates or "should have" language
+- Focus on WHAT EXISTS, not what would be ideal
+
+## CONTEXT
+Project: Legacy  System Reverse Documentation
+Standard: IEEE 1016 Software Design Description  
+Processing Mode: Section-by-section documentation of ACTUAL system
+Target: Accurate documentation of existing legacy implementation
+
+## INPUT DATA
+TOC Section: 4 - Interface Design
+P07 TOC Structure: {
+  "section_number": "4",
+  "section_title": "Interface Design",
+  "page_estimate": 20,
+  "section_purpose": "Design of user and system interfaces",
+  "subsections": [
+    {
+      "subsection_number": "4.1",
+      "subsection_title": "User Interface Design",
+      "content_description": "Design of user interfaces for system interaction",
+      "source_requirements": [
+        "User interface requirements",
+        "UI design principles",
+        "Usability standards"
+      ],
+      "page_estimate": 10,
+      "key_content": [
+        "UI layouts",
+        "User interaction flows",
+        "Usability guidelines"
+      ]
+    },
+    {
+      "subsection_number": "4.2",
+      "subsection_title": "System Interface Design",
+      "content_description": "Design of system interfaces and APIs",
+      "source_requirements": [
+        "System interface requirements",
+        "API specifications",
+        "Protocol definitions"
+      ],
+      "page_estimate": 10,
+      "key_content": [
+        "API endpoints",
+        "Data exchange formats",
+        "Protocol standards"
+      ]
+    }
+  ]
+}
+P06 Requirements: {
+  "functional_requirements": [
+    {
+      "requirement_id": "FR-001",
+      "title": "Customer Account Creation",
+      "description": "The system must allow for the creation of customer accounts by capturing essential customer details, performing a mandatory credit assessment, and securely storing the information.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To streamline the customer onboarding process and ensure data integrity.",
+      "acceptance_criteria": [
+        "Customer details are captured and stored securely.",
+        "Credit assessment is performed using external agencies.",
+        "Unique customer identifiers are managed correctly."
+      ],
+      "dependencies": [],
+      "tags": [
+        "customer",
+        "account",
+        "creation"
+      ]
+    },
+    {
+      "requirement_id": "FR-002",
+      "title": "Account Creation for Existing Customers",
+      "description": "The system must facilitate the addition of new accounts for existing customers, enforcing a limit of nine accounts per customer.",
+      "priority": "medium",
+      "source_component": "CREACC.cbl",
+      "rationale": "To manage customer accounts efficiently and prevent excessive account creation.",
+      "acceptance_criteria": [
+        "New accounts can only be created for existing customers.",
+        "A maximum of nine accounts per customer is enforced."
+      ],
+      "dependencies": [
+        "FR-001"
+      ],
+      "tags": [
+        "account",
+        "creation",
+        "limit"
+      ]
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-001",
+      "title": "System Performance",
+      "description": "The system must handle high transaction volumes with minimal latency.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure efficient processing of financial transactions.",
+      "acceptance_criteria": [
+        "System processes transactions within 2 seconds.",
+        "System supports up to 1000 concurrent transactions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "performance",
+        "scalability"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "requirement_id": "BR-001",
+      "title": "Credit Score Assignment",
+      "description": "If no data is returned from the credit assessment, the credit score must be set to 0.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure consistent handling of credit assessments.",
+      "acceptance_criteria": [
+        "Credit score is set to 0 when no data is returned."
+      ],
+      "dependencies": [],
+      "tags": [
+        "credit",
+        "score",
+        "assessment"
+      ]
+    }
+  ],
+  "interface_requirements": [
+    {
+      "requirement_id": "IR-001",
+      "title": "User Interface for Account Creation",
+      "description": "The system must provide a user interface for input and validation of new account creation.",
+      "priority": "medium",
+      "source_component": "BNK1CAC.cbl",
+      "rationale": "To ensure data quality before account setup.",
+      "acceptance_criteria": [
+        "User interface validates customer and account parameters.",
+        "Interface links to backend operations for account creation."
+      ],
+      "dependencies": [],
+      "tags": [
+        "UI",
+        "validation",
+        "account"
+      ]
+    }
+  ],
+  "data_requirements": [
+    {
+      "requirement_id": "DR-001",
+      "title": "Data Storage for Customer Information",
+      "description": "The system must store customer information securely in either VSAM or DB2 databases.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure secure and reliable storage of customer data.",
+      "acceptance_criteria": [
+        "Customer data is stored in the selected database.",
+        "Data integrity is maintained during storage operations."
+      ],
+      "dependencies": [],
+      "tags": [
+        "data",
+        "storage",
+        "security"
+      ]
+    }
+  ],
+  "operational_requirements": [
+    {
+      "requirement_id": "OR-001",
+      "title": "Rollback Mechanism",
+      "description": "The system must implement rollback mechanisms if data persistence encounters issues.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To maintain business continuity and data integrity.",
+      "acceptance_criteria": [
+        "Rollback is triggered on data persistence failure.",
+        "System state is restored to pre-failure conditions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "rollback",
+        "continuity",
+        "integrity"
+      ]
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement_id": "CR-001",
+      "title": "Compliance with Banking Regulations",
+      "description": "All financial transactions must comply with banking regulations and internal policies.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure legal compliance and operational integrity.",
+      "acceptance_criteria": [
+        "Transactions adhere to regulatory standards.",
+        "Internal policies are enforced during transaction processing."
+      ],
+      "dependencies": [],
+      "tags": [
+        "compliance",
+        "regulations",
+        "policies"
+      ]
+    }
+  ],
+  "legacy_constraints": [
+    {
+      "requirement_id": "LC-001",
+      "title": "COBOL and CICS Environment",
+      "description": "The system operates within a COBOL and CICS environment, which imposes constraints on modernization efforts.",
+      "priority": "medium",
+      "source_component": "All components",
+      "rationale": "To acknowledge the limitations of the current technology stack.",
+      "acceptance_criteria": [
+        "Modernization plans account for COBOL and CICS constraints."
+      ],
+      "dependencies": [],
+      "tags": [
+        "legacy",
+        "COBOL",
+        "CICS"
+      ]
+    }
+  ],
+  "document_metadata": {
+    "system_name": "Legacy Banking System",
+    "extraction_date": "2025-11-20T09:39:13.586679",
+    "total_components_analyzed": 14
+  }
+}
+Database Analysis: {'search_phrase': 'Interface Design. Design of user and system interfaces', 'components': [{'file_path': 'BNK1CAC.cbl', 'file_name': 'BNK1CAC.cbl', 'relevance_score': 0.5, 'summary': 'This is a CICS COBOL program likely involved in handling customer account inquiries or updates, processing user input from a screen (map), and interacting with other CICS transactions and possibly an ABEND handler. It manages user interface interactions based on various function keys (PF keys, Enter, Clear) and performs conditional logic for screen display and data processing.', 'business_analysis': {'business_purpose': 'Processes customer account related transactions within a banking system, including displaying account balances and handling user input for inquiries or updates. It ensures proper user interface interaction and error handling.', 'entities': ['Customer Account', 'Transaction', 'CICS Map'], 'business_rules': ["If it's the first time, send an erased map with empty data fields.", 'If PF3 is pressed, return to the main menu (OMEN transaction).', 'If DFHAID or PF12 is pressed, send a termination message.', 'If CLEAR is pressed, erase the screen and free the keyboard.', 'If ENTER is pressed, process the map content.', "Invalid key presses result in an 'Invalid key pressed' message.", 'If CICS return fails, initiate ABEND processing.']}, 'functional_analysis': {'key_functions': ['Display initial account interface (send erased map)', 'Process user input from CICS map (EVALUATE EIBAID)', "Navigate to main menu (RETURN TRANSID 'OMEN')", 'Terminate transaction (RETURN)', 'Handle invalid key presses', 'Process map data (PERFORM PROCESS-MAP)', 'Handle CICS errors and link to ABEND handler', 'Populate time and date information for ABEND record'], 'inputs': ['EIBCALEN (CICS communication area length)', 'EIBAID (Attention Identifier, e.g., DFHENTER, DFHPF3, DFHCLEAR)', 'BNK1CAO (Output map fields, implicitly input for processing after receive map)', 'SUBPGM-CUSTNO, SUBPGM-ACC-TYPE, SUBPGM-INT-RT, SUBPGM-OVERDR-LIM (from a subprogram call)'], 'outputs': ['BNK1CAO (CICS map output fields for screen display)', 'MESSAGEO (User message output on screen)', "WS-COMM-AREA (CICS COMMAREA for returning data to calling transaction 'OCAC')", 'ABNDINFO-REC (ABEND information record for error logging)'], 'processing_logic': "The program checks EIBCALEN to determine if it's the initial call. It then uses an EVALUATE statement on EIBAID to determine user action (PF keys, Enter, Clear, etc.). Based on the action, it either sends an initial map, processes map data, returns to a main menu, or handles termination/invalid keys. If data is processed, it moves subprogram return values to a CICS COMMAREA for the calling transaction. Error handling involves populating an ABNDINFO-REC and linking to a generic ABEND handler program."}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': 'BNK1CCS.cbl', 'file_name': 'BNK1CCS.cbl', 'relevance_score': 0.5, 'summary': 'This CICS COBOL program is responsible for customer creation and update functionalities. It receives user input from a CICS map (BNK1CCM), validates the data, and performs initial setup for new user creation, including title validation. It also contains robust error handling and ABEND procedures.', 'business_analysis': {'business_purpose': 'Manages the user interface and logic for creating and potentially updating customer information in a banking application. It validates input data like customer titles and handles errors during map reception and data editing.', 'entities': ['Customer', 'Customer Title'], 'business_rules': ['Valid customer titles are: Mr, Mrs, Miss, Ms, Dr, Professor, Drs, Lord, Sir, Lady.', 'If a customer number (CUSTNO2L) is already present, the user must clear the screen before creating a new user.', 'Customer title (CUSTTITL, CUSTTITI) must be provided and valid.', 'If CICS RECEIVE MAP fails, initiate ABEND processing.']}, 'functional_analysis': {'key_functions': ['Receive map data from BNK1CCM (customer details screen)', 'Initialize input fields (e.g., CUSTTITI, CHRISTNI) to spaces or zeros', 'Validate incoming customer data (e.g., customer number, title)', "Standardize customer title input (e.g., 'MR________' to 'Mr')", 'Display validation error messages to the user (MESSAGEO)', 'Handle CICS RECEIVE MAP errors and link to ABEND handler', 'Populate ABEND information record with error details'], 'inputs': ['BNK1CCI (Input map fields containing customer details like CUSTTITI, CHRISTNI, CUSTINSI, DOBDDI, SORTCI, CUSTNO2I, CREDSCI)', 'WS-CICS-RESP, WS-CICS-RESP2 (CICS response codes from RECEIVE MAP)'], 'outputs': ['MESSAGEO (Validation error messages displayed to the user)', 'BNK1CCI (Modified customer input fields after standardization, potentially sent back to user)', 'VALID-DATA-SW (Flag indicating data validity)', 'ABNDINFO-REC (ABEND information record for error logging)'], 'processing_logic': "The program first attempts to receive data from the 'BNK1CC' map within the 'BNK1CCM' mapset. It initializes various input fields. It then proceeds to an 'EDIT-DATA' section where validation rules are applied. It checks if CUSTNO2L has a value (indicating an existing record) and validates the customer title (CUSTTITL and CUSTTITI) against a predefined list. Error messages are set in MESSAGEO and a VALID-DATA-SW is updated. Critical CICS errors during map reception lead to ABEND processing, where detailed error information is captured and passed to a generic ABEND handler."}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': 'BNK1UAC.cbl', 'file_name': 'BNK1UAC.cbl', 'relevance_score': 0.5, 'summary': 'This CICS COBOL program is designed for user account management, likely handling inquiries or updates for customer accounts. It manages user interactions via CICS maps, responding to various function keys for navigation and data processing, and includes standard error handling and ABEND procedures.', 'business_analysis': {'business_purpose': 'Facilitates user interaction with account information within a banking application. It allows for displaying account details and processing user commands, such as returning to the main menu, terminating the transaction, or initiating account-related processing.', 'entities': ['Customer Account', 'Transaction', 'CICS Map'], 'business_rules': ["If it's the first time, send an erased map with empty data fields.", 'If PF3 is pressed, return to the main menu (OMEN transaction).', 'If DFHAID or PF12 is pressed, send a termination message.', 'If CLEAR is pressed, erase the screen and free the keyboard.', 'If ENTER or PF5 is pressed, process the map content.', "Invalid key presses result in an 'Invalid key pressed' message.", 'If CICS return fails, initiate ABEND processing.']}, 'functional_analysis': {'key_functions': ['Display initial account interface (send erased map)', 'Process user input from CICS map (EVALUATE EIBAID)', "Navigate to main menu (RETURN TRANSID 'OMEN')", 'Terminate transaction (RETURN)', 'Handle invalid key presses', 'Process map data (PERFORM PROCESS-MAP)', 'Handle CICS errors and link to ABEND handler', 'Populate time and date information for ABEND record'], 'inputs': ['EIBCALEN (CICS communication area length)', 'EIBAID (Attention Identifier, e.g., DFHENTER, DFHPF3, DFHCLEAR, DFHPF5)', 'BNK1UAO (Output map fields, implicitly input for processing after receive map)', 'COMM-EYE, COMM-CUSTNO, COMM-ACCNO, etc. (from CICS COMMAREA)'], 'outputs': ['BNK1UAO (CICS map output fields for screen display)', 'MESSAGEO (User message output on screen)', "WS-COMM-AREA (CICS COMMAREA for returning data to calling transaction 'OUAC')", 'ABNDINFO-REC (ABEND information record for error logging)'], 'processing_logic': "The program checks EIBCALEN to determine if it's the initial call to display a clear map. It then evaluates the EIBAID to identify the user's action, such as pressing PF3 to return to the main menu, DFHAID/PF12 for termination, CLEAR for screen reset, or ENTER/PF5 to process input data. An 'OTHER' condition catches invalid key presses. If processing is required (EIBCALEN not zero), it moves data from the CICS COMMAREA to working storage. CICS return operations are performed with specific transaction IDs and COMMAREA details. Any CICS errors encountered during this process trigger the ABEND handler, populating an ABNDINFO-REC with relevant error and context data."}, 'component_type': 'COBOL_PROGRAM'}], 'total_found': 3, 'search_method': 'phrase_based_semantic_search'}
+Component Details: {{component_analysis}}
+
+## CONTENT GENERATION APPROACH
+
+Generate documentation that describes the ACTUAL legacy  system based on the component analysis data. Document real  programs, actual business logic, genuine data structures, and existing interfaces found in the code analysis.
+
+## OUTPUT FORMAT
+CRITICAL: Return ONLY a pure JSON object. NO markdown formatting, NO code blocks, NO additional text before or after.
+
+Start your response directly with the opening brace { and end with the closing brace }
+
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "4",
+      "section_title": "Interface Design",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "Clear statement of section purpose and scope",
+        "overview": "High-level summary of what this section covers",
+        "organization": "Brief description of section structure"
+      },
+      "main_sections": [
+        {
+          "subsection_number": "4.1",
+          "subsection_title": "Subsection Title",
+          "content": "Detailed technical content covering design specifications, implementation details, and architectural decisions. Include component descriptions, interfaces, data structures, and processing logic.",
+          "components": [
+            {
+              "name": "Component Name",
+              "type": " Program|Database|Interface",
+              "description": "Component purpose and functionality",
+              "source_files": ["FILE1.cbl", "COPY1.cpy"],
+              "key_features": ["Feature 1", "Feature 2"],
+              "interfaces": ["Input interfaces", "Output interfaces"]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "Design patterns used and rationale",
+            "algorithms": "Key algorithms and processing logic",
+            "data_structures": "Important data structures and formats",
+            "error_handling": "Error handling and exception management"
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Management",
+              "satisfaction": "How this design satisfies the requirement"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": ["Major design decisions made"],
+        "trade_offs": ["Important trade-offs and their justifications"],
+        "future_considerations": ["Considerations for future enhancements"]
+      }
+    },
+    "implementation": {
+      "development_guidance": ["Key implementation notes", "Best practices", "Common pitfalls to avoid"],
+      "testing_approach": "Testing strategy and key test scenarios",
+      "deployment_notes": "Deployment and configuration considerations"
+    },
+    "modernization": {
+      "current_technology": "Legacy technology stack used",
+      "modernization_options": ["Modern technology alternatives", "Migration strategies"],
+      "refactoring_opportunities": ["Areas for improvement", "Code quality enhancements"]
+    }
+  },
+  "markdown_content": "**CRITICAL: Generate COMPLETE markdown with all specific information. DO NOT use placeholders.**\n\nGenerate comprehensive markdown that includes:\n- Section title and number\n- Detailed introduction with actual system context\n- All component details with REAL  program names\n- Technical implementation with specific business logic\n- Actual requirements traceability with real requirement IDs\n- Implementation guidance with specific  standards\n- Modernization considerations with actual legacy constraints\n\nFormat as complete markdown documentation ready for immediate use."
+}
+```
+
+## CONTENT GENERATION GUIDELINES
+
+### CRITICAL DOCUMENTATION REQUIREMENTS:
+1. **Document Real Components**: Use actual  program names, file names, and modules found in analysis
+2. **Specific Technical Details**: Include actual data structures, business logic, and processing flows
+3. **Actual Implementation**: Describe how things ACTUALLY work in the legacy system
+4. **Real File References**: Use specific file names and line numbers where available
+5. **Genuine Architecture**: Document the actual technical architecture, not idealized design
+
+### CONTENT MUST INCLUDE:
+- **Real Program Names**: from component analysis
+- **Actual Business Logic**: Document the specific  operations implemented
+- **Existing Data Flows**: Describe actual data processing and file handling
+- **Legacy Technology**: Document technology as actually implemented
+- **Current Interfaces**: Document actual screen maps, batch jobs, database tables
+
+### CONTENT STRUCTURE:
+- **Introduction**: Brief overview of what this section documents in the ACTUAL system
+- **Actual Components**: Document 3-5 REAL components with specific file names and functionality  
+- **Technical Implementation**: Describe how the legacy system ACTUALLY implements this functionality
+- **Current Architecture**: Document the existing technical approach and design patterns
+- **Legacy Constraints**: Identify actual limitations and technical debt in current implementation
+
+### QUALITY STANDARDS:
+- Base 100% of content on provided component analysis data
+- Use specific program names and file references
+- Describe actual business logic implementation
+- Document current state, not future state
+- Include real technical constraints and dependencies
+
+## PROCESSING INSTRUCTIONS
+
+1. **Analyze Real Components**: Extract actual  programs, files, and modules from component_analysis
+2. **Document Current State**: Describe the existing implementation, not theoretical design
+3. **Use Real File Names**: Reference specific .cbl, .cpy, .jcl, .bms files found in the analysis
+4. **Extract Business Logic**: Document the actual  operations and data processing workflows
+5. **Focus on Legacy Reality**: Document the current technical architecture and implementation patterns
+
+## CRITICAL MANDATES FOR REAL DOCUMENTATION
+- ALWAYS reference specific file names from component_analysis
+- NEVER use generic language like "the system should" or "components include"
+- ALWAYS describe what the legacy system ACTUALLY does
+- USE real  program names and business logic discovered in analysis
+- DOCUMENT existing technical constraints and implementation approaches
+- FOCUS on reverse engineering documentation, not forward design
+
+## JSON RESPONSE REQUIREMENTS
+Return ONLY pure JSON with these CRITICAL requirements:
+
+### **MANDATORY FIELDS:**
+1. **sdd_section**: Complete structured data with real component information
+2. **markdown_content**: FULLY FORMATTED MARKDOWN (no placeholders!)
+
+### **MARKDOWN_CONTENT MUST INCLUDE:**
+- Complete markdown with program names 
+- Specific technical details from component_analysis 
+- Real business logic and data structures
+- Actual file references and implementation details
+- Ready-to-use documentation (no {{placeholders}})
+
+### **EXAMPLE MARKDOWN OUTPUT:**
+```markdown
+# 3 Component Design
+
+## Introduction
+This section documents the actual programs implementing customer management in the Legacy System.
+
+## Customer Management Components
+
+### CREACC.cbl - Account Creation Program
+- **Purpose**: Creates new customer accounts with validation
+- **Inputs**: Customer number, account type, interest rate
+- **Business Logic**: Validates customer exists via INQCUST, generates account numbers
+- **Database**: Updates ACCOUNT and PROCTRAN tables via DB2
+```
+
+Generate COMPLETE documentation with REAL system details now.

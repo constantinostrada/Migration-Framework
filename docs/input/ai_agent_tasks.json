@@ -1,0 +1,1862 @@
+{
+  "project_info": {
+    "name": "Legacy Banking System Modernization",
+    "description": "Modernization of a legacy COBOL banking system to Next.js, Python, and PostgreSQL",
+    "tech_stack": {
+      "original": "COBOL, CICS, DB2, VSAM",
+      "target": {
+        "frontend": "Next.js (React, TypeScript)",
+        "backend": "Python (FastAPI/Flask)",
+        "database": "PostgreSQL",
+        "deployment": "Docker, CI/CD"
+      }
+    },
+    "total_requirements": 121,
+    "functional_requirements": 78,
+    "non_functional_requirements": 43
+  },
+  "task_generation_metadata": {
+    "generated_date": "2026-01-02",
+    "source_documents": [
+      "extracted_requirements.json",
+      "extracted_requirements_summary.md",
+      "Legacy Banking System SDD"
+    ],
+    "total_tasks": 40,
+    "phases": 5,
+    "merged_date": "2026-01-03",
+    "merged_from": [
+      "ai_agent_tasks.json (30 tasks)",
+      "ai_agent_tasks_extended.json (10 tasks)"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Initialize Next.js Frontend Project Structure",
+      "description": "Create a new Next.js project with TypeScript at path ./frontend. Use 'npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir --import-alias @/*'. Configure tsconfig.json with strict mode enabled. Create directory structure: src/app (Next.js 13+ app router), src/components (reusable UI components), src/lib (utilities and helpers), src/types (TypeScript type definitions), src/services (API client services). Install additional dependencies: axios (HTTP client), react-hook-form (form handling), zod (validation), @tanstack/react-query (data fetching). Create .env.local file with NEXT_PUBLIC_API_URL variable pointing to http://localhost:8000.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "30 minutes",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Next.js project created with TypeScript and Tailwind CSS",
+        "Directory structure matches specification (app, components, lib, types, services)",
+        "Required dependencies installed (axios, react-hook-form, zod, react-query)",
+        ".env.local exists with API URL configuration",
+        "Project builds successfully with 'npm run build'",
+        "No TypeScript compilation errors"
+      ],
+      "relatedRequirements": [
+        "NFR-5",
+        "NFR-17",
+        "NFR-28"
+      ],
+      "skillsRequired": [
+        "Next.js",
+        "TypeScript",
+        "Node.js"
+      ],
+      "deliverables": [
+        "frontend/package.json",
+        "frontend/tsconfig.json",
+        "frontend/.env.local",
+        "frontend/src/app/",
+        "frontend/src/components/",
+        "frontend/src/lib/",
+        "frontend/src/types/",
+        "frontend/src/services/"
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "title": "Initialize Python Backend Project Structure",
+      "description": "Create Python backend project at path ./backend using FastAPI. Create pyproject.toml using Poetry with dependencies: fastapi (web framework), uvicorn (ASGI server), sqlalchemy (ORM), psycopg2-binary (PostgreSQL driver), pydantic (data validation), python-jose (JWT), passlib (password hashing), python-multipart (file uploads), pytest (testing), alembic (migrations), python-dotenv (environment variables). Create directory structure: backend/app (main application), backend/app/api (API routes), backend/app/core (configuration and security), backend/app/models (database models), backend/app/schemas (Pydantic schemas), backend/app/services (business logic), backend/app/db (database utilities), backend/tests (test suite). Create .env file with DATABASE_URL=postgresql://user:password@localhost:5432/banking_db, SECRET_KEY=your-secret-key-here, API_V1_PREFIX=/api/v1. Create backend/app/main.py with FastAPI app initialization, CORS middleware, and health check endpoint at /health.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "45 minutes",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Python project created with Poetry and FastAPI",
+        "Directory structure matches specification (api, core, models, schemas, services, db, tests)",
+        "All required dependencies listed in pyproject.toml",
+        ".env file exists with database configuration",
+        "main.py creates FastAPI app with CORS and health check endpoint",
+        "Server starts successfully with 'uvicorn app.main:app --reload'",
+        "Health check endpoint returns 200 status"
+      ],
+      "relatedRequirements": [
+        "NFR-5",
+        "NFR-8",
+        "NFR-28"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "Poetry"
+      ],
+      "deliverables": [
+        "backend/pyproject.toml",
+        "backend/.env",
+        "backend/app/main.py",
+        "backend/app/api/",
+        "backend/app/core/",
+        "backend/app/models/",
+        "backend/app/schemas/",
+        "backend/app/services/",
+        "backend/app/db/",
+        "backend/tests/"
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "title": "Setup PostgreSQL Database Schema with Core Tables",
+      "description": "Create Alembic migration script at backend/alembic/versions/001_initial_schema.py. Define CUSTOMER table with columns: id (BIGSERIAL PRIMARY KEY), customer_number (VARCHAR(10) UNIQUE NOT NULL), eyecatcher (CHAR(4) DEFAULT 'CUST'), title (VARCHAR(20) CHECK IN ('Mr','Mrs','Miss','Ms','Dr','Professor','Drs','Lord','Sir','Lady')), first_name (VARCHAR(50) NOT NULL), surname (VARCHAR(50) NOT NULL), date_of_birth (DATE NOT NULL CHECK > '1600-01-01'), address_line1 (VARCHAR(100) NOT NULL), address_line2 (VARCHAR(100)), address_line3 (VARCHAR(100)), city (VARCHAR(50)), postal_code (VARCHAR(20)), credit_score (INTEGER CHECK BETWEEN 0 AND 999), marked_for_review (BOOLEAN DEFAULT FALSE), created_at (TIMESTAMP DEFAULT NOW()), updated_at (TIMESTAMP DEFAULT NOW()), deleted_at (TIMESTAMP NULL). Create index on customer_number. Define ACCOUNT table with columns: id (BIGSERIAL PRIMARY KEY), account_number (VARCHAR(20) UNIQUE NOT NULL), customer_id (BIGINT REFERENCES CUSTOMER(id) ON DELETE CASCADE), account_type (VARCHAR(20) CHECK IN ('ISA','MORTGAGE','SAVING','CURRENT','LOAN') NOT NULL), interest_rate (NUMERIC(5,2) DEFAULT 0.00), overdraft_limit (NUMERIC(15,2) DEFAULT 0.00 CHECK >= 0), available_balance (NUMERIC(15,2) DEFAULT 0.00), actual_balance (NUMERIC(15,2) DEFAULT 0.00), last_statement_date (DATE), next_statement_date (DATE), opened_date (DATE NOT NULL), created_at (TIMESTAMP DEFAULT NOW()), updated_at (TIMESTAMP DEFAULT NOW()), deleted_at (TIMESTAMP NULL). Add CHECK constraint: opened_date must be after customer date_of_birth. Create indexes on customer_id and account_number. Define PROCTRAN table with columns: id (BIGSERIAL PRIMARY KEY), eyecatcher (CHAR(4) DEFAULT 'PRTR'), transaction_code (VARCHAR(3) CHECK IN ('CHA','CHF','CHI','CHO','CRE','DEB','ICA','ICC','IDA','IDC','OCA','OCC','ODA','ODC','OCS','PCR','PDR','TFR')), account_id (BIGINT REFERENCES ACCOUNT(id)), customer_id (BIGINT REFERENCES CUSTOMER(id)), amount (NUMERIC(15,2)), description (TEXT), transaction_timestamp (TIMESTAMP DEFAULT NOW()), deleted_flag (CHAR(1) DEFAULT NULL). Create indexes on account_id, customer_id, and transaction_timestamp.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-002"
+      ],
+      "acceptanceCriteria": [
+        "Alembic migration file 001_initial_schema.py exists",
+        "CUSTOMER table created with all specified columns and constraints",
+        "Title validation enforces 10 valid values",
+        "Date of birth CHECK constraint validates year > 1600",
+        "ACCOUNT table created with foreign key to CUSTOMER",
+        "Account type validation enforces 5 valid values (ISA, MORTGAGE, SAVING, CURRENT, LOAN)",
+        "CHECK constraint ensures opened_date > customer DOB",
+        "PROCTRAN table created with eyecatcher and 18 transaction type codes",
+        "All indexes created successfully",
+        "Migration applies successfully with 'alembic upgrade head'",
+        "All constraints are enforced at database level"
+      ],
+      "relatedRequirements": [
+        "FR-1",
+        "FR-9",
+        "FR-10",
+        "FR-12",
+        "FR-21",
+        "NFR-10"
+      ],
+      "skillsRequired": [
+        "PostgreSQL",
+        "SQL",
+        "Alembic"
+      ],
+      "deliverables": [
+        "backend/alembic/versions/001_initial_schema.py"
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "title": "Create SQLAlchemy Database Models",
+      "description": "Create backend/app/models/customer.py with Customer model class inheriting from SQLAlchemy Base. Define all columns matching database schema: id, customer_number, eyecatcher (default='CUST'), title, first_name, surname, date_of_birth, address fields (line1, line2, line3, city, postal_code), credit_score, marked_for_review, timestamps (created_at, updated_at, deleted_at). Add relationship to Account model with cascade delete. Add @validates decorator for title (must be in valid list), date_of_birth (must be after 1600, calculated age < 150 years). Create backend/app/models/account.py with Account model class. Define columns: id, account_number, customer_id (ForeignKey), account_type, interest_rate, overdraft_limit, available_balance, actual_balance, statement dates, opened_date, timestamps. Add relationship to Customer model and PROCTRAN. Add @validates decorator for account_type (must be in valid list, not spaces/low-values), overdraft_limit (>= 0). Create backend/app/models/transaction.py with ProcTran model class. Define columns: id, eyecatcher (default='PRTR'), transaction_code, account_id (ForeignKey), customer_id (ForeignKey), amount, description, transaction_timestamp, deleted_flag. Add @validates for transaction_code (must be one of 18 valid codes), amount (must be > 0). Create backend/app/models/__init__.py importing all models. Create backend/app/db/session.py with SQLAlchemy engine setup, SessionLocal factory using DATABASE_URL from environment, and get_db() dependency function for FastAPI.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-003"
+      ],
+      "acceptanceCriteria": [
+        "Customer model created with all fields and validations",
+        "Title validation enforces 10 valid values in code",
+        "Age validation ensures calculated age < 150 years",
+        "Account model created with foreign key to Customer",
+        "Account type validation implemented with @validates",
+        "ProcTran model created with eyecatcher 'PRTR'",
+        "Transaction code validation enforces 18 valid codes",
+        "Amount validation ensures positive values only",
+        "Cascade delete relationship configured on Customer -> Account",
+        "SQLAlchemy session factory created in db/session.py",
+        "get_db() dependency function returns database session",
+        "All models properly imported in __init__.py"
+      ],
+      "relatedRequirements": [
+        "FR-7",
+        "FR-9",
+        "FR-19",
+        "FR-42",
+        "NFR-7"
+      ],
+      "skillsRequired": [
+        "Python",
+        "SQLAlchemy",
+        "Database Modeling"
+      ],
+      "deliverables": [
+        "backend/app/models/customer.py",
+        "backend/app/models/account.py",
+        "backend/app/models/transaction.py",
+        "backend/app/models/__init__.py",
+        "backend/app/db/session.py"
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "title": "Create Pydantic Schemas for API Validation",
+      "description": "Create backend/app/schemas/customer.py with CustomerBase schema defining: title (Literal with 10 valid values), first_name (str, min_length=1), surname (str, min_length=1), date_of_birth (date), address_line1 (str, min_length=1), optional address_line2/3, city, postal_code. Add @validator for date_of_birth: must not be in future, year > 1600, calculated age < 150. Add @validator for title to ensure it's in valid list. Create CustomerCreate schema inheriting CustomerBase. Create CustomerUpdate schema with all optional fields. Create CustomerResponse schema with id, customer_number, credit_score, marked_for_review, timestamps. Create backend/app/schemas/account.py with AccountBase schema: account_type (Literal['ISA','MORTGAGE','SAVING','CURRENT','LOAN']), interest_rate (condecimal ge=0, le=100), overdraft_limit (condecimal ge=0), statement dates (optional date). Add @validator for account_type to reject spaces, low-values, or starting with space. Create AccountCreate schema requiring customer_id. Create AccountUpdate with optional fields, explicit prohibition of balance fields in comments. Create AccountResponse with id, account_number, balances (available_balance, actual_balance), opened_date, timestamps. Create backend/app/schemas/transaction.py with TransactionBase: transaction_code (Literal with 18 codes), account_id, amount (condecimal gt=0), description (optional). Add @validator ensuring amount > 0. Create TransactionCreate and TransactionResponse schemas. Create backend/app/schemas/__init__.py importing all schemas.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-004"
+      ],
+      "acceptanceCriteria": [
+        "CustomerBase schema with all required field validations",
+        "Title validation uses Literal type with 10 values",
+        "Date of birth validator checks future date, year > 1600, age < 150",
+        "Required field validation for first_name, surname, address_line1",
+        "AccountBase schema with account_type Literal (5 values)",
+        "Account type validator rejects spaces and invalid formats",
+        "Overdraft limit validation ensures non-negative values",
+        "AccountUpdate schema explicitly excludes balance updates (commented)",
+        "TransactionBase schema with transaction_code Literal (18 codes)",
+        "Amount validator ensures positive values only (> 0)",
+        "All Create, Update, Response schemas properly inherit base schemas",
+        "All schemas imported in __init__.py"
+      ],
+      "relatedRequirements": [
+        "FR-7",
+        "FR-8",
+        "FR-35",
+        "FR-42",
+        "FR-44",
+        "FR-45",
+        "FR-46",
+        "NFR-7"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Pydantic",
+        "Data Validation"
+      ],
+      "deliverables": [
+        "backend/app/schemas/customer.py",
+        "backend/app/schemas/account.py",
+        "backend/app/schemas/transaction.py",
+        "backend/app/schemas/__init__.py"
+      ]
+    },
+    {
+      "id": "TASK-006",
+      "title": "Implement JWT Authentication and Security Core",
+      "description": "Create backend/app/core/config.py with Settings class using pydantic BaseSettings. Define: DATABASE_URL, SECRET_KEY, ALGORITHM='HS256', ACCESS_TOKEN_EXPIRE_MINUTES=30, API_V1_PREFIX='/api/v1', PROJECT_NAME='Banking System API'. Load from environment with Config(env_file='.env'). Create backend/app/core/security.py with functions: create_access_token(data: dict, expires_delta: timedelta) using python-jose JWT encoding with SECRET_KEY and ALGORITHM. Add verify_password(plain_password: str, hashed_password: str) using passlib bcrypt. Add get_password_hash(password: str) returning bcrypt hash. Create get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) dependency that: 1) Decodes JWT token, 2) Validates token hasn't expired, 3) Extracts user_id from payload, 4) Queries database for user, 5) Returns user object or raises 401 HTTPException. Create backend/app/core/deps.py with reusable dependencies: get_current_active_user (checks user is not disabled), require_admin (checks user has admin role). Create backend/app/api/v1/endpoints/auth.py with POST /login endpoint accepting username/password, validating credentials against database, returning JWT access token and token_type='bearer'. Add rate limiting to prevent brute force (100 requests per minute per IP).",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-004"
+      ],
+      "acceptanceCriteria": [
+        "Settings class loads configuration from environment",
+        "JWT token creation function with configurable expiration",
+        "Password hashing using bcrypt with proper salt rounds",
+        "Password verification function for authentication",
+        "get_current_user dependency validates JWT tokens",
+        "Invalid tokens raise 401 HTTPException with proper message",
+        "Expired tokens are rejected",
+        "/api/v1/auth/login endpoint accepts username and password",
+        "Successful login returns JWT token and token_type",
+        "Invalid credentials return 401 status",
+        "Rate limiting prevents brute force attacks (100 req/min)",
+        "Passwords never logged or returned in responses"
+      ],
+      "relatedRequirements": [
+        "NFR-12",
+        "NFR-13",
+        "NFR-14",
+        "NFR-16"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "JWT",
+        "Security"
+      ],
+      "deliverables": [
+        "backend/app/core/config.py",
+        "backend/app/core/security.py",
+        "backend/app/core/deps.py",
+        "backend/app/api/v1/endpoints/auth.py"
+      ]
+    },
+    {
+      "id": "TASK-007",
+      "title": "Implement Centralized Error Handling and Logging",
+      "description": "Create backend/app/core/errors.py defining custom exception classes: BankingException(base), CustomerNotFoundException, AccountNotFoundException, InsufficientFundsException, ValidationException, DatabaseConnectionException. Each exception has error_code (unique string), message, http_status_code, and optional details dict. Create backend/app/core/logging_config.py configuring Python logging with: JSON formatter for structured logs, log level from environment (default INFO), file handler writing to logs/app.log with rotation (max 10MB, 5 backups), console handler for development, correlation_id tracking for request tracing. Create middleware in backend/app/middleware/error_handler.py catching all exceptions: log full stack trace with timestamp and correlation_id, return standardized JSON error response {error_code, message, details, timestamp}, map exceptions to HTTP status codes, ensure 500 for unhandled exceptions. Create backend/app/middleware/request_logging.py middleware logging all requests: method, path, query params (sanitized), status code, duration, user_id (if authenticated), correlation_id. Create backend/app/services/monitoring.py with error notification function send_error_alert(error, severity) integrating with monitoring system. Register all middleware in main.py before routes.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-006"
+      ],
+      "acceptanceCriteria": [
+        "Custom exception classes defined with error codes and HTTP status",
+        "Logging configured with JSON formatter for structured logs",
+        "Log rotation configured (10MB max, 5 backups)",
+        "Correlation ID generated and tracked across requests",
+        "Error handler middleware catches all exceptions",
+        "Stack traces logged with timestamp and context",
+        "Standardized error JSON response format",
+        "Request logging middleware logs method, path, duration, user",
+        "Sensitive data (passwords, tokens) excluded from logs",
+        "Error notifications sent to monitoring system",
+        "Middleware registered in main.py before routes"
+      ],
+      "relatedRequirements": [
+        "FR-5",
+        "FR-30",
+        "NFR-27"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "Logging"
+      ],
+      "deliverables": [
+        "backend/app/core/errors.py",
+        "backend/app/core/logging_config.py",
+        "backend/app/middleware/error_handler.py",
+        "backend/app/middleware/request_logging.py",
+        "backend/app/services/monitoring.py"
+      ]
+    },
+    {
+      "id": "TASK-008",
+      "title": "Implement Retry Logic and Circuit Breaker Patterns",
+      "description": "Create backend/app/core/retry.py with decorator @retry_on_exception accepting parameters: max_retries (int), backoff_strategy ('exponential' or 'fixed'), initial_delay (float), max_delay (float), retriable_exceptions (tuple of exception classes). Implement exponential backoff: delay = min(initial_delay * (2 ** attempt), max_delay). Log each retry attempt with attempt number and delay. Create @circuit_breaker decorator accepting: failure_threshold (int), timeout_duration (seconds), success_threshold (int to close circuit). Implement states: CLOSED (normal), OPEN (failing, reject requests), HALF_OPEN (testing recovery). When threshold failures reached, open circuit for timeout_duration. After timeout, enter HALF_OPEN, allow one request. If succeeds, close circuit. Track state per decorated function using function name as key. Create backend/app/services/database_resilience.py with function execute_with_retry(operation: Callable, operation_name: str) configured for database operations: 100 retries for SYSIDERR (system ID error), exponential backoff starting 100ms, max delay 5 seconds, retry on OperationalError (connection loss, deadlock, timeout). Log each attempt. On SQLCODE 923 (connection loss), trigger reconnection attempt. After max retries exhausted, raise DatabaseConnectionException. Create backend/app/services/external_api_resilience.py with async function call_credit_agency_with_circuit_breaker(agency_url: str, customer_data: dict) implementing: timeout 3 seconds, circuit breaker with failure_threshold=5, on failure return default score 0 and mark customer for review, 3 retries with exponential backoff. Test retry logic with unit tests mocking failures.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-007"
+      ],
+      "acceptanceCriteria": [
+        "Retry decorator with configurable max_retries and backoff strategy",
+        "Exponential backoff implemented correctly (2^attempt)",
+        "Fixed interval backoff option available",
+        "Each retry attempt logged with attempt number and delay",
+        "Circuit breaker decorator with CLOSED, OPEN, HALF_OPEN states",
+        "Circuit opens after failure_threshold consecutive failures",
+        "Circuit stays open for timeout_duration seconds",
+        "Half-open state allows test request before fully closing",
+        "Database retry logic: 100 retries for SYSIDERR",
+        "SQLCODE 923 (connection loss) triggers reconnection",
+        "Credit agency calls timeout after 3 seconds",
+        "Credit agency circuit breaker returns score=0 on failure",
+        "Failed credit checks mark customer for review",
+        "Unit tests verify retry behavior with mocked failures"
+      ],
+      "relatedRequirements": [
+        "FR-6",
+        "NFR-2",
+        "NFR-6",
+        "NFR-32",
+        "NFR-33"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Async Programming",
+        "Resilience Patterns"
+      ],
+      "deliverables": [
+        "backend/app/core/retry.py",
+        "backend/app/services/database_resilience.py",
+        "backend/app/services/external_api_resilience.py",
+        "backend/tests/test_retry_logic.py"
+      ]
+    },
+    {
+      "id": "TASK-009",
+      "title": "Create Customer Management Service with Validation",
+      "description": "Create backend/app/services/customer_service.py with class CustomerService. Implement create_customer(customer_data: CustomerCreate, db: Session) -> Customer: 1) Generate unique customer_number using sequence or UUID, 2) Validate title is in approved list, 3) Validate DOB: not future, year > 1600, age < 150, 4) Validate required fields: first_name, surname, address_line1 not empty/whitespace, 5) Set eyecatcher='CUST', 6) Create Customer model instance, 7) Commit to database with retry logic, 8) Log creation in audit trail, 9) Return created customer. Implement get_customer(customer_number: str, db: Session) -> Customer handling special cases: if customer_number == '0000000000', select random customer with up to 1000 retry attempts until found; if customer_number == '9999999999', return last customer ordered by id DESC; else query by customer_number. Raise CustomerNotFoundException if not found. Implement update_customer(customer_number: str, customer_data: CustomerUpdate, db: Session) -> Customer: 1) Fetch existing customer, 2) Validate updates (title, DOB, required fields), 3) Update only provided fields, 4) Log update in audit trail, 5) Return updated customer. Implement delete_customer(customer_number: str, db: Session) -> bool: 1) Fetch customer with associated accounts, 2) Delete all accounts first (cascading), 3) Log each account deletion in PROCTRAN with transaction_code='ODC' or 'IDC', 4) Delete customer record, 5) Log customer deletion in PROCTRAN, 6) Idempotent: if already deleted, return success. Implement list_customers(skip: int, limit: int, db: Session) -> List[Customer] with pagination. Add execute_with_retry wrapper for all database operations.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-007",
+        "TASK-008"
+      ],
+      "acceptanceCriteria": [
+        "create_customer validates all fields before database insert",
+        "Customer number generation uses sequence or UUID",
+        "Title validation enforces 10 valid values",
+        "DOB validation: not future, year > 1600, age < 150",
+        "Required fields validated: first_name, surname, address_line1",
+        "Eyecatcher 'CUST' set automatically",
+        "get_customer handles special mode 0000000000 (random customer)",
+        "Random customer selection retries up to 1000 times",
+        "get_customer handles special mode 9999999999 (last customer)",
+        "update_customer validates all updates before applying",
+        "Audit trail logs all create/update operations",
+        "delete_customer implements cascading deletion (accounts first)",
+        "Each deletion logged in PROCTRAN with appropriate code",
+        "Deletion is idempotent (already-deleted returns success)",
+        "Database operations wrapped with retry logic",
+        "Pagination implemented in list_customers"
+      ],
+      "relatedRequirements": [
+        "FR-1",
+        "FR-7",
+        "FR-22",
+        "FR-38",
+        "FR-44",
+        "FR-45",
+        "FR-46"
+      ],
+      "skillsRequired": [
+        "Python",
+        "SQLAlchemy",
+        "Business Logic"
+      ],
+      "deliverables": [
+        "backend/app/services/customer_service.py"
+      ]
+    },
+    {
+      "id": "TASK-010",
+      "title": "Create Account Management Service with Business Rules",
+      "description": "Create backend/app/services/account_service.py with class AccountService. Implement create_account(account_data: AccountCreate, db: Session) -> Account: 1) Validate customer exists, 2) Count existing accounts for customer, 3) Enforce limit: max 9 accounts per customer in online mode, raise exception if exceeded, 4) Generate unique account_number using named counter mechanism (sequence), 5) Validate account_type is one of ISA/MORTGAGE/SAVING/CURRENT/LOAN, not spaces/low-values, 6) Validate opened_date is after customer date_of_birth (cross-table check), 7) Set initial balances to 0.00, 8) Create Account model instance, 9) Commit with retry logic, 10) Log creation in PROCTRAN with transaction_code='OCA' or 'ICA', 11) Return created account. Implement get_account(account_number: str, db: Session) -> Account handling special case: if account_number == '99999999', execute alternative retrieval logic for system testing. Validate account_type not spaces/low-values/start-with-space. Implement update_account(account_number: str, account_data: AccountUpdate, db: Session) -> Account: 1) Fetch existing account, 2) CRITICAL: Explicitly prohibit balance updates (check AccountUpdate schema), 3) Allow updates: account_type, interest_rate, overdraft_limit, statement_dates, 4) Validate account_type not spaces/low-values, 5) Validate overdraft_limit >= 0, 6) Log update in audit trail, 7) Return updated account. Implement delete_account(account_number: str, db: Session) -> bool: 1) Fetch account, 2) Validate customer_id and account_type match if provided, 3) Delete account record, 4) Log deletion in PROCTRAN with code 'ODA' or 'IDA', 5) Idempotent: if already deleted, return success without error. Implement list_accounts_for_customer(customer_number: str, db: Session) -> List[Account].",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-009"
+      ],
+      "acceptanceCriteria": [
+        "create_account validates customer exists before creation",
+        "Account limit enforced: max 9 accounts per customer (online mode)",
+        "Account number generated using named counter/sequence",
+        "Account type validated: must be ISA/MORTGAGE/SAVING/CURRENT/LOAN",
+        "Whitespace validation: rejects spaces, low-values, start-with-space",
+        "Temporal validation: opened_date must be after customer DOB",
+        "Initial balances set to 0.00 (available and actual)",
+        "Account creation logged in PROCTRAN with appropriate code",
+        "get_account handles special mode 99999999 (alternative logic)",
+        "update_account explicitly prohibits balance updates",
+        "Updatable fields: account_type, interest_rate, overdraft_limit, statement dates",
+        "Overdraft limit validation: must be >= 0",
+        "delete_account validates customer and account type match",
+        "Deletion is idempotent (already-deleted returns success)",
+        "All deletions logged in PROCTRAN",
+        "Database operations wrapped with retry logic"
+      ],
+      "relatedRequirements": [
+        "FR-2",
+        "FR-8",
+        "FR-19",
+        "FR-22",
+        "FR-34",
+        "FR-35",
+        "FR-41",
+        "NFR-39"
+      ],
+      "skillsRequired": [
+        "Python",
+        "SQLAlchemy",
+        "Business Logic"
+      ],
+      "deliverables": [
+        "backend/app/services/account_service.py"
+      ]
+    },
+    {
+      "id": "TASK-011",
+      "title": "Create Transaction Processing Service with Specialized Rules",
+      "description": "Create backend/app/services/transaction_service.py with class TransactionService. Implement process_transfer(from_account_number: str, to_account_number: str, amount: Decimal, db: Session) -> ProcTran: 1) Validate amount > 0, reject if zero or negative, 2) Validate from_account_number != to_account_number (prohibit same-account transfers), 3) Fetch both accounts, 4) CRITICAL: Do NOT check overdraft limits for transfers (differs from debits), 5) Begin database transaction, 6) Deduct amount from source account: available_balance -= amount, actual_balance -= amount, 7) Add amount to destination account: available_balance += amount, actual_balance += amount, 8) Create PROCTRAN record with transaction_code='TFR', both account IDs, amount, timestamp, 9) Commit transaction atomically, 10) On any failure, rollback, 11) Return transaction record. Implement process_debit(account_number: str, amount: Decimal, description: str, db: Session) -> ProcTran: 1) Validate amount > 0, 2) Fetch account, 3) Check account_type: if MORTGAGE or LOAN and accessed via PAYMENT facility, apply restrictions, 4) CRITICAL: Validate sufficient funds: check available_balance >= amount, raise InsufficientFundsException if not, 5) Begin transaction, 6) Deduct from balances: available_balance -= amount, actual_balance -= amount, 7) Create PROCTRAN with code='DEB', 8) Commit atomically, 9) Rollback on failure. Implement process_credit(account_number: str, amount: Decimal, description: str, db: Session) -> ProcTran: 1) Validate amount > 0, 2) Fetch account, 3) Add to balances: available_balance += amount, actual_balance += amount, 4) Create PROCTRAN with code='CRE', 5) Commit atomically. Add function validate_dual_balance_consistency() checking available and actual balances match business rules. All functions must: log operations before and after execution, use retry logic for deadlocks/timeouts, ensure ACID properties, maintain audit trail in PROCTRAN.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-008",
+        "TASK-010"
+      ],
+      "acceptanceCriteria": [
+        "process_transfer validates amount > 0 (rejects zero/negative)",
+        "Same-account transfers prohibited (source != destination)",
+        "CRITICAL: Transfers do NOT check overdraft limits",
+        "Dual balance tracking: both available and actual updated",
+        "Transfer transaction logged in PROCTRAN with code 'TFR'",
+        "Atomic transaction: both accounts updated or neither",
+        "process_debit validates sufficient funds before processing",
+        "Debit operations DO check available_balance >= amount",
+        "MORTGAGE/LOAN restrictions applied for PAYMENT facility",
+        "Debit logged with code 'DEB'",
+        "process_credit adds to both balance fields",
+        "Credit logged with code 'CRE'",
+        "Amount validation enforced across all transaction types",
+        "All operations logged before and after execution",
+        "Rollback occurs on any failure",
+        "Retry logic handles deadlocks and timeouts",
+        "Dual balance consistency validation implemented"
+      ],
+      "relatedRequirements": [
+        "FR-4",
+        "FR-21",
+        "FR-24",
+        "FR-42",
+        "NFR-2",
+        "NFR-21",
+        "NFR-35",
+        "NFR-36"
+      ],
+      "skillsRequired": [
+        "Python",
+        "SQLAlchemy",
+        "Transaction Management"
+      ],
+      "deliverables": [
+        "backend/app/services/transaction_service.py"
+      ]
+    },
+    {
+      "id": "TASK-012",
+      "title": "Implement Credit Check Integration Service",
+      "description": "Create backend/app/services/credit_check_service.py with class CreditCheckService. Implement async check_customer_credit(customer_id: int, customer_data: dict, db: Session) -> int: 1) Define 5 credit agency URLs (CRDTAGY1 through CRDTAGY5) from environment or config, 2) Create async tasks to call all 5 agencies concurrently using asyncio.gather, 3) For each agency call: set timeout to 3 seconds (random 0-3s for simulation), send customer data (name, DOB, address), parse response credit_score field, validate score is between 1-999, 4) Wrap each call with circuit breaker from TASK-008 (failure_threshold=5, timeout=30s), 5) On agency failure or timeout: default to score 0, mark customer for review (set marked_for_review=True), log failure with agency name, 6) Collect all returned scores (exclude failed agencies), 7) Calculate aggregated score: average of all successfully returned scores, 8) If all agencies fail: return 0 and mark for review, 9) Update customer record with credit_score and marked_for_review flag, 10) Log credit check results in audit trail, 11) Return final aggregated score. Implement simulate_credit_agency_response(customer_data: dict, agency_id: int) -> dict for testing: randomly delay 0-3 seconds, return random score 1-999 or occasionally simulate failure. Create integration tests mocking agency responses: test timeout handling, test partial failures (some agencies succeed, others fail), test aggregation algorithm (average), test circuit breaker opens after 5 failures, test all-failure scenario returns 0 and marks for review.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-008",
+        "TASK-009"
+      ],
+      "acceptanceCriteria": [
+        "Async function calls 5 credit agencies concurrently",
+        "Each agency call has 3-second timeout",
+        "Credit score validation: range 1-999",
+        "Circuit breaker pattern applied to each agency call",
+        "Failed calls default to score 0",
+        "Customer marked for review when credit check fails",
+        "Aggregation algorithm: average of successfully returned scores",
+        "All-failure scenario returns 0 and marks customer",
+        "Customer record updated with credit_score and marked_for_review",
+        "Credit check results logged in audit trail",
+        "Integration tests verify timeout handling",
+        "Tests verify partial failure scenarios",
+        "Tests verify aggregation algorithm correctness",
+        "Tests verify circuit breaker behavior"
+      ],
+      "relatedRequirements": [
+        "FR-6",
+        "FR-23",
+        "NFR-6",
+        "NFR-37"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Async Programming",
+        "External APIs"
+      ],
+      "deliverables": [
+        "backend/app/services/credit_check_service.py",
+        "backend/tests/test_credit_check_integration.py"
+      ]
+    },
+    {
+      "id": "TASK-013",
+      "title": "Create Customer Management API Endpoints",
+      "description": "Create backend/app/api/v1/endpoints/customers.py with APIRouter. Implement POST /customers endpoint: accept CustomerCreate schema, call customer_service.create_customer(), trigger async credit check (call credit_check_service.check_customer_credit in background), return 201 status with CustomerResponse. Implement GET /customers/{customer_number} endpoint: accept customer_number path parameter (handles special cases 0000000000, 9999999999), call customer_service.get_customer(), return 200 with CustomerResponse, return 404 if not found. Implement PUT /customers/{customer_number} endpoint: accept CustomerUpdate schema, call customer_service.update_customer(), return 200 with CustomerResponse. Implement DELETE /customers/{customer_number} endpoint: call customer_service.delete_customer() which handles cascading deletion, return 204 No Content on success, idempotent (returns 204 even if already deleted). Implement GET /customers endpoint: accept query params skip (default 0) and limit (default 100), call customer_service.list_customers() with pagination, return 200 with List[CustomerResponse]. Add authentication dependency using get_current_user from TASK-006. Add input sanitization to prevent injection attacks. Add rate limiting middleware. Register router in backend/app/api/v1/api.py with prefix '/customers'. Add OpenAPI documentation with examples for each endpoint. Create integration tests for all endpoints: test successful creation, test validation errors (invalid title, future DOB, age > 150, missing required fields), test special inquiry modes, test pagination, test cascading deletion.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-006",
+        "TASK-009",
+        "TASK-012"
+      ],
+      "acceptanceCriteria": [
+        "POST /customers endpoint creates customer and returns 201",
+        "Credit check triggered asynchronously after customer creation",
+        "GET /customers/{customer_number} handles special modes 0000000000 and 9999999999",
+        "404 returned when customer not found",
+        "PUT /customers/{customer_number} updates customer and returns 200",
+        "All validation errors return 400 with detailed error messages",
+        "DELETE /customers/{customer_number} implements cascading deletion",
+        "Deletion is idempotent (returns 204 even if already deleted)",
+        "GET /customers implements pagination with skip and limit",
+        "All endpoints require authentication",
+        "Input sanitization prevents injection attacks",
+        "Rate limiting applied (100 requests per minute)",
+        "OpenAPI documentation includes examples",
+        "Integration tests cover all endpoints and edge cases"
+      ],
+      "relatedRequirements": [
+        "FR-3",
+        "FR-7",
+        "FR-14",
+        "FR-18",
+        "NFR-19",
+        "NFR-20"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "REST API"
+      ],
+      "deliverables": [
+        "backend/app/api/v1/endpoints/customers.py",
+        "backend/tests/test_customers_api.py"
+      ]
+    },
+    {
+      "id": "TASK-014",
+      "title": "Create Account Management API Endpoints",
+      "description": "Create backend/app/api/v1/endpoints/accounts.py with APIRouter. Implement POST /accounts endpoint: accept AccountCreate schema with customer_id, validate customer exists, enforce 9-account limit per customer, call account_service.create_account(), return 201 with AccountResponse including generated account_number. Implement GET /accounts/{account_number} endpoint: handle special mode 99999999 (alternative retrieval), call account_service.get_account(), return 200 with AccountResponse including both balances, return 404 if not found. Implement PUT /accounts/{account_number} endpoint: accept AccountUpdate schema, CRITICAL: validate that balance fields are NOT included in update (reject with 400 Bad Request and message 'Balance updates not allowed via this endpoint, use transaction endpoints'), validate account_type not spaces/low-values, validate overdraft_limit >= 0, call account_service.update_account(), return 200 with AccountResponse. Implement DELETE /accounts/{account_number} endpoint: call account_service.delete_account(), return 204 No Content, idempotent behavior. Implement GET /customers/{customer_number}/accounts endpoint: call account_service.list_accounts_for_customer(), return 200 with List[AccountResponse]. Add authentication with get_current_user. Add validation for account_type whitespace. Register router with prefix '/accounts'. Create integration tests: test account creation with limit enforcement (attempt to create 10th account should fail), test special inquiry mode 99999999, test balance update rejection (attempt to update balance via PUT should return 400), test whitespace validation for account_type, test overdraft limit validation, test cascading deletion when customer deleted.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-006",
+        "TASK-010",
+        "TASK-013"
+      ],
+      "acceptanceCriteria": [
+        "POST /accounts creates account and returns 201 with generated account_number",
+        "Account limit enforced: 9 accounts maximum per customer",
+        "Attempting 10th account returns 400 with clear error message",
+        "GET /accounts/{account_number} handles special mode 99999999",
+        "Account response includes both available_balance and actual_balance",
+        "PUT /accounts/{account_number} explicitly rejects balance updates",
+        "Balance update attempt returns 400 with message about using transaction endpoints",
+        "Account type whitespace validation (rejects spaces, low-values, start-with-space)",
+        "Overdraft limit validation enforces >= 0",
+        "DELETE /accounts/{account_number} is idempotent",
+        "GET /customers/{customer_number}/accounts returns all customer accounts",
+        "All endpoints require authentication",
+        "Integration tests verify all business rules",
+        "Tests verify account limit enforcement",
+        "Tests verify balance update rejection"
+      ],
+      "relatedRequirements": [
+        "FR-8",
+        "FR-19",
+        "FR-20",
+        "FR-34",
+        "FR-35",
+        "FR-41"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "REST API"
+      ],
+      "deliverables": [
+        "backend/app/api/v1/endpoints/accounts.py",
+        "backend/tests/test_accounts_api.py"
+      ]
+    },
+    {
+      "id": "TASK-015",
+      "title": "Create Transaction Processing API Endpoints",
+      "description": "Create backend/app/api/v1/endpoints/transactions.py with APIRouter. Implement POST /transactions/transfer endpoint: accept TransferRequest schema {from_account: str, to_account: str, amount: Decimal, description: str}, validate amount > 0, validate from_account != to_account (reject same-account with 400), call transaction_service.process_transfer(), return 201 with transaction details and new balances. Implement POST /transactions/debit endpoint: accept DebitRequest schema {account_number: str, amount: Decimal, description: str}, validate amount > 0, call transaction_service.process_debit(), handle InsufficientFundsException returning 400 with message, return 201 with transaction details. Implement POST /transactions/credit endpoint: accept CreditRequest schema, validate amount > 0, call transaction_service.process_credit(), return 201 with transaction details. Implement GET /accounts/{account_number}/transactions endpoint: query PROCTRAN filtered by account_id, support query params: limit (default 50), offset (default 0), start_date, end_date, transaction_code filter, order by transaction_timestamp DESC, return paginated List[TransactionResponse]. Implement GET /transactions/{transaction_id} endpoint: fetch single transaction, return 200 with details. Add idempotency using idempotency-key header: store processed transaction IDs in cache/database, return existing result if duplicate key. Add authentication. Add comprehensive error handling: 400 for validation errors (negative amounts, same-account transfers), 404 for account not found, 500 for database errors with retry exhausted. Register router with prefix '/transactions'. Create integration tests: test successful transfer between two accounts (verify both balances updated), test same-account transfer rejection, test debit with insufficient funds (should fail), test debit with sufficient funds, test credit operation, test amount validation (zero, negative), test idempotency (duplicate request returns same result), test transaction history pagination.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-006",
+        "TASK-011",
+        "TASK-014"
+      ],
+      "acceptanceCriteria": [
+        "POST /transactions/transfer validates amount > 0",
+        "Same-account transfers rejected with 400 status",
+        "Transfer does NOT check overdraft limits (per business rule)",
+        "Both account balances updated atomically in transfer",
+        "POST /transactions/debit validates sufficient funds",
+        "Insufficient funds returns 400 with clear error message",
+        "POST /transactions/credit adds to account balance",
+        "All transaction endpoints validate amount > 0 (reject zero and negative)",
+        "GET /accounts/{account_number}/transactions returns paginated history",
+        "Transaction history filterable by date range and transaction code",
+        "Transactions ordered by timestamp descending (newest first)",
+        "GET /transactions/{transaction_id} returns single transaction details",
+        "Idempotency-key header prevents duplicate processing",
+        "All endpoints require authentication",
+        "Integration tests verify all transaction types",
+        "Tests verify atomic operations and rollback on failure"
+      ],
+      "relatedRequirements": [
+        "FR-4",
+        "FR-15",
+        "FR-17",
+        "FR-24",
+        "FR-42",
+        "NFR-21"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "REST API",
+        "Transactions"
+      ],
+      "deliverables": [
+        "backend/app/api/v1/endpoints/transactions.py",
+        "backend/tests/test_transactions_api.py"
+      ]
+    },
+    {
+      "id": "TASK-016",
+      "title": "Implement Batch Processing for Data Initialization",
+      "description": "Create backend/app/services/batch_service.py with class BatchProcessingService. Implement process_customer_batch(customer_data: List[dict], db: Session) -> dict: 1) Accept list of customer dictionaries for bulk insert, 2) Process in batches of 1000 records, 3) For each batch: validate all records (title, DOB, required fields), begin transaction, insert all customers in batch, enforce 5 accounts maximum per customer in batch mode (different from online 9), validate account open_date > customer DOB for each account, commit transaction after each 1000 records, 4) On validation failure for any record: rollback entire batch, log error details, continue with next batch or abort based on config, 5) Track progress: records processed, records failed, total time, 6) Return summary: {total_processed, total_failed, duration, errors: []}. Implement generate_test_data(num_customers: int, accounts_per_customer: int) -> List[dict]: 1) Generate realistic test data: random names from list, random addresses, random DOB between 1950-2000, random account types, respect 5-account batch limit, ensure opened_date > DOB, 2) Return list of customer dictionaries with nested accounts. Create CLI script backend/scripts/run_batch_init.py: accept command-line args --file (CSV/JSON file path) or --generate (number of customers), parse input file or generate data, call batch_service.process_customer_batch(), display progress bar, print summary report. Implement performance optimization: use bulk_insert_mappings for SQLAlchemy, minimize queries with eager loading, ensure commit every 1000 records for recovery granularity. Add monitoring: log batch start/end times, track records per second, alert if batch takes > 5 minutes for 100K records. Create unit tests: test batch validation, test commit interval (verify commits every 1000), test rollback on validation failure, test 5-account limit enforcement in batch mode.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "medium",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-004",
+        "TASK-009",
+        "TASK-010"
+      ],
+      "acceptanceCriteria": [
+        "Batch processing handles large datasets (100K+ records)",
+        "Records processed in batches of 1000",
+        "Transaction committed every 1000 records for recovery granularity",
+        "Batch mode enforces 5 accounts maximum per customer",
+        "Temporal validation: account opened_date > customer DOB",
+        "Customer number range validation in batch mode",
+        "Validation failure in batch triggers rollback of that batch only",
+        "Progress tracking: records processed, failed, duration",
+        "Performance target: 100K records in 5 minutes",
+        "CLI script accepts file input or generates test data",
+        "Generate test data creates realistic, valid records",
+        "All generated data respects validation rules",
+        "Progress bar displayed during batch processing",
+        "Summary report printed: success count, failure count, duration",
+        "Unit tests verify commit interval and rollback behavior"
+      ],
+      "relatedRequirements": [
+        "FR-1",
+        "FR-2",
+        "FR-13",
+        "FR-37",
+        "NFR-1",
+        "NFR-10",
+        "NFR-39"
+      ],
+      "skillsRequired": [
+        "Python",
+        "SQLAlchemy",
+        "Batch Processing"
+      ],
+      "deliverables": [
+        "backend/app/services/batch_service.py",
+        "backend/scripts/run_batch_init.py",
+        "backend/tests/test_batch_processing.py"
+      ]
+    },
+    {
+      "id": "TASK-017",
+      "title": "Create Customer Creation Frontend Form",
+      "description": "Create frontend/src/components/CustomerForm.tsx using React Hook Form and Zod validation. Define Zod schema matching backend validation: title (enum with 10 values: Mr, Mrs, Miss, Ms, Dr, Professor, Drs, Lord, Sir, Lady), firstName (min 1 char), surname (min 1 char), dateOfBirth (date validation: not future, year > 1600, age < 150), addressLine1 (min 1 char), optional addressLine2/3, city, postalCode. Implement form with fields: title (dropdown), firstName (text input), surname (text input), dateOfBirth (date picker using react-datepicker), address fields (text inputs). Add real-time validation with inline error messages appearing within 100ms of input change. Add submit handler: call POST /api/v1/customers using axios, show loading spinner during submission, on success display success message and customer number, on error display error message with details from API response. Implement client-side date validation: calculate age in years, reject if > 150 or year < 1600 or future date. Style form using Tailwind CSS: responsive layout, clear labels, red error text, green success message, disabled submit button while loading. Create frontend/src/app/customers/new/page.tsx rendering CustomerForm component. Add navigation after successful creation to customer detail page. Create integration tests using React Testing Library: test form validation (invalid title shows error, future DOB shows error, age > 150 shows error, missing required fields shows error), test successful submission, test API error handling, test real-time validation feedback.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-013"
+      ],
+      "acceptanceCriteria": [
+        "Customer form with all required fields rendered",
+        "Title dropdown contains exactly 10 valid values",
+        "Date picker for date of birth selection",
+        "Zod schema validation matches backend rules",
+        "Real-time validation with inline error messages",
+        "Error messages appear within 100ms of input change",
+        "First name, surname, address line 1 marked as required",
+        "Date validation: rejects future dates, year < 1600, age > 150",
+        "Submit button disabled while form invalid or submitting",
+        "Loading spinner shown during API call",
+        "Success message displays customer number on creation",
+        "Error message displays API error details",
+        "Form styled responsively with Tailwind CSS",
+        "Integration tests verify all validation rules",
+        "Tests verify error display and success flow"
+      ],
+      "relatedRequirements": [
+        "FR-14",
+        "FR-18",
+        "FR-44",
+        "FR-45",
+        "FR-46",
+        "NFR-17",
+        "NFR-18"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "Form Validation",
+        "Tailwind CSS"
+      ],
+      "deliverables": [
+        "frontend/src/components/CustomerForm.tsx",
+        "frontend/src/app/customers/new/page.tsx",
+        "frontend/src/__tests__/CustomerForm.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-018",
+      "title": "Create Account Creation Frontend Form",
+      "description": "Create frontend/src/components/AccountForm.tsx with React Hook Form and Zod validation. Define schema: customerNumber (required, string), accountType (enum: ISA, MORTGAGE, SAVING, CURRENT, LOAN), interestRate (number, 0-100), overdraftLimit (number, >= 0), openedDate (date). Implement form with fields: customerNumber (text input with lookup button), accountType (dropdown with 5 options), interestRate (number input with % suffix), overdraftLimit (currency input with $ prefix), openedDate (date picker). Add customer lookup: button next to customerNumber triggers API call GET /customers/{number}, displays customer name when found, shows error if not found, validates customer exists before allowing form submission. Add validation: whitespace validation for accountType (reject spaces, low-values), overdraftLimit >= 0, opened date validation. Add account limit check: before submission, call GET /customers/{customerNumber}/accounts, count existing accounts, show warning if >= 8 accounts ('Creating 9th account - maximum allowed'), prevent submission if >= 9 accounts ('Cannot create account: customer has maximum 9 accounts'). Add submit handler: call POST /api/v1/accounts, on success show account number, on error show message. Handle validation errors: account limit exceeded (display specific message), customer not found, invalid account type. Create frontend/src/app/accounts/new/page.tsx rendering AccountForm. Style responsively. Create tests: test account type dropdown has 5 options, test customer lookup, test account limit enforcement (mock API returning 9 accounts shows error, prevents submission), test overdraft validation, test whitespace in account type rejected.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-013",
+        "TASK-014",
+        "TASK-017"
+      ],
+      "acceptanceCriteria": [
+        "Account form with all required fields",
+        "Account type dropdown has exactly 5 options (ISA, MORTGAGE, SAVING, CURRENT, LOAN)",
+        "Customer lookup validates customer exists before submission",
+        "Customer name displayed after successful lookup",
+        "Account limit pre-check before submission",
+        "Warning displayed when creating 9th account",
+        "Error prevents submission when customer has 9 accounts",
+        "Whitespace validation for account type",
+        "Overdraft limit validation (>= 0)",
+        "Interest rate validation (0-100%)",
+        "Opened date validated",
+        "Submit disabled while loading or form invalid",
+        "Success message shows generated account number",
+        "Error handling for all validation failures",
+        "Responsive styling with Tailwind CSS",
+        "Tests verify account limit enforcement"
+      ],
+      "relatedRequirements": [
+        "FR-19",
+        "FR-35",
+        "FR-41",
+        "NFR-17",
+        "NFR-18"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "Form Validation"
+      ],
+      "deliverables": [
+        "frontend/src/components/AccountForm.tsx",
+        "frontend/src/app/accounts/new/page.tsx",
+        "frontend/src/__tests__/AccountForm.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-019",
+      "title": "Create Fund Transfer Frontend Interface",
+      "description": "Create frontend/src/components/TransferForm.tsx with React Hook Form and Zod validation. Define schema: fromAccount (required string), toAccount (required string), amount (number > 0), description (optional string). Implement validation: amount must be > 0 (reject zero and negative), fromAccount !== toAccount (reject same-account transfers with message 'Cannot transfer to the same account'). Add account lookup for both fields: input with search/dropdown, call GET /api/v1/accounts/{accountNumber}, display account type and current balance when found, show error if account not found. Display current balance of source account prominently. Add amount input: currency formatted, shows validation error for zero/negative amounts. Add confirmation dialog before submission: shows summary (from account, to account, amount), requires user confirmation. Submit handler: call POST /api/v1/transactions/transfer, show loading state, on success: display success message, show new balances for both accounts, offer 'Make another transfer' button, on error: display error message (handle insufficient funds, account not found, same-account rejection). Create frontend/src/app/transactions/transfer/page.tsx rendering TransferForm. Style with clear visual hierarchy: source account on left, arrow icon in middle, destination on right. Create tests: test amount validation (zero rejected, negative rejected, positive accepted), test same-account rejection, test balance display, test confirmation dialog, test API error handling.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-014",
+        "TASK-015",
+        "TASK-017"
+      ],
+      "acceptanceCriteria": [
+        "Transfer form with from account, to account, amount fields",
+        "Account lookup for both source and destination",
+        "Current balance displayed for source account",
+        "Amount validation: must be > 0 (reject zero and negative)",
+        "Same-account transfer validation: fromAccount !== toAccount",
+        "Clear error message for same-account attempt",
+        "Currency formatting for amount input",
+        "Confirmation dialog before submission",
+        "Summary shown in confirmation: accounts and amount",
+        "Loading state during API call",
+        "Success message shows new balances for both accounts",
+        "Error handling for insufficient funds (though transfers don't check overdraft)",
+        "Error handling for account not found",
+        "Error handling for same-account rejection",
+        "Responsive layout with clear visual flow",
+        "Tests verify all validation rules and error cases"
+      ],
+      "relatedRequirements": [
+        "FR-15",
+        "FR-17",
+        "FR-24",
+        "FR-42",
+        "NFR-17",
+        "NFR-18"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "UI/UX"
+      ],
+      "deliverables": [
+        "frontend/src/components/TransferForm.tsx",
+        "frontend/src/app/transactions/transfer/page.tsx",
+        "frontend/src/__tests__/TransferForm.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-020",
+      "title": "Create System Health Monitoring Dashboard",
+      "description": "Create backend/app/api/v1/endpoints/health.py with endpoints: GET /health returns {status: 'healthy', timestamp, version, database: {connected: bool, latency_ms}, services: {cache, queue}}. Add database health check: attempt simple query SELECT 1, measure latency, return connected=true if successful. GET /health/detailed (requires admin authentication) returns: system metrics (CPU, memory, disk usage), database metrics (connection pool stats, active connections, query performance), API metrics (request count, average response time, error rate), cache metrics. Create backend/app/services/metrics_service.py collecting: transaction volume (count per minute/hour/day), transaction success rate, average processing time per transaction type, error counts by error code, API endpoint usage statistics, database query performance. Store metrics in time-series database or PostgreSQL table with timestamp. Implement metric aggregation functions: calculate 95th percentile response time, calculate error rate percentage, identify slow queries. Create frontend/src/app/monitoring/page.tsx displaying dashboard with charts using recharts library: Line chart showing transaction volume over time, Pie chart showing transaction types distribution, Bar chart showing error counts by type, Gauge showing system health score (derived from error rate, response time, database health), Table showing recent errors with timestamp, error code, message. Add real-time updates using WebSocket or polling every 30 seconds. Create alert configuration in backend/app/services/alerts.py: define thresholds (error rate > 5%, response time > 500ms, transaction failure rate > 1%), check metrics every 5 minutes, send alert when threshold exceeded using alert notification function from TASK-007. Style dashboard professionally with dark theme option.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "medium",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-006",
+        "TASK-007",
+        "TASK-017"
+      ],
+      "acceptanceCriteria": [
+        "GET /health endpoint returns system status in JSON",
+        "Database health check measures connection and latency",
+        "GET /health/detailed requires admin authentication",
+        "Detailed health includes system, database, API, cache metrics",
+        "Metrics service collects transaction volume and success rate",
+        "Transaction processing time tracked per transaction type",
+        "Error counts tracked by error code",
+        "Metrics stored with timestamps for historical analysis",
+        "95th percentile response time calculated",
+        "Dashboard displays line chart for transaction volume",
+        "Dashboard shows error distribution and system health",
+        "Real-time updates via WebSocket or 30-second polling",
+        "Alert thresholds configurable",
+        "Alerts triggered when metrics exceed thresholds",
+        "Alerts sent within 5 minutes of threshold breach"
+      ],
+      "relatedRequirements": [
+        "FR-28",
+        "FR-29",
+        "NFR-24",
+        "NFR-27"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "React",
+        "Monitoring"
+      ],
+      "deliverables": [
+        "backend/app/api/v1/endpoints/health.py",
+        "backend/app/services/metrics_service.py",
+        "backend/app/services/alerts.py",
+        "frontend/src/app/monitoring/page.tsx"
+      ]
+    },
+    {
+      "id": "TASK-021",
+      "title": "Implement Comprehensive Unit Tests for Customer Service",
+      "description": "Create backend/tests/unit/test_customer_service.py using pytest. Mock database session using pytest fixtures. Test create_customer: test successful creation with valid data returns Customer object, test customer_number generation is unique, test eyecatcher 'CUST' is set automatically, test title validation (valid title accepted, invalid title raises ValidationException with clear message listing valid values), test DOB validation (future date raises exception with message 'Date of birth cannot be in the future', year 1600 accepted, year 1599 raises exception, age 150 rejected, age 149 accepted), test required fields (missing first_name raises exception, missing surname raises exception, missing address_line1 raises exception, empty string rejected, whitespace-only string rejected), test audit trail logging (verify log entry created). Test get_customer: test normal lookup by customer_number returns customer, test customer not found raises CustomerNotFoundException, test special mode 0000000000 returns random customer (mock database returning different customer each call, verify up to 1000 retry attempts), test special mode 9999999999 returns last customer (mock database ordering by id DESC), test retry logic on database error (mock OperationalError, verify retry attempts with backoff). Test update_customer: test successful update, test validation on update, test audit logging. Test delete_customer: test cascading deletion (mock customer with 3 accounts, verify all 3 accounts deleted first, verify customer deleted after accounts), test PROCTRAN logging for each deletion (verify 3 account logs + 1 customer log), test idempotency (delete already-deleted customer returns success), test retry on database error. Use pytest markers for different test categories. Aim for 95%+ code coverage on customer_service.py. Run tests with pytest --cov.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-009"
+      ],
+      "acceptanceCriteria": [
+        "Unit tests for create_customer cover all validation rules",
+        "Title validation tests verify all 10 valid values and reject invalid",
+        "DOB validation tests: future date, year boundary (1600/1599), age boundary (149/150)",
+        "Required field tests: missing, empty, whitespace-only",
+        "Eyecatcher 'CUST' automatically set verified",
+        "Audit trail logging verified",
+        "get_customer tests verify special modes 0000000000 and 9999999999",
+        "Random customer selection retry logic tested (up to 1000 attempts)",
+        "CustomerNotFoundException properly raised and tested",
+        "delete_customer tests verify cascading deletion order",
+        "PROCTRAN logging verified for each deletion",
+        "Idempotency tested (deleting already-deleted succeeds)",
+        "Retry logic tested with mocked database errors",
+        "Code coverage >= 95% for customer_service.py",
+        "All tests pass with pytest"
+      ],
+      "relatedRequirements": [
+        "FR-7",
+        "FR-22",
+        "FR-44",
+        "FR-45",
+        "FR-46",
+        "NFR-22"
+      ],
+      "skillsRequired": [
+        "Python",
+        "pytest",
+        "Unit Testing"
+      ],
+      "deliverables": [
+        "backend/tests/unit/test_customer_service.py"
+      ]
+    },
+    {
+      "id": "TASK-022",
+      "title": "Implement Comprehensive Unit Tests for Account Service",
+      "description": "Create backend/tests/unit/test_account_service.py using pytest. Test create_account: test successful creation, test account_number generation, test customer validation (non-existent customer raises exception), test account limit enforcement (mock customer with 8 accounts, 9th account succeeds, attempt 10th account raises exception with message 'Cannot create account: customer has maximum 9 accounts'), test account_type validation (valid types ISA/MORTGAGE/SAVING/CURRENT/LOAN accepted, invalid type raises exception, spaces rejected with message, low-values rejected, starting-with-space rejected), test temporal validation (opened_date after customer DOB accepted, opened_date before DOB raises exception with message 'Account opened date must be after customer date of birth'), test initial balances set to 0.00 (verify both available_balance and actual_balance), test PROCTRAN logging with code OCA or ICA. Test get_account: test normal lookup, test special mode 99999999 (alternative retrieval logic), test account not found raises AccountNotFoundException, test account_type whitespace validation. Test update_account: test successful update of allowed fields (account_type, interest_rate, overdraft_limit, statement_dates), test balance update prohibition (mock AccountUpdate with balance field, verify exception raised with message 'Balance updates not allowed via this endpoint'), test overdraft_limit validation (negative value rejected, zero accepted, positive accepted), test account_type whitespace validation on update. Test delete_account: test successful deletion, test PROCTRAN logging with ODA or IDA code, test idempotency (deleting already-deleted succeeds), test customer and account_type matching validation. Test list_accounts_for_customer: test returns all accounts for customer, test empty list when no accounts. Mock database session. Aim for 95%+ code coverage.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-010"
+      ],
+      "acceptanceCriteria": [
+        "Unit tests for create_account cover all validation rules",
+        "Account limit enforcement tested (9 max, 10th fails)",
+        "Account type validation: all 5 valid types, invalid types, whitespace",
+        "Temporal validation tested: opened_date vs customer DOB",
+        "Initial balances verified (0.00 for both available and actual)",
+        "PROCTRAN logging verified with correct codes",
+        "get_account special mode 99999999 tested",
+        "update_account tests verify balance update prohibition",
+        "Update tests verify only allowed fields can be updated",
+        "Overdraft limit validation tested (negative rejected, >= 0 accepted)",
+        "Account type whitespace validation on update tested",
+        "delete_account idempotency tested",
+        "PROCTRAN logging for deletion verified",
+        "list_accounts_for_customer tested with accounts and empty list",
+        "Code coverage >= 95% for account_service.py"
+      ],
+      "relatedRequirements": [
+        "FR-8",
+        "FR-19",
+        "FR-22",
+        "FR-34",
+        "FR-35",
+        "FR-41"
+      ],
+      "skillsRequired": [
+        "Python",
+        "pytest",
+        "Unit Testing"
+      ],
+      "deliverables": [
+        "backend/tests/unit/test_account_service.py"
+      ]
+    },
+    {
+      "id": "TASK-023",
+      "title": "Implement Comprehensive Unit Tests for Transaction Service",
+      "description": "Create backend/tests/unit/test_transaction_service.py using pytest. Test process_transfer: test successful transfer (verify both accounts updated, balances correct, PROCTRAN logged with code TFR), test amount validation (zero amount rejected, negative amount rejected, positive accepted), test same-account prohibition (from_account == to_account raises exception with message 'Cannot transfer to the same account'), test NO overdraft check (mock account with available_balance=100, transfer amount=150, verify transfer succeeds without checking overdraft - CRITICAL business rule), test dual balance update (verify both available_balance and actual_balance updated for both accounts), test atomic transaction (mock failure after first account update, verify both accounts rolled back), test retry on deadlock (mock OperationalError deadlock, verify retry with backoff), test PROCTRAN logging. Test process_debit: test successful debit, test amount validation (positive only), test sufficient funds validation (available_balance >= amount required, insufficient funds raises InsufficientFundsException with clear message), test MORTGAGE/LOAN restrictions (mock MORTGAGE account accessed via PAYMENT facility, verify restriction applied), test dual balance update (both balances decreased), test PROCTRAN logging with code DEB, test rollback on failure. Test process_credit: test successful credit, test amount validation, test dual balance update (both balances increased), test PROCTRAN logging with code CRE. Test validate_dual_balance_consistency: test balance discrepancy detection, test consistency validation. Mock database session and accounts. Verify all operations logged before and after execution. Aim for 95%+ code coverage.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "150 minutes",
+      "dependencies": [
+        "TASK-011"
+      ],
+      "acceptanceCriteria": [
+        "process_transfer tests verify successful transfer updates both accounts",
+        "Amount validation tested (zero, negative, positive)",
+        "Same-account prohibition tested with clear error message",
+        "CRITICAL: Transfer does NOT check overdraft limits verified",
+        "Test verifies transfer succeeds even when amount > available_balance",
+        "Dual balance tracking tested (both balances updated)",
+        "Atomic transaction tested (rollback on partial failure)",
+        "Deadlock retry logic tested with mocked OperationalError",
+        "PROCTRAN logging verified with code TFR",
+        "process_debit sufficient funds validation tested",
+        "Insufficient funds raises clear exception",
+        "MORTGAGE/LOAN restrictions tested for PAYMENT facility",
+        "process_credit tests verify balance increases",
+        "All transaction types verify dual balance updates",
+        "Consistency validation tested",
+        "Code coverage >= 95% for transaction_service.py"
+      ],
+      "relatedRequirements": [
+        "FR-24",
+        "FR-42",
+        "NFR-2",
+        "NFR-21",
+        "NFR-35",
+        "NFR-36"
+      ],
+      "skillsRequired": [
+        "Python",
+        "pytest",
+        "Unit Testing"
+      ],
+      "deliverables": [
+        "backend/tests/unit/test_transaction_service.py"
+      ]
+    },
+    {
+      "id": "TASK-024",
+      "title": "Implement Integration Tests for Complete Workflows",
+      "description": "Create backend/tests/integration/ directory. Create test_customer_workflow.py testing complete customer lifecycle: 1) Create customer via POST /customers (verify 201 status, customer_number returned), 2) Verify credit check triggered (mock async call, verify customer.marked_for_review updated), 3) Retrieve customer via GET /customers/{number} (verify data matches), 4) Update customer via PUT (verify 200, updated fields), 5) Create 3 accounts for customer, 6) Delete customer via DELETE (verify cascading: all 3 accounts deleted first, then customer, PROCTRAN has 4 entries), 7) Verify idempotency: delete again returns 204. Create test_account_workflow.py: 1) Create customer, 2) Create 9 accounts for customer (all succeed), 3) Attempt 10th account (verify 400 error with message), 4) Update account (verify balance update rejected), 5) Delete account (verify success). Create test_transaction_workflow.py: 1) Create customer, 2) Create 2 accounts, 3) Credit 1000 to account 1, 4) Transfer 500 from account 1 to account 2 (verify balances: acct1=500, acct2=500), 5) Attempt transfer 600 from account 2 (verify succeeds even though > initial balance - no overdraft check), 6) Attempt debit 1000 from account 2 (verify fails with insufficient funds), 7) Verify transaction history via GET /accounts/{id}/transactions shows all operations. Create test_special_modes.py: test customer 0000000000 returns random customer, test customer 9999999999 returns last customer, test account 99999999 special handling. Use pytest fixtures for database setup/teardown, create test database, run migrations, seed initial data, cleanup after tests. Use TestClient for API testing. Implement parallel test execution with pytest-xdist. Create tests/conftest.py with shared fixtures.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "180 minutes",
+      "dependencies": [
+        "TASK-013",
+        "TASK-014",
+        "TASK-015",
+        "TASK-021",
+        "TASK-022",
+        "TASK-023"
+      ],
+      "acceptanceCriteria": [
+        "Customer lifecycle integration test covers create, read, update, delete",
+        "Credit check async trigger verified in customer creation",
+        "Cascading deletion verified with PROCTRAN entries",
+        "Idempotency verified (delete twice succeeds)",
+        "Account workflow tests 9-account limit enforcement",
+        "Balance update prohibition tested end-to-end",
+        "Transaction workflow tests credit, transfer, debit operations",
+        "Transfer without overdraft check verified (amount > balance succeeds)",
+        "Debit with insufficient funds properly rejected",
+        "Transaction history retrieval tested",
+        "Special modes tested (0000000000, 9999999999, 99999999)",
+        "Test database setup/teardown with fixtures",
+        "All tests run against real database (integration level)",
+        "Tests can run in parallel with pytest-xdist",
+        "Shared fixtures in conftest.py"
+      ],
+      "relatedRequirements": [
+        "FR-1",
+        "FR-7",
+        "FR-19",
+        "FR-22",
+        "FR-24",
+        "NFR-22"
+      ],
+      "skillsRequired": [
+        "Python",
+        "pytest",
+        "Integration Testing"
+      ],
+      "deliverables": [
+        "backend/tests/integration/test_customer_workflow.py",
+        "backend/tests/integration/test_account_workflow.py",
+        "backend/tests/integration/test_transaction_workflow.py",
+        "backend/tests/integration/test_special_modes.py",
+        "backend/tests/conftest.py"
+      ]
+    },
+    {
+      "id": "TASK-025",
+      "title": "Implement Frontend End-to-End Tests",
+      "description": "Create frontend/e2e/ directory. Install Playwright for E2E testing: npm install @playwright/test. Create playwright.config.ts configuring: base URL http://localhost:3000, browsers (chromium, firefox, webkit), screenshots on failure, video on failure. Create e2e/customer-creation.spec.ts: 1) Navigate to /customers/new, 2) Fill form with invalid title (verify error), 3) Fill with future DOB (verify error 'Date of birth cannot be in the future'), 4) Fill with age > 150 (verify error), 5) Fill with missing required field (verify error), 6) Fill with valid data, 7) Submit form, 8) Verify success message with customer number, 9) Verify redirect to customer detail page. Create e2e/account-creation.spec.ts: 1) Create customer first, 2) Navigate to /accounts/new, 3) Lookup customer, 4) Create 9 accounts, 5) Attempt 10th account (verify error 'Cannot create account: customer has maximum 9 accounts'), 6) Verify error displayed in UI. Create e2e/fund-transfer.spec.ts: 1) Setup: create customer, create 2 accounts, credit 1000 to account 1, 2) Navigate to /transactions/transfer, 3) Select from-account (account 1), 4) Select to-account (same as from - verify error 'Cannot transfer to the same account'), 5) Change to account 2, 6) Enter amount 0 (verify error), 7) Enter amount -50 (verify error), 8) Enter amount 500, 9) Submit, 10) Verify confirmation dialog, 11) Confirm, 12) Verify success message with new balances. Create e2e/form-validation.spec.ts: test real-time validation (error appears within 100ms of invalid input), test all validation rules from forms. Create GitHub Actions workflow .github/workflows/e2e-tests.yml: run on pull request, setup Node.js and Python, start backend and frontend, run Playwright tests, upload test results and videos as artifacts. Configure test data cleanup after each test.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "medium",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-017",
+        "TASK-018",
+        "TASK-019"
+      ],
+      "acceptanceCriteria": [
+        "Playwright configured with multiple browsers",
+        "Customer creation E2E test covers all validation errors",
+        "Future DOB error message verified in UI",
+        "Age > 150 error verified in UI",
+        "Required field validation verified in UI",
+        "Successful customer creation and redirect tested",
+        "Account creation E2E test creates 9 accounts",
+        "10th account attempt shows error in UI",
+        "Fund transfer E2E test covers all validation",
+        "Same-account transfer shows error in UI",
+        "Zero and negative amount validation tested in UI",
+        "Confirmation dialog tested",
+        "Real-time validation tested (< 100ms response)",
+        "GitHub Actions workflow runs E2E tests on PR",
+        "Test artifacts (screenshots, videos) uploaded on failure"
+      ],
+      "relatedRequirements": [
+        "FR-14",
+        "FR-17",
+        "FR-18",
+        "FR-19",
+        "NFR-17",
+        "NFR-18"
+      ],
+      "skillsRequired": [
+        "TypeScript",
+        "Playwright",
+        "E2E Testing"
+      ],
+      "deliverables": [
+        "frontend/e2e/customer-creation.spec.ts",
+        "frontend/e2e/account-creation.spec.ts",
+        "frontend/e2e/fund-transfer.spec.ts",
+        "frontend/e2e/form-validation.spec.ts",
+        "frontend/playwright.config.ts",
+        ".github/workflows/e2e-tests.yml"
+      ]
+    },
+    {
+      "id": "TASK-026",
+      "title": "Create Docker Configuration for Development and Production",
+      "description": "Create Dockerfile.backend in backend/ directory: use Python 3.11 base image, install Poetry, copy pyproject.toml and install dependencies, copy application code, expose port 8000, set environment variables, run uvicorn with --host 0.0.0.0 --port 8000. Create Dockerfile.frontend in frontend/ directory: multi-stage build (builder stage: install dependencies and build Next.js, production stage: copy build artifacts, use Node 18 alpine), expose port 3000, run next start. Create docker-compose.yml at project root: define services (postgres, backend, frontend), postgres service with persistent volume, environment variables from .env file, health checks for each service, depends_on with conditions (backend depends on postgres, frontend depends on backend), networks for service communication. Create docker-compose.dev.yml for development: volume mounts for live code reload, expose ports for debugging, environment set to development. Create .dockerignore files excluding node_modules, __pycache__, .env, tests. Create scripts/docker-init.sh to initialize database: wait for postgres ready, run Alembic migrations, seed initial data. Create docs/DOCKER.md with instructions: how to build images, how to run development environment (docker-compose -f docker-compose.yml -f docker-compose.dev.yml up), how to run production (docker-compose up -d), how to view logs, how to run tests in containers, troubleshooting common issues. Add health check endpoints used by Docker. Configure PostgreSQL with persistent volume for data. Test full stack startup with docker-compose up, verify all services healthy, verify API accessible, verify database migrations applied, verify frontend loads.",
+      "suggestedPhase": "PHASE-05",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "acceptanceCriteria": [
+        "Dockerfile.backend builds successfully",
+        "Backend container runs uvicorn server",
+        "Dockerfile.frontend uses multi-stage build",
+        "Frontend container serves Next.js production build",
+        "docker-compose.yml defines all services (postgres, backend, frontend)",
+        "PostgreSQL service has persistent volume",
+        "Health checks configured for all services",
+        "Service dependencies configured (backend depends on postgres)",
+        "docker-compose.dev.yml enables live code reload",
+        ".dockerignore excludes build artifacts and sensitive files",
+        "Database initialization script runs migrations",
+        "DOCKER.md documentation complete with examples",
+        "Full stack starts with docker-compose up",
+        "All services report healthy status",
+        "API accessible from frontend container"
+      ],
+      "relatedRequirements": [
+        "FR-26",
+        "NFR-26",
+        "NFR-28",
+        "NFR-29"
+      ],
+      "skillsRequired": [
+        "Docker",
+        "Docker Compose",
+        "DevOps"
+      ],
+      "deliverables": [
+        "backend/Dockerfile.backend",
+        "frontend/Dockerfile.frontend",
+        "docker-compose.yml",
+        "docker-compose.dev.yml",
+        "backend/.dockerignore",
+        "frontend/.dockerignore",
+        "scripts/docker-init.sh",
+        "docs/DOCKER.md"
+      ]
+    },
+    {
+      "id": "TASK-027",
+      "title": "Create CI/CD Pipeline with GitHub Actions",
+      "description": "Create .github/workflows/backend-ci.yml: trigger on push to main and pull requests, jobs (lint, test, build), lint job runs flake8 and black formatter check, test job runs pytest with coverage reporting (fail if coverage < 80%), build job builds Docker image and pushes to container registry (only on main branch), upload coverage report to Codecov. Create .github/workflows/frontend-ci.yml: trigger on push and PR, jobs (lint, test, build), lint runs ESLint and TypeScript compiler check, test runs Jest unit tests, build runs next build, upload build artifacts. Create .github/workflows/deploy-staging.yml: trigger on push to main, deploy to staging environment, jobs (build images, push to registry, deploy to staging server using SSH or cloud provider CLI, run database migrations, run smoke tests against staging). Create .github/workflows/deploy-production.yml: trigger manually (workflow_dispatch) or on release tag, require approval, build production images, push to production registry, deploy to production environment with blue-green strategy, run database migrations with backup, run smoke tests, rollback on failure. Create scripts/deploy.sh for deployment automation: pull latest images, stop old containers, start new containers, run health checks, rollback if health checks fail. Create .github/workflows/security-scan.yml: run Snyk or Trivy for dependency vulnerability scanning, scan Docker images, fail on high severity vulnerabilities. Add branch protection rules documentation requiring CI pass before merge. Create docs/CICD.md documenting pipeline stages, deployment process, rollback procedure, secrets management.",
+      "suggestedPhase": "PHASE-05",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-026"
+      ],
+      "acceptanceCriteria": [
+        "Backend CI workflow runs linting with flake8 and black",
+        "Backend CI runs pytest with coverage requirement (80%+)",
+        "Backend CI builds Docker image on main branch",
+        "Frontend CI runs ESLint and TypeScript checks",
+        "Frontend CI runs Jest unit tests",
+        "Frontend CI builds Next.js successfully",
+        "Staging deployment workflow deploys on main branch push",
+        "Database migrations run automatically in staging",
+        "Smoke tests run after staging deployment",
+        "Production deployment requires manual approval",
+        "Production deployment uses blue-green strategy",
+        "Production deployment includes automatic rollback on failure",
+        "Security scanning workflow detects vulnerabilities",
+        "High severity vulnerabilities fail the build",
+        "CICD.md documentation complete with examples"
+      ],
+      "relatedRequirements": [
+        "FR-26",
+        "NFR-16",
+        "NFR-26"
+      ],
+      "skillsRequired": [
+        "GitHub Actions",
+        "CI/CD",
+        "DevOps"
+      ],
+      "deliverables": [
+        ".github/workflows/backend-ci.yml",
+        ".github/workflows/frontend-ci.yml",
+        ".github/workflows/deploy-staging.yml",
+        ".github/workflows/deploy-production.yml",
+        ".github/workflows/security-scan.yml",
+        "scripts/deploy.sh",
+        "docs/CICD.md"
+      ]
+    },
+    {
+      "id": "TASK-028",
+      "title": "Create Comprehensive API Documentation",
+      "description": "Create backend/app/api/v1/openapi.py customizing OpenAPI schema: add project description, version, contact information, license, add tags for endpoint grouping (Customers, Accounts, Transactions, Authentication, Health), add security scheme documentation (JWT Bearer token). For each API endpoint, enhance docstrings with: detailed description of operation, parameter descriptions, request body examples (show valid and invalid examples), response schemas for each status code (200, 201, 400, 401, 404, 500), example responses showing actual data structure. Create backend/docs/api/ directory with markdown files: AUTHENTICATION.md (how to obtain JWT token, how to use in requests, token expiration), CUSTOMERS.md (all customer endpoints with curl examples, special inquiry modes documentation), ACCOUNTS.md (all account endpoints, account limit rules, balance update prohibition), TRANSACTIONS.md (transaction endpoints, business rules for transfers vs debits, amount validation, dual balance tracking), ERRORS.md (error code reference with all possible error codes, descriptions, and resolution steps). Configure FastAPI to serve OpenAPI UI at /docs (Swagger UI) and /redoc (ReDoc). Create frontend API client documentation in frontend/docs/API_CLIENT.md: how to use API service, authentication handling, error handling patterns, TypeScript types for requests/responses. Create Postman collection with all API endpoints, environment variables for base URL and token, example requests for each endpoint, test scripts verifying responses. Export collection to backend/docs/api/postman_collection.json. Create docs/README.md as main entry point linking to all documentation. Test all API examples in documentation to ensure they work.",
+      "suggestedPhase": "PHASE-05",
+      "priority": "medium",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-013",
+        "TASK-014",
+        "TASK-015"
+      ],
+      "acceptanceCriteria": [
+        "OpenAPI schema customized with project information",
+        "All endpoints have detailed docstrings with examples",
+        "Request body examples show valid and invalid data",
+        "Response schemas documented for all status codes",
+        "AUTHENTICATION.md explains JWT token usage",
+        "CUSTOMERS.md documents special inquiry modes (0000000000, 9999999999)",
+        "ACCOUNTS.md documents account limit and balance prohibition",
+        "TRANSACTIONS.md documents business rules (no overdraft on transfers)",
+        "ERRORS.md provides complete error code reference",
+        "Swagger UI accessible at /docs with all endpoints",
+        "ReDoc accessible at /redoc",
+        "Frontend API client documentation complete",
+        "Postman collection includes all endpoints with examples",
+        "All documented examples tested and working",
+        "Main README.md links to all documentation"
+      ],
+      "relatedRequirements": [
+        "FR-20",
+        "NFR-19",
+        "NFR-31"
+      ],
+      "skillsRequired": [
+        "Technical Writing",
+        "OpenAPI",
+        "Documentation"
+      ],
+      "deliverables": [
+        "backend/app/api/v1/openapi.py",
+        "backend/docs/api/AUTHENTICATION.md",
+        "backend/docs/api/CUSTOMERS.md",
+        "backend/docs/api/ACCOUNTS.md",
+        "backend/docs/api/TRANSACTIONS.md",
+        "backend/docs/api/ERRORS.md",
+        "backend/docs/api/postman_collection.json",
+        "frontend/docs/API_CLIENT.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "id": "TASK-029",
+      "title": "Implement Database Backup and Disaster Recovery",
+      "description": "Create scripts/backup-database.sh: use pg_dump to create PostgreSQL backup, compress backup with gzip, include timestamp in filename (backup_YYYYMMDD_HHMMSS.sql.gz), upload to cloud storage (S3 or equivalent) or network storage, verify backup integrity by checking file size and performing test restore to temporary database, log backup operation with status (success/failure), send notification on failure. Create scripts/restore-database.sh: download latest backup from storage, verify backup file integrity, stop application services, create backup of current database before restore, restore from backup file using psql, verify restoration by checking record counts and running validation queries, restart application services, run smoke tests, log restoration operation. Implement automated backup schedule: create cron job or scheduled task running daily at 2 AM, keep last 30 daily backups, keep weekly backups for 3 months, keep monthly backups for 1 year, implement backup rotation policy to delete old backups. Create disaster recovery documentation in docs/DISASTER_RECOVERY.md: RTO (Recovery Time Objective) = 4 hours, RPO (Recovery Point Objective) = 1 hour (with continuous replication), backup schedule and retention policy, step-by-step restoration procedure, failover procedure for database, contact list for disaster recovery team, runbook for common disaster scenarios. Implement database replication: setup PostgreSQL streaming replication to standby server, configure automatic failover using tools like Patroni or manual failover procedure, test failover annually. Create scripts/test-backup-restore.sh to verify backups can be restored: perform test restore to temporary database, run validation queries, compare record counts with production. Document backup verification in disaster recovery plan. Create monitoring alerts for backup failures.",
+      "suggestedPhase": "PHASE-05",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-003",
+        "TASK-026"
+      ],
+      "acceptanceCriteria": [
+        "Backup script creates compressed PostgreSQL dump",
+        "Backup includes timestamp in filename",
+        "Backup uploaded to remote storage",
+        "Backup integrity verified with test restore",
+        "Restore script downloads and verifies backup",
+        "Current database backed up before restoration",
+        "Restoration verified with validation queries",
+        "Automated daily backups at 2 AM configured",
+        "Backup retention policy: 30 daily, 3 months weekly, 1 year monthly",
+        "DISASTER_RECOVERY.md documents RTO of 4 hours",
+        "RPO of 1 hour documented and achievable",
+        "Step-by-step restoration procedure documented",
+        "Failover procedure documented",
+        "Database replication configured to standby",
+        "Backup verification script tests restores",
+        "Alerts configured for backup failures"
+      ],
+      "relatedRequirements": [
+        "NFR-24",
+        "NFR-25"
+      ],
+      "skillsRequired": [
+        "PostgreSQL",
+        "Backup/Restore",
+        "Disaster Recovery"
+      ],
+      "deliverables": [
+        "scripts/backup-database.sh",
+        "scripts/restore-database.sh",
+        "scripts/test-backup-restore.sh",
+        "docs/DISASTER_RECOVERY.md"
+      ]
+    },
+    {
+      "id": "TASK-030",
+      "title": "Create Project Documentation and Setup Guide",
+      "description": "Create comprehensive README.md at project root: project overview (Legacy Banking System Modernization), features list (customer management, account management, transaction processing, credit checks, batch processing), technology stack (Next.js, Python FastAPI, PostgreSQL), architecture diagram (high-level component diagram showing frontend, backend API, database, external services), quick start guide (prerequisites, installation steps, running locally), links to detailed documentation. Create docs/ARCHITECTURE.md: system architecture overview, component diagram, data flow diagrams, database schema diagram (ERD showing CUSTOMER, ACCOUNT, PROCTRAN relationships and constraints), API architecture (REST principles, authentication flow, error handling), security architecture. Create docs/DEVELOPMENT.md: development environment setup (install Node.js, Python, PostgreSQL), running locally (step-by-step instructions), project structure explanation (directory layout for both frontend and backend), coding standards (Python PEP 8, TypeScript/React best practices), git workflow (branching strategy, commit message format, PR process), testing guide (how to run unit tests, integration tests, E2E tests). Create docs/DEPLOYMENT.md: deployment architecture (staging and production environments), deployment process (CI/CD pipeline usage), environment variables reference (list all required env vars with descriptions), database migrations (how to create and apply), monitoring and logging, troubleshooting guide. Create docs/BUSINESS_RULES.md documenting critical business rules: account limits (9 online, 5 batch), transaction rules (transfers no overdraft check, debits do check), validation rules (titles, DOB, age, amounts), special modes (customer 0000000000, 9999999999, account 99999999), cascading deletion, dual balance tracking. Create CONTRIBUTING.md: how to contribute, code of conduct, PR checklist (tests pass, code formatted, documentation updated). Create CHANGELOG.md tracking version history. Add badges to README.md: build status, code coverage, license.",
+      "suggestedPhase": "PHASE-05",
+      "priority": "medium",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003",
+        "TASK-028"
+      ],
+      "acceptanceCriteria": [
+        "README.md provides clear project overview",
+        "Quick start guide enables new developer to run project locally",
+        "Architecture diagram shows system components and relationships",
+        "ARCHITECTURE.md documents system design",
+        "Database ERD shows all tables, relationships, and constraints",
+        "DEVELOPMENT.md explains development setup completely",
+        "Project structure documented for both frontend and backend",
+        "Coding standards defined and linked to style guides",
+        "DEPLOYMENT.md covers staging and production deployment",
+        "All environment variables documented with descriptions",
+        "BUSINESS_RULES.md documents all critical rules discovered in requirements",
+        "Special modes (0000000000, 9999999999, 99999999) documented",
+        "Account limits (9 vs 5) explained",
+        "Transaction rules (overdraft behavior) documented",
+        "CONTRIBUTING.md encourages community contributions",
+        "Build status and coverage badges in README.md"
+      ],
+      "relatedRequirements": [
+        "NFR-5",
+        "NFR-31"
+      ],
+      "skillsRequired": [
+        "Technical Writing",
+        "Documentation"
+      ],
+      "deliverables": [
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DEVELOPMENT.md",
+        "docs/DEPLOYMENT.md",
+        "docs/BUSINESS_RULES.md",
+        "CONTRIBUTING.md",
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "TASK-031",
+      "title": "Implement Configuration Management Service",
+      "description": "Create backend/app/services/config_service.py with class ConfigurationService. Implement CRUD operations for system configuration parameters stored in database table SYSTEM_CONFIG with columns: config_key (VARCHAR PRIMARY KEY), config_value (TEXT), config_type (VARCHAR - 'string', 'number', 'boolean', 'json'), is_encrypted (BOOLEAN), updated_at (TIMESTAMP), updated_by (VARCHAR). Implement get_config(key: str) -> Any: retrieve value, decrypt if is_encrypted=True using Fernet encryption, parse based on config_type, cache in memory with TTL. Implement set_config(key: str, value: Any, is_sensitive: bool) -> bool: validate value, encrypt if is_sensitive=True, store in database, invalidate cache, log change in audit trail with user who made change. Implement encryption using cryptography.fernet with SECRET_KEY from environment. Create migration for SYSTEM_CONFIG table. Implement access control: only users with 'admin' role can modify configurations, all authenticated users can read non-sensitive configs. Create API endpoints in backend/app/api/v1/endpoints/config.py: GET /config (returns non-sensitive configs), GET /config/{key} (requires auth), PUT /config/{key} (requires admin role), audit all configuration changes. Create unit tests verifying encryption/decryption, caching, access control.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-003",
+        "TASK-006"
+      ],
+      "acceptanceCriteria": [
+        "SYSTEM_CONFIG table created with encryption flag",
+        "Configuration service implements CRUD operations",
+        "Sensitive configurations encrypted at rest using Fernet",
+        "Configuration values cached with TTL",
+        "Access control: only admins can modify configs",
+        "All configuration changes logged in audit trail",
+        "API endpoints for configuration management",
+        "Unit tests verify encryption and access control"
+      ],
+      "relatedRequirements": [
+        "FR-16",
+        "NFR-15"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Encryption",
+        "Caching"
+      ],
+      "deliverables": [
+        "backend/app/services/config_service.py",
+        "backend/app/api/v1/endpoints/config.py",
+        "backend/alembic/versions/002_system_config_table.py",
+        "backend/tests/unit/test_config_service.py"
+      ]
+    },
+    {
+      "id": "TASK-032",
+      "title": "Implement Control Table for Batch Processing State",
+      "description": "Create backend/alembic/versions/003_control_table.py migration defining BATCH_CONTROL table: job_id (VARCHAR PRIMARY KEY), job_type (VARCHAR - 'customer_init', 'account_init', 'data_migration'), status (VARCHAR - 'pending', 'running', 'completed', 'failed'), total_records (INTEGER), processed_records (INTEGER), failed_records (INTEGER), last_commit_point (INTEGER), started_at (TIMESTAMP), completed_at (TIMESTAMP), error_message (TEXT), metadata (JSONB). Create backend/app/services/batch_control_service.py with class BatchControlService. Implement create_job(job_type: str, total_records: int) -> str: create job record with status='pending', return job_id. Implement start_job(job_id: str): update status='running', set started_at. Implement update_progress(job_id: str, processed: int, last_commit: int): update processed_records and last_commit_point for recovery. Implement complete_job(job_id: str, success: bool, error: str = None): update status, completed_at, error_message. Implement recover_job(job_id: str) -> int: return last_commit_point for resuming failed batch. Update batch_service.py from TASK-016 to integrate with BatchControlService: track progress every 1000 records, enable recovery from last commit point on failure. Create API endpoint GET /batch/jobs/{job_id} to query batch job status. Test batch recovery: simulate failure after 2500 records, verify resume from commit point 2000.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-003",
+        "TASK-016"
+      ],
+      "acceptanceCriteria": [
+        "BATCH_CONTROL table created with all fields",
+        "BatchControlService implements job lifecycle management",
+        "Job status tracked through states (pending, running, completed, failed)",
+        "Progress updated every 1000 records (commit interval)",
+        "Last commit point stored for recovery",
+        "Recovery function returns last successful commit point",
+        "Batch service integrated with control table",
+        "Failed batch can resume from last commit point",
+        "API endpoint queries batch job status",
+        "Test verifies recovery from failure"
+      ],
+      "relatedRequirements": [
+        "FR-11",
+        "NFR-1",
+        "NFR-25"
+      ],
+      "skillsRequired": [
+        "Python",
+        "PostgreSQL",
+        "Batch Processing"
+      ],
+      "deliverables": [
+        "backend/alembic/versions/003_control_table.py",
+        "backend/app/services/batch_control_service.py",
+        "backend/tests/unit/test_batch_control.py"
+      ]
+    },
+    {
+      "id": "TASK-033",
+      "title": "Implement Data Encryption at Rest for Sensitive Fields",
+      "description": "Install cryptography library. Create backend/app/core/encryption.py with class FieldEncryption using Fernet symmetric encryption. Implement encrypt_field(value: str) -> str: encrypt value, return base64-encoded ciphertext. Implement decrypt_field(ciphertext: str) -> str: decode and decrypt, handle decryption errors gracefully. Use SECRET_KEY from environment, derive encryption key using PBKDF2. Create SQLAlchemy custom type EncryptedString in backend/app/db/encrypted_types.py: TypeDecorator for String, automatically encrypts on write, decrypts on read. Update Customer model to use EncryptedString for sensitive fields: credit_score (optional - PII consideration), if storing SSN or sensitive identifiers. Update Account model if storing sensitive account details. Create migration to migrate existing data: read plaintext, encrypt, update records. Implement key rotation procedure in docs/SECURITY.md: how to rotate encryption keys, re-encrypt data with new key. Add encryption status to health check endpoint. Create unit tests: test encryption/decryption round-trip, test invalid ciphertext handling, test key derivation. Ensure encryption key never logged or exposed in API responses.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-004",
+        "TASK-031"
+      ],
+      "acceptanceCriteria": [
+        "FieldEncryption class implements Fernet encryption",
+        "Encryption key derived from SECRET_KEY using PBKDF2",
+        "EncryptedString SQLAlchemy type automatically encrypts/decrypts",
+        "Sensitive fields in Customer/Account models encrypted at rest",
+        "Migration script re-encrypts existing plaintext data",
+        "Key rotation procedure documented",
+        "Encryption status included in health check",
+        "Unit tests verify encryption round-trip",
+        "Invalid ciphertext handled gracefully without crashes",
+        "Encryption key never logged or exposed"
+      ],
+      "relatedRequirements": [
+        "NFR-15"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Cryptography",
+        "Security"
+      ],
+      "deliverables": [
+        "backend/app/core/encryption.py",
+        "backend/app/db/encrypted_types.py",
+        "backend/alembic/versions/004_encrypt_sensitive_data.py",
+        "docs/SECURITY.md",
+        "backend/tests/unit/test_encryption.py"
+      ]
+    },
+    {
+      "id": "TASK-034",
+      "title": "Implement API Rate Limiting Middleware",
+      "description": "Install slowapi library for rate limiting. Create backend/app/middleware/rate_limit.py implementing rate limiting using sliding window algorithm. Configure limits: 100 requests per minute per client IP for authenticated endpoints, 20 requests per minute for unauthenticated endpoints (login, public APIs), 10 requests per minute for sensitive operations (delete, transfer), identify client by IP address or user_id if authenticated. Implement rate limit storage using Redis (preferred) or in-memory dict with expiration. Return 429 Too Many Requests status when limit exceeded with headers: X-RateLimit-Limit (limit value), X-RateLimit-Remaining (requests remaining), X-RateLimit-Reset (timestamp when limit resets), Retry-After (seconds until reset). Add rate limit decorators for specific endpoints: @rate_limit('100/minute') for standard endpoints, @rate_limit('10/minute') for critical operations. Create backend/app/api/v1/endpoints/rate_limit_test.py for testing rate limits. Register rate limit middleware in main.py before route handlers. Create monitoring dashboard showing rate limit hits per endpoint. Document rate limits in API documentation. Create unit tests: test limit enforcement, test limit reset, test different limits for different endpoints, test bypassing rate limits for internal services (via API key).",
+      "suggestedPhase": "PHASE-01",
+      "priority": "medium",
+      "effortEstimate": "60 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-006"
+      ],
+      "acceptanceCriteria": [
+        "Rate limiting middleware uses sliding window algorithm",
+        "Limits: 100/min for auth'd, 20/min for unauth'd, 10/min for sensitive",
+        "Client identified by IP address or user_id",
+        "Redis used for rate limit storage (or in-memory fallback)",
+        "429 status returned when limit exceeded",
+        "Response headers include rate limit information",
+        "Rate limit decorators available for endpoint-level limits",
+        "Monitoring dashboard shows rate limit metrics",
+        "API documentation includes rate limit information",
+        "Unit tests verify limit enforcement and reset"
+      ],
+      "relatedRequirements": [
+        "NFR-20"
+      ],
+      "skillsRequired": [
+        "Python",
+        "FastAPI",
+        "Redis"
+      ],
+      "deliverables": [
+        "backend/app/middleware/rate_limit.py",
+        "backend/tests/unit/test_rate_limit.py"
+      ]
+    },
+    {
+      "id": "TASK-035",
+      "title": "Implement Comprehensive Input Sanitization and OWASP Validation",
+      "description": "Create backend/app/core/sanitization.py with sanitization functions. Implement sanitize_string(value: str) -> str: strip leading/trailing whitespace, remove null bytes, limit length, escape HTML entities if applicable. Implement sanitize_sql_input(value: str) -> str: validate against SQL injection patterns (though SQLAlchemy parameterized queries handle this, add defense in depth). Implement validate_account_type(value: str) -> bool: reject if contains only spaces, low-values (null bytes), or starts with space (per FR-35). Implement validate_amount(value: Decimal) -> bool: ensure positive, check max decimal places, reject scientific notation if not needed. Create middleware backend/app/middleware/input_sanitization.py: automatically sanitize all string inputs from request body/query params before processing, log any suspicious patterns (potential injection attempts), configurable whitelist/blacklist patterns. Implement OWASP validation rules: limit input lengths (prevent buffer overflow), validate data types strictly, check for command injection patterns, validate file uploads (if applicable), check for path traversal attempts (../, etc.). Add Content Security Policy headers to responses. Create security testing script backend/tests/security/test_injection_attempts.py: test SQL injection patterns, test XSS attempts, test command injection, test path traversal, verify all rejected with proper error messages. Document security practices in docs/SECURITY.md.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-002",
+        "TASK-005"
+      ],
+      "acceptanceCriteria": [
+        "Sanitization functions for strings, SQL, amounts",
+        "Account type validation rejects spaces/low-values/start-with-space",
+        "Amount validation ensures positive values only",
+        "Input sanitization middleware sanitizes all request inputs",
+        "Suspicious patterns logged for security monitoring",
+        "OWASP validation rules implemented (length limits, type validation)",
+        "Command injection and path traversal patterns detected",
+        "Content Security Policy headers added",
+        "Security tests attempt SQL injection (all blocked)",
+        "Security tests attempt XSS (all blocked)",
+        "Security tests attempt command injection (all blocked)",
+        "Security practices documented"
+      ],
+      "relatedRequirements": [
+        "FR-35",
+        "NFR-7",
+        "NFR-12"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Security",
+        "OWASP"
+      ],
+      "deliverables": [
+        "backend/app/core/sanitization.py",
+        "backend/app/middleware/input_sanitization.py",
+        "backend/tests/security/test_injection_attempts.py",
+        "docs/SECURITY.md"
+      ]
+    },
+    {
+      "id": "TASK-036",
+      "title": "Implement Performance Testing and Benchmarking",
+      "description": "Install locust for load testing. Create backend/tests/performance/locustfile.py defining load test scenarios: user_journey_1 (create customer, create account, make transfer) with think time, user_journey_2 (query customer, list accounts, view transactions), admin_journey (view monitoring dashboard, update configuration). Configure load test: ramp up to 100 concurrent users over 5 minutes, sustain for 10 minutes, measure: average response time (target < 200ms for 95th percentile per NFR-3), requests per second, error rate (target < 0.1%), database connection pool usage, CPU and memory usage. Create performance benchmarking script backend/tests/performance/benchmark_api.py using pytest-benchmark: benchmark individual operations (create customer, create account, process transfer), establish baseline performance metrics, fail tests if regression > 20% from baseline. Implement database query performance testing: use EXPLAIN ANALYZE for slow queries, identify missing indexes, test query performance with large datasets (1M customers, 5M accounts, 10M transactions). Create performance monitoring dashboard showing: API endpoint latency percentiles (50th, 95th, 99th), database query performance, resource utilization (CPU, memory, disk I/O), cache hit rates. Document performance targets in docs/PERFORMANCE.md: response time targets per endpoint type, throughput targets (transactions per second), database query time limits (< 100ms per NFR-9). Create alerts for performance degradation: alert if 95th percentile > 300ms, alert if error rate > 1%, alert if database queries > 200ms.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-013",
+        "TASK-014",
+        "TASK-015"
+      ],
+      "acceptanceCriteria": [
+        "Locust load test scenarios for user journeys",
+        "Load test ramps to 100 concurrent users",
+        "95th percentile response time measured (target < 200ms)",
+        "Error rate measured and tracked",
+        "Benchmark tests for individual operations",
+        "Baseline metrics established",
+        "Database query performance tested with EXPLAIN ANALYZE",
+        "Performance tested with large datasets (1M+ customers)",
+        "Performance dashboard shows latency percentiles",
+        "Cache hit rates monitored",
+        "PERFORMANCE.md documents all targets",
+        "Alerts configured for performance degradation"
+      ],
+      "relatedRequirements": [
+        "NFR-3",
+        "NFR-9",
+        "NFR-21"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Load Testing",
+        "Performance Engineering"
+      ],
+      "deliverables": [
+        "backend/tests/performance/locustfile.py",
+        "backend/tests/performance/benchmark_api.py",
+        "docs/PERFORMANCE.md"
+      ]
+    },
+    {
+      "id": "TASK-037",
+      "title": "Create Customer Inquiry and Search Frontend",
+      "description": "Create frontend/src/components/CustomerSearch.tsx with search functionality. Implement search form with fields: customer_number (exact match), name (partial match), date_of_birth (exact or range), city (partial match). Add special inquiry buttons: 'Random Customer' (sends 0000000000), 'Last Customer' (sends 9999999999), regular search button. Implement debounced search (wait 300ms after typing stops before searching). Call GET /api/v1/customers with query parameters. Display results in table: customer_number, name, DOB, city, credit_score, 'View Details' button. Implement pagination for results (50 per page). Implement customer detail view frontend/src/app/customers/[customerId]/page.tsx: display all customer information, display credit score with visual indicator (green if >= 700, yellow 600-699, red < 600, gray if marked_for_review), display 'Credit Check Pending' badge if marked_for_review=true, show list of customer's accounts with balances, provide 'Edit Customer' and 'Delete Customer' buttons (with confirmation), breadcrumb navigation. Implement edit customer form: pre-populate with current values, same validation as creation form, call PUT /api/v1/customers/{customerId}. Implement delete confirmation modal: warn about cascading deletion of accounts, require typing customer number to confirm, call DELETE /api/v1/customers/{customerId}, show success message listing deleted accounts. Style with responsive design. Create tests: test search functionality, test special inquiry modes (random, last), test debouncing, test pagination.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-013",
+        "TASK-017"
+      ],
+      "acceptanceCriteria": [
+        "Search form with multiple criteria (number, name, DOB, city)",
+        "Special inquiry buttons for random and last customer",
+        "Debounced search (300ms delay after typing)",
+        "Search results displayed in paginated table",
+        "Customer detail view shows all information",
+        "Credit score displayed with color-coded indicator",
+        "'Credit Check Pending' badge shown when marked for review",
+        "Customer's accounts listed with current balances",
+        "Edit customer form pre-populated with current values",
+        "Delete confirmation requires typing customer number",
+        "Cascading deletion warning displayed",
+        "Success message lists deleted accounts",
+        "Responsive design for mobile and desktop",
+        "Tests verify special modes and pagination"
+      ],
+      "relatedRequirements": [
+        "FR-3",
+        "FR-7",
+        "FR-22"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "UI/UX"
+      ],
+      "deliverables": [
+        "frontend/src/components/CustomerSearch.tsx",
+        "frontend/src/app/customers/[customerId]/page.tsx",
+        "frontend/src/components/CustomerDetail.tsx",
+        "frontend/src/components/DeleteConfirmationModal.tsx",
+        "frontend/src/__tests__/CustomerSearch.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-038",
+      "title": "Create Account Inquiry and Management Frontend",
+      "description": "Create frontend/src/app/accounts/[accountId]/page.tsx for account detail view. Display: account_number, account_type, customer information (with link), interest_rate (formatted as percentage), overdraft_limit (formatted as currency), available_balance and actual_balance (side-by-side with clear labels), opened_date, last_statement_date, next_statement_date. Add visual balance indicator: progress bar showing available vs overdraft limit. Display warning if account in overdraft (available_balance < 0). Implement 'Update Account' form: pre-populate current values, allow editing account_type, interest_rate, overdraft_limit, statement dates, CRITICAL: explicitly disable balance fields with tooltip 'Balances cannot be updated directly. Use transactions to modify balances', validate overdraft_limit >= 0, call PUT /api/v1/accounts/{accountId}. Implement transaction history section: call GET /api/v1/accounts/{accountId}/transactions, display paginated table (50 per page): date/time, transaction_code, amount (colored red for debits, green for credits), description, running balance (calculated), filter options: date range picker, transaction type dropdown (all 18 codes), 'Export to CSV' button. Add 'Make Transaction' quick actions: 'Credit This Account', 'Debit This Account', 'Transfer From This Account' buttons opening respective transaction forms with account pre-selected. Create frontend/src/components/TransactionHistory.tsx reusable component. Style with clear visual hierarchy. Test: verify balance update is disabled, verify transaction history filtering, verify pagination.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-014",
+        "TASK-015",
+        "TASK-037"
+      ],
+      "acceptanceCriteria": [
+        "Account detail view displays all account information",
+        "Available and actual balances shown side-by-side",
+        "Visual balance indicator with progress bar",
+        "Overdraft warning displayed when balance < 0",
+        "Update form pre-populated with current values",
+        "Balance fields explicitly disabled with explanatory tooltip",
+        "Tooltip explains balances updated via transactions only",
+        "Overdraft limit validation (>= 0)",
+        "Transaction history displayed with pagination",
+        "Transaction amounts color-coded (red debit, green credit)",
+        "Running balance calculated and displayed",
+        "Filter by date range and transaction type",
+        "Export to CSV functionality",
+        "Quick action buttons for credit, debit, transfer",
+        "Tests verify balance field disabled"
+      ],
+      "relatedRequirements": [
+        "FR-3",
+        "FR-8",
+        "FR-21"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "Data Visualization"
+      ],
+      "deliverables": [
+        "frontend/src/app/accounts/[accountId]/page.tsx",
+        "frontend/src/components/TransactionHistory.tsx",
+        "frontend/src/components/AccountUpdateForm.tsx",
+        "frontend/src/__tests__/AccountDetail.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-039",
+      "title": "Create Comprehensive Error Handling and User Feedback System",
+      "description": "Create frontend/src/lib/errorHandler.ts with centralized error handling. Implement handleApiError(error: AxiosError) -> UserFriendlyError: map API error codes to user-friendly messages, extract error details from response, handle network errors (timeout, connection refused), handle authentication errors (401 -> redirect to login, 403 -> show 'Access Denied'), handle validation errors (400 -> show field-specific errors), handle rate limit errors (429 -> show 'Too many requests, please wait'), handle server errors (500 -> show 'System error, please try again' + error ID for support). Create frontend/src/components/ErrorBoundary.tsx React error boundary: catch unhandled errors, display fallback UI, log error to monitoring service, provide 'Reload Page' button. Create frontend/src/components/Toast.tsx notification system: success toast (green, auto-dismiss after 3s), error toast (red, auto-dismiss after 5s or user dismiss), warning toast (yellow), info toast (blue), support stacking multiple toasts, animate in/out smoothly. Create frontend/src/contexts/NotificationContext.tsx providing useNotification() hook: showSuccess(message), showError(message), showWarning(message), showInfo(message). Integrate error handling in all API calls: wrap axios calls in try-catch, call handleApiError on catch, display toast notification with error message. Create frontend/src/components/LoadingStates.tsx with loading components: full-page spinner, inline spinner, skeleton loading for tables/cards, progress bar for long operations. Implement optimistic updates where appropriate: mark UI as updated immediately, revert if API call fails, show inline error without losing user's work. Create tests: test error boundary catches errors, test toast notifications display and dismiss, test API error handling for all error types.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": [
+        "TASK-001",
+        "TASK-017"
+      ],
+      "acceptanceCriteria": [
+        "Error handler maps API errors to user-friendly messages",
+        "Network errors handled (timeout, connection refused)",
+        "Authentication errors redirect to login (401)",
+        "Access denied shown for 403 errors",
+        "Validation errors display field-specific messages",
+        "Rate limit errors show retry message",
+        "Server errors show friendly message with error ID",
+        "Error boundary catches unhandled React errors",
+        "Fallback UI displayed when error caught",
+        "Toast notification system with 4 types (success, error, warning, info)",
+        "Toasts auto-dismiss after appropriate time",
+        "Multiple toasts stack properly",
+        "useNotification hook provides toast functions",
+        "All API calls wrapped with error handling",
+        "Loading states (spinner, skeleton, progress bar)",
+        "Tests verify error handling and notifications"
+      ],
+      "relatedRequirements": [
+        "NFR-18"
+      ],
+      "skillsRequired": [
+        "React",
+        "TypeScript",
+        "UX"
+      ],
+      "deliverables": [
+        "frontend/src/lib/errorHandler.ts",
+        "frontend/src/components/ErrorBoundary.tsx",
+        "frontend/src/components/Toast.tsx",
+        "frontend/src/contexts/NotificationContext.tsx",
+        "frontend/src/components/LoadingStates.tsx",
+        "frontend/src/__tests__/ErrorHandling.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-040",
+      "title": "Implement Comprehensive Security Testing Suite",
+      "description": "Create backend/tests/security/ directory with comprehensive security tests. Create test_authentication.py: test login with invalid credentials (expect 401), test access without token (expect 401), test expired token (expect 401), test token tampering (expect 401), test brute force protection (expect rate limit after 10 failed attempts), test password requirements enforced. Create test_authorization.py: test user accessing admin-only endpoints (expect 403), test accessing other user's data (expect 403), test role-based access control for all protected endpoints. Create test_injection_attacks.py (extending TASK-035): test SQL injection in all string inputs, test NoSQL injection if using any NoSQL databases, test command injection via file uploads or system calls, test LDAP injection if applicable, verify all rejected without execution. Create test_xss_attacks.py: test reflected XSS in error messages, test stored XSS in user-generated content, test DOM-based XSS, verify all HTML escaped. Create test_sensitive_data.py: test passwords never in logs, test passwords never in API responses, test authentication tokens properly secured (HttpOnly cookies or secure headers), test credit scores only accessible to authorized users, test sensitive config values encrypted. Create test_https_enforcement.py: test HTTP requests upgraded to HTTPS, test HSTS headers present, test secure cookie flags. Create test_csrf_protection.py: test CSRF tokens required for state-changing operations. Run security tests in CI pipeline, fail build on any security test failure. Create security testing documentation docs/SECURITY_TESTING.md: how to run security tests, how to add new security tests, common vulnerabilities to test for. Use OWASP ZAP or similar for automated security scanning.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "150 minutes",
+      "dependencies": [
+        "TASK-006",
+        "TASK-013",
+        "TASK-035"
+      ],
+      "acceptanceCriteria": [
+        "Authentication tests verify all failure cases",
+        "Brute force protection tested and working",
+        "Authorization tests verify role-based access control",
+        "Users cannot access other users' data",
+        "SQL injection tests cover all string inputs",
+        "Command injection attempts blocked",
+        "XSS tests verify HTML escaping (reflected, stored, DOM)",
+        "Passwords never logged or returned in responses",
+        "Authentication tokens secured properly",
+        "Sensitive data access controlled by authorization",
+        "HTTPS enforcement tested",
+        "HSTS headers present",
+        "Secure cookie flags set",
+        "CSRF protection tested for state changes",
+        "Security tests run in CI pipeline",
+        "Build fails on security test failure",
+        "SECURITY_TESTING.md documentation complete"
+      ],
+      "relatedRequirements": [
+        "NFR-12",
+        "NFR-13",
+        "NFR-14"
+      ],
+      "skillsRequired": [
+        "Python",
+        "Security Testing",
+        "OWASP"
+      ],
+      "deliverables": [
+        "backend/tests/security/test_authentication.py",
+        "backend/tests/security/test_authorization.py",
+        "backend/tests/security/test_injection_attacks.py",
+        "backend/tests/security/test_xss_attacks.py",
+        "backend/tests/security/test_sensitive_data.py",
+        "backend/tests/security/test_https_enforcement.py",
+        "backend/tests/security/test_csrf_protection.py",
+        "docs/SECURITY_TESTING.md"
+      ]
+    }
+  ]
+}

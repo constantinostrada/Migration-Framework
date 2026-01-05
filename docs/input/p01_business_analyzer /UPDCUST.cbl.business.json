@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:39:23.787336",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/UPDCUST.cbl",
+    "filename": "UPDCUST.cbl",
+    "size_bytes": 11093,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/UPDCUST.cbl",
+    "analysis_type": "business",
+    "business_summary": "This program updates customer details in a VSAM datastore. It validates customer titles and ensures that only permissible fields are updated.",
+    "business_entities": [
+      "Customer"
+    ],
+    "business_rules": [
+      "Only certain fields of the Customer record can be updated.",
+      "Customer title must be valid (e.g., Professor, Mr, Mrs, etc.).",
+      "Both name and address must not be empty or start with a space for an update to occur."
+    ],
+    "business_dependencies": [
+      "VSAM datastore",
+      "CICS transaction processing"
+    ],
+    "business_workflows": [
+      "Receive customer data for update.",
+      "Validate customer title.",
+      "Check and update customer name and address in the datastore."
+    ],
+    "data_transformations": [
+      "Unstring customer name to validate title.",
+      "Compute length of customer data for VSAM rewrite."
+    ],
+    "error_handling": [
+      "Return failure flag if customer cannot be updated.",
+      "Set specific failure codes for different error conditions (e.g., title invalid, record not found)."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program focuses on updating customer records with strict validation and error handling. It interacts with a VSAM datastore and uses CICS for transaction management.",
+    "extracted_constants": {
+      "business_constants": [
+        "CUSTOMER"
+      ],
+      "validation_rules": [
+        "Title must be one of: Professor, Mr, Mrs, Miss, Ms, Dr, Drs, Lord, Sir, Lady."
+      ]
+    },
+    "source_file": "src/base/cobol_src/UPDCUST.cbl",
+    "file_name": "UPDCUST.cbl",
+    "file_size": 11093,
+    "analysis_timestamp": "2025-11-20T00:39:23.787277",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/UPDCUST.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/UPDCUST.cbl.business.json"
+  }
+}

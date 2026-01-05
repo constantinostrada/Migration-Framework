@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:25:44.350583",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.6
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/UPDACC.jcl",
+    "filename": "UPDACC.jcl",
+    "size_bytes": 187,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/UPDACC.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The JCL script is designed to compile and link-edit a CICS COBOL program named UPDACC. It includes standard JCL directives for job control and specifies the use of a library for building JCL scripts.",
+    "api_like_spec": {
+      "function_name": "UPDACC",
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": null,
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL library",
+      "DEFAULT JCL member"
+    ],
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL scripts to use modern build automation tools.",
+      "Evaluate the possibility of migrating COBOL programs to a more modern language or platform."
+    ],
+    "confidence": 0.7,
+    "complexity_score": 2,
+    "analysis_notes": "The provided JCL script is minimal and primarily serves as a build script for a COBOL program. It lacks detailed information about the program's functionality, inputs, outputs, and internal processing.",
+    "source_file": "etc/install/base/buildjcl/UPDACC.jcl",
+    "file_name": "UPDACC.jcl",
+    "file_size": 187,
+    "analysis_timestamp": "2025-11-24T23:25:44.350535",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.6,
+    "has_parsing_error": false,
+    "confidence_level": 0.7,
+    "metadata_complete": true,
+    "content_completeness": 0.6
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.jcl.functional.json"
+  }
+}

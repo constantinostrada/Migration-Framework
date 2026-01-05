@@ -1,0 +1,72 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "hooks": {
+    "UserPrompt": [
+      {
+        "matcher": {},
+        "command": "python3 .claude/hooks/v2/session_recovery.py",
+        "description": "v2.0: Detect active migration and inject recovery context"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": {
+          "tool": [
+            "Write",
+            "Edit"
+          ],
+          "path": "src/**/*"
+        },
+        "command": "python3 .claude/hooks/v2/pre_write_validation.py \"$TOOL_INPUT_PATH\"",
+        "description": "v2.0: Validate congruence before writing source code - BLOCKS if issues"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tool": [
+            "Write",
+            "Edit"
+          ]
+        },
+        "command": "python3 .claude/hooks/v2/auto_checkpoint.py \"$TOOL_INPUT_PATH\"",
+        "description": "v2.0: Smart checkpoint based on time, events, and file modifications"
+      },
+      {
+        "matcher": {
+          "tool": [
+            "Write",
+            "Edit"
+          ],
+          "path": "src/**/*"
+        },
+        "command": "python3 .claude/hooks/v2/auto_commit.py \"$TOOL_INPUT_PATH\"",
+        "description": "v2.0: Auto-commit source files during CONSTRUCTION phase"
+      },
+      {
+        "matcher": {
+          "tool": [
+            "Write",
+            "Edit"
+          ],
+          "path": "docs/state/**/*"
+        },
+        "command": "python3 .claude/hooks/v2/generate_dashboard.py",
+        "description": "v2.0: Regenerate HTML dashboard when state changes"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": {},
+        "command": "python3 .claude/hooks/v2/phase_gate.py",
+        "description": "v2.0: Verify phase deliverables and block advancement if incomplete"
+      }
+    ]
+  }
+}

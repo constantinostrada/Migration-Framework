@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:36:57.728295",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/ACCOUNT.cpy",
+    "filename": "ACCOUNT.cpy",
+    "size_bytes": 2032,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/ACCOUNT.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines the data structure for account information in a legacy system, including fields for customer number, account key, type, interest rate, opening date, overdraft limit, statement dates, and balances.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Initialization of account data structure with predefined fields",
+      "Step 2: Data is stored in memory as part of the account record",
+      "Step 3: Data can be accessed or modified by other parts of the system"
+    ],
+    "state_changes": [
+      "Variable state changes as account data is populated or modified"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures like classes or structs",
+      "Potential to convert to a JSON or XML schema for better interoperability",
+      "Evaluate use of modern database systems for storing account data"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The code is a COBOL copybook defining a data structure, not a functional module with logic or algorithms. It serves as a template for account records in the system.",
+    "source_file": "src/base/cobol_copy/ACCOUNT.cpy",
+    "file_name": "ACCOUNT.cpy",
+    "file_size": 2032,
+    "analysis_timestamp": "2025-11-24T23:36:57.728219",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCOUNT.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCOUNT.cpy.functional.json"
+  }
+}

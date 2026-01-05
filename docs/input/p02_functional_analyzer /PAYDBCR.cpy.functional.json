@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:41.100707",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/PAYDBCR.cpy",
+    "filename": "PAYDBCR.cpy",
+    "size_bytes": 1115,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/PAYDBCR.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "This module defines a data structure used for handling payment debit and credit transactions. It includes fields for account number, transaction amount, sorting code, available balance, actual balance, and origin details such as application ID, user ID, facility name, network ID, and facility type. It also includes fields for transaction success and failure codes.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": [
+        "COMM-ACCNO",
+        "COMM-AMT",
+        "COMM-SORTC",
+        "COMM-AV-BAL",
+        "COMM-ACT-BAL",
+        "COMM-APPLID",
+        "COMM-USERID",
+        "COMM-FACILITY-NAME",
+        "COMM-NETWRK-ID",
+        "COMM-FACILTYPE"
+      ],
+      "outputs": [
+        "COMM-SUCCESS",
+        "COMM-FAIL-CODE"
+      ],
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Data is initialized with account and transaction details.",
+      "Step 2: Transaction processing occurs, updating balances and setting success or failure codes."
+    ],
+    "state_changes": [
+      "Variable state changes: COMM-AV-BAL, COMM-ACT-BAL, COMM-SUCCESS, COMM-FAIL-CODE"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": [
+      "COMM-FAIL-CODE is used to indicate transaction failure."
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures.",
+      "Potential for API conversion to RESTful services."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The module primarily defines a data structure without explicit logic or algorithms. It is likely used in conjunction with other modules that perform the actual transaction processing.",
+    "source_file": "src/base/cobol_copy/PAYDBCR.cpy",
+    "file_name": "PAYDBCR.cpy",
+    "file_size": 1115,
+    "analysis_timestamp": "2025-11-24T23:35:41.100652",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/PAYDBCR.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/PAYDBCR.cpy.functional.json"
+  }
+}

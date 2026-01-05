@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:36:34.171779",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/CUSTMAP.cpy",
+    "filename": "CUSTMAP.cpy",
+    "size_bytes": 4269,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/CUSTMAP.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a COBOL copybook structure for customer data mapping, including fields for customer identifiers, names, addresses, and date of birth. It provides a layout for both input and output data structures, with fields for each data element and their respective formats.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": [
+        "CSTMAP1I structure"
+      ],
+      "outputs": [
+        "CSTMAP1O structure"
+      ],
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Data is structured into CSTMAP1I with specific fields for customer information.",
+      "Step 2: CSTMAP1I is redefined into CSTMAP1O, transforming the input structure into an output structure.",
+      "Step 3: The output structure CSTMAP1O is used for further processing or storage."
+    ],
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring the copybook to use modern data types if migrating to a new system.",
+      "Evaluate the need for API conversion if integrating with modern services.",
+      "Explore using JSON or XML for data interchange in modern systems."
+    ],
+    "confidence": 0.8,
+    "complexity_score": 5,
+    "analysis_notes": "The copybook primarily serves as a data structure definition for customer-related information. It does not contain logic or algorithms, focusing instead on data layout and transformation between input and output formats.",
+    "source_file": "src/base/cobol_copy/CUSTMAP.cpy",
+    "file_name": "CUSTMAP.cpy",
+    "file_size": 4269,
+    "analysis_timestamp": "2025-11-24T23:36:34.171713",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CUSTMAP.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CUSTMAP.cpy.functional.json"
+  }
+}

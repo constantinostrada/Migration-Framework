@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:42:11.711009",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1CCA.cbl",
+    "filename": "BNK1CCA.cbl",
+    "size_bytes": 30482,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1CCA.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The BNK1CCA program is a CICS COBOL application that lists accounts belonging to a specified customer number. It handles user interactions through a terminal, processes input data, validates it, retrieves customer account information, and displays it back to the user. The program also manages various user actions like entering data, pressing function keys, and handles errors and abnormal terminations.",
+    "api_like_spec": {
+      "function_name": "BNK1CCA",
+      "inputs": [
+        "Customer number from terminal input"
+      ],
+      "outputs": [
+        "List of accounts associated with the customer number",
+        "Messages indicating success or failure"
+      ],
+      "return_values": [
+        "Normal completion",
+        "Error codes for abnormal terminations"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize working storage and communication areas",
+      "Step 2: Receive and validate input data from the terminal",
+      "Step 3: Retrieve customer account data using the INQACCCU program",
+      "Step 4: Display account information or error messages on the terminal"
+    ],
+    "state_changes": [
+      "Variable state changes in working storage",
+      "Updates to communication areas for inter-program communication"
+    ],
+    "side_effects": [
+      "Calls to CICS services for sending and receiving maps",
+      "Linking to external programs like INQACCCU and ABNDPROC"
+    ],
+    "dependencies": [
+      "CICS transaction services",
+      "External program INQACCCU for account data retrieval",
+      "Copybooks BNK1ACC, DFHAID, INQACCCU, ABNDINFO"
+    ],
+    "interface_points": [
+      "CICS terminal interface for user interaction",
+      "Linkage to INQACCCU for account data retrieval",
+      "Linkage to ABNDPROC for error handling"
+    ],
+    "algorithms": [
+      "Data validation: Ensures customer number is numeric",
+      "Error handling: Constructs error messages and links to an abend handler"
+    ],
+    "performance_characteristics": [
+      "Performance-critical sections involve CICS map sending and receiving",
+      "Potential bottlenecks in external program calls and error handling"
+    ],
+    "error_handling": [
+      "Error detection through CICS RESP and RESP2 codes",
+      "Error recovery by linking to an abend handler program",
+      "Error logging through constructed messages and display"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern APIs for data retrieval",
+      "Potential to replace CICS maps with web-based interfaces",
+      "Use of modern error handling and logging frameworks"
+    ],
+    "confidence": 0.8,
+    "complexity_score": 5,
+    "analysis_notes": "The program heavily relies on CICS for transaction management and user interaction. It uses structured sections for different functionalities, making it modular but still complex due to its dependency on external programs and CICS services.",
+    "source_file": "src/base/cobol_src/BNK1CCA.cbl",
+    "file_name": "BNK1CCA.cbl",
+    "file_size": 30482,
+    "analysis_timestamp": "2025-11-24T23:42:11.710932",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CCA.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CCA.cbl.functional.json"
+  }
+}

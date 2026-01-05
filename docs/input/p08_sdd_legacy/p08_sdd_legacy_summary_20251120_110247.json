@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "timestamp": "2025-11-20T11:02:47.061146",
+  "program_id": "p08_sdd_legacy",
+  "model_used": null,
+  "total_tokens": 63098,
+  "generation_summary": {
+    "sections_generated": 9,
+    "sections_failed": 0,
+    "success_rate": "100.0%",
+    "duration_seconds": 1048.365963
+  }
+}

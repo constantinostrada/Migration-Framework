@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:37:47.994080",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/GETCOMPY.cpy",
+    "filename": "GETCOMPY.cpy",
+    "size_bytes": 513,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/GETCOMPY.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a data structure for storing a company name with a maximum length of 40 characters.",
+    "api_like_spec": {
+      "function_name": "GETCompanyOperation",
+      "inputs": null,
+      "outputs": [
+        "company-name"
+      ],
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Initialization of company-name variable"
+    ],
+    "state_changes": [
+      "Variable state changes: Initialization of company-name"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures or classes.",
+      "Evaluate if the fixed length of 40 characters is sufficient for all use cases."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 1,
+    "analysis_notes": "The code is a simple data structure definition with no logic or processing.",
+    "source_file": "src/base/cobol_copy/GETCOMPY.cpy",
+    "file_name": "GETCOMPY.cpy",
+    "file_size": 513,
+    "analysis_timestamp": "2025-11-24T23:37:47.994057",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETCOMPY.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETCOMPY.cpy.functional.json"
+  }
+}

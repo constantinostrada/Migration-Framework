@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:40:11.087292",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1CCS.cbl",
+    "filename": "BNK1CCS.cbl",
+    "size_bytes": 52594,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1CCS.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program supports the creation of customer records in a banking application, handling user input validation and interaction with a customer creation subprogram.",
+    "business_entities": [
+      "Customer"
+    ],
+    "business_rules": [
+      "Customer title must be valid (e.g., Mr, Mrs, Miss, etc.).",
+      "First name and surname must be provided and valid.",
+      "Address Line 1 must be provided and valid.",
+      "Date of Birth must be valid and numeric.",
+      "Date of Birth day must be between 01 and 31.",
+      "Date of Birth month must be between 01 and 12."
+    ],
+    "business_dependencies": [
+      "CRECUST subprogram for customer creation"
+    ],
+    "business_workflows": [
+      "Initial screen setup with erased data fields if first time through.",
+      "Processing of user input upon pressing Enter.",
+      "Validation of user input data.",
+      "Creation of customer record if data is valid.",
+      "Return to main menu or send termination message based on user input."
+    ],
+    "data_transformations": [
+      "Concatenation of customer title, first name, initials, and surname into a single name field.",
+      "Concatenation of address lines into a single address field."
+    ],
+    "error_handling": [
+      "Display of error messages for invalid input data.",
+      "Handling of CICS response codes for abnormal terminations."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for customer onboarding in the banking application, with complex validation rules and dependencies on external subprograms.",
+    "extracted_constants": {
+      "business_constants": [
+        "Session Ended",
+        "Invalid key pressed.",
+        "Please clear screen before creating new user",
+        "Valid titles are: Mr,Mrs,Miss,Ms,Dr,Professor,Drs,Lord,Sir,Lady",
+        "Please supply a valid First Name",
+        "Please supply a valid Surname",
+        "Please supply a valid Address Line 1",
+        "Please supply a valid Date of Birth DD",
+        "Please supply a valid Date of Birth MM",
+        "Please supply a valid Date of Birth YYYY",
+        "Non numeric Date of Birth DD entered",
+        "Non numeric Date of Birth MM entered",
+        "Non numeric Date of Birth YYYY entered",
+        "Please supply a valid Date of Birth (DD)",
+        "Please supply a valid Date of Birth (MM)",
+        "Missing expected data.",
+        "Sorry but unable to create Customer record",
+        "Sorry, customer is too old. Please check D.O.B.",
+        "Sorry, customer D.O.B. is in the future.",
+        "Sorry, customer D.O.B. is invalid.",
+        "The Customer record has been successfully created"
+      ],
+      "validation_rules": [
+        "Customer title must match predefined valid titles.",
+        "First name and surname must not be empty or contain only underscores.",
+        "Address Line 1 must not be empty or contain only underscores.",
+        "Date of Birth fields must be numeric and within valid ranges."
+      ]
+    },
+    "source_file": "src/base/cobol_src/BNK1CCS.cbl",
+    "file_name": "BNK1CCS.cbl",
+    "file_size": 52594,
+    "analysis_timestamp": "2025-11-20T00:40:11.087243",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CCS.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CCS.cbl.business.json"
+  }
+}

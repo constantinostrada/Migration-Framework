@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:40:28.933478",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/ABNDPROC.cbl",
+    "filename": "ABNDPROC.cbl",
+    "size_bytes": 5911,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/ABNDPROC.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The ABNDPROC program processes application abends by writing them to a centralized VSAM KSDS datastore, allowing centralized viewing of abend records.",
+    "api_like_spec": {
+      "function_name": "ABNDPROC",
+      "inputs": [
+        "DFHCOMMAREA"
+      ],
+      "outputs": [
+        "WS-ABND-AREA"
+      ],
+      "return_values": [
+        "Normal completion",
+        "Error codes via WS-CICS-RESP and WS-CICS-RESP2"
+      ]
+    },
+    "data_flow": [
+      "Step 1: DFHCOMMAREA is received as input",
+      "Step 2: DFHCOMMAREA is moved to WS-ABND-AREA",
+      "Step 3: WS-ABND-AREA is written to the ABNDFILE VSAM datastore"
+    ],
+    "state_changes": [
+      "Writes to ABNDFILE VSAM datastore",
+      "Updates WS-CICS-RESP and WS-CICS-RESP2 based on CICS write operation"
+    ],
+    "side_effects": [
+      "CICS WRITE operation to VSAM file",
+      "Displays messages to the console"
+    ],
+    "dependencies": [
+      "CICS system for transaction processing",
+      "VSAM file 'ABNDFILE' for storing abend records"
+    ],
+    "interface_points": [
+      "CICS transaction interface",
+      "VSAM file system interface"
+    ],
+    "algorithms": [
+      "Data movement from DFHCOMMAREA to WS-ABND-AREA",
+      "Conditional check on WS-CICS-RESP for error handling"
+    ],
+    "performance_characteristics": [
+      "Dependent on CICS and VSAM performance",
+      "Potential bottleneck in CICS WRITE operation"
+    ],
+    "error_handling": [
+      "Checks WS-CICS-RESP for normal completion",
+      "Displays error messages if write operation fails"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern logging frameworks",
+      "Potential to replace VSAM with a relational database for better query capabilities",
+      "API conversion to RESTful service for integration with modern systems"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 4,
+    "analysis_notes": "The program is straightforward with a primary focus on writing abend records to a VSAM datastore. Error handling is basic, relying on CICS response codes.",
+    "source_file": "src/base/cobol_src/ABNDPROC.cbl",
+    "file_name": "ABNDPROC.cbl",
+    "file_size": 5911,
+    "analysis_timestamp": "2025-11-24T23:40:28.933420",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ABNDPROC.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ABNDPROC.cbl.functional.json"
+  }
+}

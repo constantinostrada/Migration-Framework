@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:30:50.291372",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/DRPDB00.jcl",
+    "filename": "DRPDB00.jcl",
+    "size_bytes": 539,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/DRPDB00.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program that runs SQL commands to manage database objects. Specifically, it sets the current SQL ID and drops a specified database.",
+    "api_like_spec": {
+      "function_name": "GRANT",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT messages"
+      ],
+      "return_values": [
+        "Job completion codes",
+        "Error messages in SYSOUT"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize job with JOB card",
+      "Step 2: Execute DB2 program with specified parameters",
+      "Step 3: Drop database CBSA"
+    ],
+    "state_changes": [
+      "Database CBSA is dropped"
+    ],
+    "side_effects": [
+      "SYSOUT messages are generated",
+      "Database state is altered by dropping a database"
+    ],
+    "dependencies": [
+      "DSNC10.PROCLIB for JCL procedures",
+      "DSNC10.SDSNLOAD for DB2 load libraries",
+      "DSNC10.DBCG.RUNLIB.LOAD for program execution"
+    ],
+    "interface_points": [
+      "DB2 database system",
+      "JCL job scheduler"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Limited by DB2 execution time",
+      "Resource usage defined by REGION=4M"
+    ],
+    "error_handling": [
+      "Errors are logged in SYSOUT",
+      "Job completion codes indicate success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern database management tools",
+      "Potential to convert JCL to a more modern scripting language"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The script is straightforward, primarily executing a DB2 command to drop a database. It relies on standard JCL and DB2 utilities.",
+    "source_file": "etc/install/base/db2jcl/DRPDB00.jcl",
+    "file_name": "DRPDB00.jcl",
+    "file_size": 539,
+    "analysis_timestamp": "2025-11-24T23:30:50.291289",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPDB00.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPDB00.jcl.functional.json"
+  }
+}

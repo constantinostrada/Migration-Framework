@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:40:24.038703",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 0.7333333333333334
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/GETCOMPY.cbl",
+    "filename": "GETCOMPY.cbl",
+    "size_bytes": 1071,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/GETCOMPY.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program GETCOMPY is part of a CICS Bank Sample Application and appears to set the company name within a CICS transaction context. It primarily handles the movement of a static string to a variable and returns control to CICS.",
+    "business_entities": [
+      "COMPANY-NAME"
+    ],
+    "business_rules": null,
+    "business_dependencies": [
+      "CICS"
+    ],
+    "business_workflows": [
+      "Setting company name in a CICS transaction"
+    ],
+    "data_transformations": [
+      "Move 'CICS Bank Sample Application' to COMPANY-NAME"
+    ],
+    "error_handling": null,
+    "compliance_requirements": null,
+    "business_criticality": "low",
+    "business_complexity": "low",
+    "modernization_impact": "low",
+    "confidence": 0.9,
+    "analysis_notes": "The code is simple and primarily involves setting a company name within a CICS environment. There are no complex business rules or error handling mechanisms present.",
+    "extracted_constants": {
+      "business_constants": [
+        "CICS Bank Sample Application"
+      ],
+      "validation_rules": null
+    },
+    "source_file": "src/base/cobol_src/GETCOMPY.cbl",
+    "file_name": "GETCOMPY.cbl",
+    "file_size": 1071,
+    "analysis_timestamp": "2025-11-20T00:40:24.038665",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.7333333333333334,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.7333333333333334
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/GETCOMPY.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/GETCOMPY.cbl.business.json"
+  }
+}

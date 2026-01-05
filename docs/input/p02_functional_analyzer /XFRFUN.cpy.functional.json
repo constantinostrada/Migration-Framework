@@ -1,0 +1,85 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:36:07.602496",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/XFRFUN.cpy",
+    "filename": "XFRFUN.cpy",
+    "size_bytes": 996,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/XFRFUN.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "This module defines a data structure for transferring financial information between accounts, including account numbers, financial service codes, transaction amounts, and balance information. It also includes fields for indicating success or failure of operations.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": [
+        "COMM-FACCNO",
+        "COMM-FSCODE",
+        "COMM-TACCNO",
+        "COMM-TSCODE",
+        "COMM-AMT"
+      ],
+      "outputs": [
+        "COMM-FAVBAL",
+        "COMM-FACTBAL",
+        "COMM-TAVBAL",
+        "COMM-TACTBAL",
+        "COMM-FAIL-CODE",
+        "COMM-SUCCESS"
+      ],
+      "return_values": [
+        "COMM-SUCCESS",
+        "COMM-FAIL-CODE"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize financial transaction data structure with account and transaction details",
+      "Step 2: Process transaction by updating balances and setting success or failure codes",
+      "Step 3: Output updated balances and transaction status"
+    ],
+    "state_changes": [
+      "Variable state changes: COMM-FAVBAL, COMM-FACTBAL, COMM-TAVBAL, COMM-TACTBAL, COMM-FAIL-CODE, COMM-SUCCESS"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": [
+      "Error detection through COMM-FAIL-CODE",
+      "Success indication through COMM-SUCCESS"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures",
+      "Potential for API conversion to RESTful services",
+      "Evaluate use of modern financial transaction libraries"
+    ],
+    "confidence": 0.7,
+    "complexity_score": 3,
+    "analysis_notes": "The code primarily defines a data structure without explicit logic or algorithms. Further analysis would require additional context or surrounding code.",
+    "source_file": "src/base/cobol_copy/XFRFUN.cpy",
+    "file_name": "XFRFUN.cpy",
+    "file_size": 996,
+    "analysis_timestamp": "2025-11-24T23:36:07.602441",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.7,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/XFRFUN.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/XFRFUN.cpy.functional.json"
+  }
+}

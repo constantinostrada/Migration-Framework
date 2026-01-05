@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:32:31.754168",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/DRPTB02.jcl",
+    "filename": "DRPTB02.jcl",
+    "size_bytes": 540,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/DRPTB02.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program that drops a specific table from the database. It sets the current SQLID to 'IBMUSER' and then drops the table named PROCTRAN.",
+    "api_like_spec": {
+      "function_name": "DROP TABLE PROCTRAN",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT messages",
+        "SQL execution results"
+      ],
+      "return_values": [
+        "Success of table drop",
+        "SQL error codes"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Set SQLID to 'IBMUSER'",
+      "Step 2: Execute DROP TABLE command on PROCTRAN",
+      "Step 3: Output results to SYSOUT"
+    ],
+    "state_changes": [
+      "Database table PROCTRAN is dropped"
+    ],
+    "side_effects": [
+      "Database transaction to drop a table"
+    ],
+    "dependencies": [
+      "DB2 subsystem DBCG",
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library"
+    ],
+    "interface_points": [
+      "DB2 database interface"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Limited by DB2 execution speed",
+      "Dependent on database response time"
+    ],
+    "error_handling": [
+      "SQL error codes returned in case of failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern database management tools",
+      "Potential to convert JCL to a more modern scripting language"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The script is straightforward, primarily executing a single SQL command to drop a table. It relies on DB2 utilities and libraries for execution.",
+    "source_file": "etc/install/base/db2jcl/DRPTB02.jcl",
+    "file_name": "DRPTB02.jcl",
+    "file_size": 540,
+    "analysis_timestamp": "2025-11-24T23:32:31.754104",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPTB02.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPTB02.jcl.functional.json"
+  }
+}

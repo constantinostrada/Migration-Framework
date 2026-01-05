@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:39:51.782225",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/UPDACC.cbl",
+    "filename": "UPDACC.cbl",
+    "size_bytes": 13946,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/UPDACC.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The UPDACC module is responsible for updating specific fields of an account record in a DB2 database. It handles updates to the account type, interest rate, overdraft limit, and statement dates, but explicitly excludes balance updates. The module ensures that updates are valid and returns a success or failure flag to the calling program.",
+    "api_like_spec": {
+      "function_name": "UPDACC",
+      "inputs": [
+        "COMM-SCODE",
+        "COMM-ACCNO",
+        "COMM-ACC-TYPE",
+        "COMM-OVERDRAFT",
+        "COMM-INT-RATE"
+      ],
+      "outputs": [
+        "COMM-SUCCESS",
+        "COMM-EYE",
+        "COMM-CUSTNO",
+        "COMM-SCODE",
+        "COMM-ACCNO",
+        "COMM-ACC-TYPE",
+        "COMM-INT-RATE",
+        "COMM-OVERDRAFT",
+        "COMM-AVAIL-BAL",
+        "COMM-ACTUAL-BAL"
+      ],
+      "return_values": [
+        "Y",
+        "N"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Receive input parameters from the calling program.",
+      "Step 2: Retrieve the existing account record from the DB2 database.",
+      "Step 3: Validate input data and update the account record in the database.",
+      "Step 4: Return success or failure status to the calling program."
+    ],
+    "state_changes": [
+      "Updates to the ACCOUNT table in the DB2 database."
+    ],
+    "side_effects": [
+      "Database transactions for updating account records."
+    ],
+    "dependencies": [
+      "DB2 database",
+      "ACCDB2 copybook",
+      "SQLCA for SQL communication"
+    ],
+    "interface_points": [
+      "DB2 database for account record retrieval and update",
+      "CICS for transaction management"
+    ],
+    "algorithms": [
+      "Validation of account type to ensure it is not empty or starts with a space."
+    ],
+    "performance_characteristics": [
+      "Database access for record retrieval and update could be a performance bottleneck."
+    ],
+    "error_handling": [
+      "Checks SQLCODE after database operations to determine success or failure.",
+      "Displays error messages if SQL operations fail."
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern database access methods.",
+      "Potential to convert to a REST API for easier integration with modern systems."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 5,
+    "analysis_notes": "The module is tightly coupled with DB2 and CICS, which may require significant changes for modernization. Error handling is basic and could be improved with more detailed logging.",
+    "source_file": "src/base/cobol_src/UPDACC.cbl",
+    "file_name": "UPDACC.cbl",
+    "file_size": 13946,
+    "analysis_timestamp": "2025-11-24T23:39:51.782147",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.cbl.functional.json"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:25:19.486726",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/BNK1TFM.jcl",
+    "filename": "BNK1TFM.jcl",
+    "size_bytes": 224,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/BNK1TFM.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to compile and link-edit a BMS map named BNK1TFM. It utilizes a predefined procedure MAPGEN and specifies the member BNK1TFM with a relocation mode of ANY. The output is directed to a specified location or system.",
+    "api_like_spec": {
+      "function_name": "BNK1TFM",
+      "inputs": [
+        "MEMBER=BNK1TFM",
+        "RMODE=ANY",
+        "OUTC='*'"
+      ],
+      "outputs": [
+        "Compiled and link-edited BMS map"
+      ],
+      "return_values": [
+        "Success or failure of the compile and link-edit process"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Include default settings from DEFAULT member",
+      "Step 2: Execute MAPGEN procedure with specified parameters",
+      "Step 3: Output the compiled and link-edited map"
+    ],
+    "state_changes": [
+      "Creation or update of compiled BMS map file"
+    ],
+    "side_effects": [
+      "File I/O operations for reading JCLLIB and writing output"
+    ],
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL library",
+      "DEFAULT member for default settings",
+      "MAPGEN procedure"
+    ],
+    "interface_points": [
+      "JCLLIB for library access",
+      "INCLUDE for member inclusion"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Dependent on the efficiency of the MAPGEN procedure"
+    ],
+    "error_handling": [
+      "Standard JCL error handling for job execution"
+    ],
+    "modernization_notes": [
+      "Consider refactoring JCL to a more modern build system",
+      "Evaluate the use of modern CI/CD pipelines for automation"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The JCL script is straightforward, primarily serving as a wrapper to execute the MAPGEN procedure with specific parameters. The complexity is low due to the limited functionality and reliance on external procedures.",
+    "source_file": "etc/install/base/buildjcl/BNK1TFM.jcl",
+    "file_name": "BNK1TFM.jcl",
+    "file_size": 224,
+    "analysis_timestamp": "2025-11-24T23:25:19.486665",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1TFM.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1TFM.jcl.functional.json"
+  }
+}

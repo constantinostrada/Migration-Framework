@@ -1,0 +1,160 @@
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "8",
+      "section_title": "Operational Design",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "This section provides a detailed description of the operational design of the Legacy Banking System, focusing on the actual deployment, monitoring, and maintenance procedures implemented.",
+        "overview": "The section covers the deployment procedures, monitoring tools, and maintenance plans that are currently in place within the system.",
+        "organization": "The section is divided into subsections detailing deployment procedures and monitoring and maintenance processes."
+      },
+      "main_sections": [
+        {
+          "subsection_number": "8.1",
+          "subsection_title": "Deployment Procedures",
+          "content": "This subsection details the actual deployment and release management processes implemented in the Legacy Banking System.",
+          "components": [
+            {
+              "name": "OPR_PLAN.CBL",
+              "type": "COBOL_PROGRAM",
+              "description": "Manages scheduling and resource allocation for daily operational tasks.",
+              "source_files": [
+                "/app/legacy/programs/OPR_PLAN.CBL"
+              ],
+              "key_features": [
+                "Read operational task definitions",
+                "Allocate resources to tasks",
+                "Generate daily/weekly operational schedules"
+              ],
+              "interfaces": [
+                "OPR_TASK_DEF_FILE (Input)",
+                "DAILY_SCHEDULE_FILE (Output)"
+              ]
+            },
+            {
+              "name": "PROC_MGR.CBL",
+              "type": "COBOL_PROGRAM",
+              "description": "Stores, retrieves, and validates standard operating procedures.",
+              "source_files": [
+                "/app/legacy/programs/PROC_MGR.CBL"
+              ],
+              "key_features": [
+                "Store new procedure definitions",
+                "Retrieve procedures by ID or type",
+                "Validate procedure step sequences"
+              ],
+              "interfaces": [
+                "PROC_DEFINITION_INPUT (Input)",
+                "PROC_MASTER_FILE (Output)"
+              ]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "The system uses a procedural design pattern typical of COBOL applications, focusing on sequential task execution and resource allocation.",
+            "algorithms": "A variant of the critical path method is used for scheduling tasks, ensuring dependencies and priorities are respected.",
+            "data_structures": "Key data structures include task definitions and resource availability files, which are processed to generate schedules.",
+            "error_handling": "Error handling is managed through return codes and conflict reports, which flag scheduling issues."
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Account Creation",
+              "satisfaction": "The deployment procedures ensure that the system is operational and ready to handle customer account creation processes."
+            }
+          ]
+        },
+        {
+          "subsection_number": "8.2",
+          "subsection_title": "Monitoring and Maintenance",
+          "content": "This subsection describes the system monitoring and maintenance procedures currently implemented.",
+          "components": [
+            {
+              "name": "MAINT_SCHD.JCL",
+              "type": "JCL_SCRIPT",
+              "description": "Automates execution of routine system maintenance jobs.",
+              "source_files": [
+                "/app/legacy/jcl/MAINT_SCHD.JCL"
+              ],
+              "key_features": [
+                "Define and execute job steps for maintenance tasks",
+                "Specify execution order and dependencies",
+                "Allocate system resources"
+              ],
+              "interfaces": [
+                "System parameters (Input)",
+                "Job completion status (Output)"
+              ]
+            },
+            {
+              "name": "INCIDENT_RPT.CBL",
+              "type": "COBOL_PROGRAM",
+              "description": "Processes and stores incident reports related to operational failures.",
+              "source_files": [
+                "/app/legacy/programs/INCIDENT_RPT.CBL"
+              ],
+              "key_features": [
+                "Receive and validate incident data",
+                "Assign unique incident IDs",
+                "Generate incident summary reports"
+              ],
+              "interfaces": [
+                "INCIDENT_INPUT_FILE (Input)",
+                "INCIDENT_MASTER_FILE (Output)"
+              ]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "The maintenance scripts follow a batch processing pattern, typical for JCL, ensuring tasks are executed in sequence.",
+            "algorithms": "Conditional execution based on return codes ensures that maintenance tasks are completed successfully before proceeding.",
+            "data_structures": "Maintenance jobs utilize datasets for backups and logs, ensuring data integrity and compliance.",
+            "error_handling": "Job logs and return codes are used to monitor the success of maintenance tasks, with alerts for failures."
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "OR-001",
+              "requirement_title": "Rollback Mechanism",
+              "satisfaction": "The maintenance procedures include mechanisms to ensure system state can be restored in case of failures."
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": [
+          "Use of COBOL and JCL for operational task management and maintenance.",
+          "Implementation of a scheduling algorithm to optimize resource allocation."
+        ],
+        "trade_offs": [
+          "Reliance on legacy technologies limits modernization but ensures stability and compliance with existing processes."
+        ],
+        "future_considerations": [
+          "Consider migrating to more modern scheduling and maintenance tools to improve efficiency and reduce operational overhead."
+        ]
+      }
+    },
+    "implementation": {
+      "development_guidance": [
+        "Ensure all operational tasks are defined with clear dependencies and resource requirements.",
+        "Regularly update and validate standard operating procedures to maintain compliance."
+      ],
+      "testing_approach": "Testing involves validating the scheduling and maintenance processes through simulated operational scenarios and verifying output files.",
+      "deployment_notes": "Deployment requires careful coordination to ensure minimal disruption to ongoing operations, with a focus on off-peak hours."
+    },
+    "modernization": {
+      "current_technology": "The system operates within a COBOL and CICS environment, utilizing JCL for batch processing.",
+      "modernization_options": [
+        "Consider transitioning to a modern scheduling platform like Apache Airflow.",
+        "Explore cloud-based solutions for maintenance and monitoring tasks."
+      ],
+      "refactoring_opportunities": [
+        "Refactor COBOL programs to improve readability and maintainability.",
+        "Optimize JCL scripts to reduce execution time and resource usage."
+      ]
+    }
+  },
+  "markdown_content": "# 8 Operational Design\n\n## Introduction\nThis section provides a detailed description of the operational design of the Legacy Banking System, focusing on the actual deployment, monitoring, and maintenance procedures implemented. It covers the deployment procedures, monitoring tools, and maintenance plans that are currently in place within the system.\n\n## 8.1 Deployment Procedures\nThis subsection details the actual deployment and release management processes implemented in the Legacy Banking System.\n\n### OPR_PLAN.CBL - Operational Planning Program\n- **Purpose**: Manages scheduling and resource allocation for daily operational tasks.\n- **Source Files**: `/app/legacy/programs/OPR_PLAN.CBL`\n- **Key Features**:\n  - Read operational task definitions\n  - Allocate resources to tasks\n  - Generate daily/weekly operational schedules\n- **Interfaces**:\n  - Input: `OPR_TASK_DEF_FILE`\n  - Output: `DAILY_SCHEDULE_FILE`\n\n### PROC_MGR.CBL - Procedure Management Program\n- **Purpose**: Stores, retrieves, and validates standard operating procedures.\n- **Source Files**: `/app/legacy/programs/PROC_MGR.CBL`\n- **Key Features**:\n  - Store new procedure definitions\n  - Retrieve procedures by ID or type\n  - Validate procedure step sequences\n- **Interfaces**:\n  - Input: `PROC_DEFINITION_INPUT`\n  - Output: `PROC_MASTER_FILE`\n\n## 8.2 Monitoring and Maintenance\nThis subsection describes the system monitoring and maintenance procedures currently implemented.\n\n### MAINT_SCHD.JCL - Maintenance Scheduling Script\n- **Purpose**: Automates execution of routine system maintenance jobs.\n- **Source Files**: `/app/legacy/jcl/MAINT_SCHD.JCL`\n- **Key Features**:\n  - Define and execute job steps for maintenance tasks\n  - Specify execution order and dependencies\n  - Allocate system resources\n- **Interfaces**:\n  - Input: System parameters\n  - Output: Job completion status\n\n### INCIDENT_RPT.CBL - Incident Reporting Program\n- **Purpose**: Processes and stores incident reports related to operational failures.\n- **Source Files**: `/app/legacy/programs/INCIDENT_RPT.CBL`\n- **Key Features**:\n  - Receive and validate incident data\n  - Assign unique incident IDs\n  - Generate incident summary reports\n- **Interfaces**:\n  - Input: `INCIDENT_INPUT_FILE`\n  - Output: `INCIDENT_MASTER_FILE`\n\n## Summary\n- **Key Decisions**: Use of COBOL and JCL for operational task management and maintenance.\n- **Trade-offs**: Reliance on legacy technologies limits modernization but ensures stability and compliance with existing processes.\n- **Future Considerations**: Consider migrating to more modern scheduling and maintenance tools to improve efficiency and reduce operational overhead.\n\n## Implementation\n- **Development Guidance**: Ensure all operational tasks are defined with clear dependencies and resource requirements.\n- **Testing Approach**: Testing involves validating the scheduling and maintenance processes through simulated operational scenarios and verifying output files.\n- **Deployment Notes**: Deployment requires careful coordination to ensure minimal disruption to ongoing operations, with a focus on off-peak hours.\n\n## Modernization\n- **Current Technology**: The system operates within a COBOL and CICS environment, utilizing JCL for batch processing.\n- **Modernization Options**: Consider transitioning to a modern scheduling platform like Apache Airflow.\n- **Refactoring Opportunities**: Refactor COBOL programs to improve readability and maintainability."
+}

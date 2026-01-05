@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:40:09.347856",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1DAC.cbl",
+    "filename": "BNK1DAC.cbl",
+    "size_bytes": 37739,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1DAC.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The BNK1DAC program is part of a banking application that displays account information and handles account deletion requests. It interacts with CICS for transaction processing and uses BMS maps for user interface operations.",
+    "api_like_spec": {
+      "function_name": "BNK1DAC",
+      "inputs": [
+        "EIBAID",
+        "EIBCALEN",
+        "ACCNOI",
+        "COMM-SCODE",
+        "COMM-ACCNO"
+      ],
+      "outputs": [
+        "WS-COMM-AREA",
+        "MESSAGEO"
+      ],
+      "return_values": [
+        "Normal completion",
+        "Error codes via WS-CICS-RESP and WS-CICS-RESP2"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize working storage and communication areas",
+      "Step 2: Evaluate user input and perform actions based on function keys",
+      "Step 3: Retrieve or delete account data and update the user interface"
+    ],
+    "state_changes": [
+      "Updates to WS-COMM-AREA based on account data retrieval",
+      "Potential updates to account records upon deletion"
+    ],
+    "side_effects": [
+      "CICS transaction calls for map sending and receiving",
+      "Linking to subprograms INQACC and DELACC for account operations"
+    ],
+    "dependencies": [
+      "INQACC subprogram for account inquiries",
+      "DELACC subprogram for account deletions",
+      "CICS for transaction management"
+    ],
+    "interface_points": [
+      "CICS for transaction and map handling",
+      "BMS maps for user interface",
+      "Subprograms INQACC and DELACC for account operations"
+    ],
+    "algorithms": [
+      "Data validation for account number input",
+      "Conditional logic for handling different function keys"
+    ],
+    "performance_characteristics": [
+      "CICS transaction performance may affect response time",
+      "Potential bottlenecks in subprogram calls for account operations"
+    ],
+    "error_handling": [
+      "Use of CICS RESP and RESP2 for error detection",
+      "Linking to an abend handler program for error recovery",
+      "Error messages displayed to users via MESSAGEO"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern APIs for transaction management",
+      "Potential to replace BMS maps with web-based interfaces",
+      "Use of modern error handling and logging frameworks"
+    ],
+    "confidence": 0.8,
+    "complexity_score": 5,
+    "analysis_notes": "The program heavily relies on CICS for transaction processing and uses BMS maps for user interaction, which may limit flexibility and scalability in modern environments.",
+    "source_file": "src/base/cobol_src/BNK1DAC.cbl",
+    "file_name": "BNK1DAC.cbl",
+    "file_size": 37739,
+    "analysis_timestamp": "2025-11-24T23:40:09.347771",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1DAC.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1DAC.cbl.functional.json"
+  }
+}

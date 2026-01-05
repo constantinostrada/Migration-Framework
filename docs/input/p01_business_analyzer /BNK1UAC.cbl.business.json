@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:41:55.832462",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1UAC.cbl",
+    "filename": "BNK1UAC.cbl",
+    "size_bytes": 47061,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1UAC.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program supports updating account information in a banking application, handling user interactions through a CICS interface. It processes account data, validates inputs, and updates account records.",
+    "business_entities": [
+      "Customer",
+      "Account",
+      "Transaction"
+    ],
+    "business_rules": [
+      "Account types must be one of CURRENT, SAVING, LOAN, MORTGAGE, or ISA.",
+      "Interest rate must be numeric and between 0 and 9999.99.",
+      "Overdraft must be numeric.",
+      "Dates must be numeric and valid calendar dates."
+    ],
+    "business_dependencies": [
+      "CICS transaction processing",
+      "INQACC program",
+      "UPDACC program"
+    ],
+    "business_workflows": [
+      "Receive user input and validate data.",
+      "Query account information using INQACC.",
+      "Update account information using UPDACC.",
+      "Handle user interactions based on function keys."
+    ],
+    "data_transformations": [
+      "Convert screen input formats for account balances into numeric formats.",
+      "Validate and transform interest rate input into a numeric value."
+    ],
+    "error_handling": [
+      "Handles invalid key presses by displaying an error message.",
+      "Handles CICS response errors by linking to an Abend Handler program.",
+      "Displays messages for unsuccessful updates or invalid data."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "high",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is integral to account management, involving complex validation and interaction with other systems.",
+    "extracted_constants": {
+      "business_constants": [
+        "Account types: CURRENT, SAVING, LOAN, MORTGAGE, ISA",
+        "Interest rate range: 0 to 9999.99"
+      ],
+      "validation_rules": [
+        "Account number must be numeric.",
+        "Interest rate must be numeric and positive.",
+        "Overdraft must be numeric.",
+        "Dates must be valid calendar dates."
+      ]
+    },
+    "source_file": "src/base/cobol_src/BNK1UAC.cbl",
+    "file_name": "BNK1UAC.cbl",
+    "file_size": 47061,
+    "analysis_timestamp": "2025-11-20T00:41:55.832392",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1UAC.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1UAC.cbl.business.json"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:34:30.487259",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/DRPSG03.jcl",
+    "filename": "DRPSG03.jcl",
+    "size_bytes": 542,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/DRPSG03.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program using the DSNTEP2 utility to run SQL statements against a DB2 subsystem. It sets the current SQLID and attempts to drop a storage group.",
+    "api_like_spec": {
+      "function_name": "GRANT",
+      "inputs": [
+        "DSN SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT messages",
+        "SQL execution results"
+      ],
+      "return_values": [
+        "Job completion codes",
+        "SQL execution success or failure"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize DB2 environment with DSN SYSTEM(DBCG)",
+      "Step 2: Execute SQL command to drop storage group",
+      "Step 3: Output results to SYSOUT"
+    ],
+    "state_changes": [
+      "Database state change: Attempt to drop storage group CONTROL"
+    ],
+    "side_effects": [
+      "Execution of SQL commands on DB2 subsystem",
+      "Output to system output streams"
+    ],
+    "dependencies": [
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library",
+      "DB2 subsystem DBCG"
+    ],
+    "interface_points": [
+      "DB2 subsystem interface via DSN command",
+      "JCL job execution environment"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Limited by DB2 subsystem performance",
+      "Dependent on SQL execution efficiency"
+    ],
+    "error_handling": [
+      "Job completion codes indicate success or failure",
+      "SYSOUT used for logging execution details"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern DB2 client tools",
+      "Potential to convert JCL to a more modern scripting language"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The JCL script is straightforward, primarily executing a single SQL command. Modernization could involve replacing JCL with a more flexible scripting approach.",
+    "source_file": "etc/install/base/db2jcl/DRPSG03.jcl",
+    "file_name": "DRPSG03.jcl",
+    "file_size": 542,
+    "analysis_timestamp": "2025-11-24T23:34:30.487197",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPSG03.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPSG03.jcl.functional.json"
+  }
+}

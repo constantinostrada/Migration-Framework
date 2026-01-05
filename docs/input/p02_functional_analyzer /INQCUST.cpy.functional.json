@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:18.619573",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/INQCUST.cpy",
+    "filename": "INQCUST.cpy",
+    "size_bytes": 1267,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/INQCUST.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a COBOL copybook structure for customer inquiry data, including fields for customer identification, personal information, credit score, and inquiry status.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Data is structured into fields for customer inquiry.",
+      "Step 2: Fields are populated with customer data during processing.",
+      "Step 3: Data is used for customer inquiry operations."
+    ],
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider converting the COBOL copybook to a modern data structure format like JSON or XML.",
+      "Evaluate the use of modern database systems for storing and querying customer data."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 2,
+    "analysis_notes": "The code is a data structure definition without any procedural logic, focusing on customer inquiry data fields.",
+    "source_file": "src/base/cobol_copy/INQCUST.cpy",
+    "file_name": "INQCUST.cpy",
+    "file_size": 1267,
+    "analysis_timestamp": "2025-11-24T23:35:18.619523",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQCUST.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQCUST.cpy.functional.json"
+  }
+}

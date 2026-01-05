@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:28.656163",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/UPDACC.cpy",
+    "filename": "UPDACC.cpy",
+    "size_bytes": 1757,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/UPDACC.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a data structure for handling account information, including customer number, account number, account type, interest rate, and various date fields related to account statements. It appears to be used for updating account details in a legacy system.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": [
+        "COMM-CUSTNO",
+        "COMM-ACCNO",
+        "COMM-ACC-TYPE",
+        "COMM-INT-RATE",
+        "COMM-OPENED",
+        "COMM-OVERDRAFT",
+        "COMM-LAST-STMT-DT",
+        "COMM-NEXT-STMT-DT",
+        "COMM-AVAIL-BAL",
+        "COMM-ACTUAL-BAL"
+      ],
+      "outputs": [
+        "COMM-SUCCESS"
+      ],
+      "return_values": [
+        "Success indicator"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Data is initialized with account-related information.",
+      "Step 2: Data is structured into fields for processing.",
+      "Step 3: Data is likely used for updating or querying account records."
+    ],
+    "state_changes": [
+      "Variable state changes as data is processed."
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures.",
+      "Potential for API conversion to RESTful services.",
+      "Evaluate use of modern databases for handling account data."
+    ],
+    "confidence": 0.7,
+    "complexity_score": 3,
+    "analysis_notes": "The code primarily defines a data structure without explicit logic or processing details. Further context is needed to understand its integration with other system components.",
+    "source_file": "src/base/cobol_copy/UPDACC.cpy",
+    "file_name": "UPDACC.cpy",
+    "file_size": 1757,
+    "analysis_timestamp": "2025-11-24T23:35:28.656103",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.7,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/UPDACC.cpy.functional.json"
+  }
+}

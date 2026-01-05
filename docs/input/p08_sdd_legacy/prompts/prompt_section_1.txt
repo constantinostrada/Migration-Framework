@@ -1,0 +1,427 @@
+You are a legacy system analyst specializing in REVERSE ENGINEERING documentation from actual system analysis. Your task is to document WHAT THE LEGACY SYSTEM ACTUALLY CONTAINS based on real code analysis, not what it should contain.
+
+## CRITICAL MANDATE: DOCUMENT REALITY, NOT IDEALS
+- Document ACTUAL programs, files, and functionality found in the system analysis
+- Use REAL component names, file names, and business logic discovered
+- Base ALL content on the provided database analysis of actual legacy code
+- NEVER use generic templates or "should have" language
+- Focus on WHAT EXISTS, not what would be ideal
+
+## CONTEXT
+Project: Legacy  System Reverse Documentation
+Standard: IEEE 1016 Software Design Description  
+Processing Mode: Section-by-section documentation of ACTUAL system
+Target: Accurate documentation of existing legacy implementation
+
+## INPUT DATA
+TOC Section: 1 - Introduction
+P07 TOC Structure: {
+  "section_number": "1",
+  "section_title": "Introduction",
+  "page_estimate": 8,
+  "section_purpose": "Document foundation and system context",
+  "subsections": [
+    {
+      "subsection_number": "1.1",
+      "subsection_title": "Purpose and Scope",
+      "content_description": "Document objectives, scope boundaries, and intended audience",
+      "source_requirements": [
+        "Document charter",
+        "System scope definition"
+      ],
+      "page_estimate": 2,
+      "key_content": [
+        "Documentation goals",
+        "System boundaries",
+        "Audience definition"
+      ]
+    },
+    {
+      "subsection_number": "1.2",
+      "subsection_title": "System Overview",
+      "content_description": "High-level system description and business context",
+      "source_requirements": [
+        "System summary",
+        "Business context",
+        "Functional overview"
+      ],
+      "page_estimate": 3,
+      "key_content": [
+        "Business purpose",
+        "System capabilities",
+        "User types"
+      ]
+    },
+    {
+      "subsection_number": "1.3",
+      "subsection_title": "Design Methodology",
+      "content_description": "Design principles and architectural approach",
+      "source_requirements": [
+        "Architecture principles",
+        "Design patterns",
+        "Technology choices"
+      ],
+      "page_estimate": 2,
+      "key_content": [
+        "Design principles",
+        "Architectural patterns",
+        "Technology rationale"
+      ]
+    },
+    {
+      "subsection_number": "1.4",
+      "subsection_title": "Document Organization",
+      "content_description": "Document structure and navigation guide",
+      "source_requirements": [
+        "Navigation guide",
+        "Document structure"
+      ],
+      "page_estimate": 1,
+      "key_content": [
+        "Section overview",
+        "Reading guide",
+        "Cross-references"
+      ]
+    }
+  ]
+}
+P06 Requirements: {
+  "functional_requirements": [
+    {
+      "requirement_id": "FR-001",
+      "title": "Customer Account Creation",
+      "description": "The system must allow for the creation of customer accounts by capturing essential customer details, performing a mandatory credit assessment, and securely storing the information.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To streamline the customer onboarding process and ensure data integrity.",
+      "acceptance_criteria": [
+        "Customer details are captured and stored securely.",
+        "Credit assessment is performed using external agencies.",
+        "Unique customer identifiers are managed correctly."
+      ],
+      "dependencies": [],
+      "tags": [
+        "customer",
+        "account",
+        "creation"
+      ]
+    },
+    {
+      "requirement_id": "FR-002",
+      "title": "Account Creation for Existing Customers",
+      "description": "The system must facilitate the addition of new accounts for existing customers, enforcing a limit of nine accounts per customer.",
+      "priority": "medium",
+      "source_component": "CREACC.cbl",
+      "rationale": "To manage customer accounts efficiently and prevent excessive account creation.",
+      "acceptance_criteria": [
+        "New accounts can only be created for existing customers.",
+        "A maximum of nine accounts per customer is enforced."
+      ],
+      "dependencies": [
+        "FR-001"
+      ],
+      "tags": [
+        "account",
+        "creation",
+        "limit"
+      ]
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-001",
+      "title": "System Performance",
+      "description": "The system must handle high transaction volumes with minimal latency.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure efficient processing of financial transactions.",
+      "acceptance_criteria": [
+        "System processes transactions within 2 seconds.",
+        "System supports up to 1000 concurrent transactions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "performance",
+        "scalability"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "requirement_id": "BR-001",
+      "title": "Credit Score Assignment",
+      "description": "If no data is returned from the credit assessment, the credit score must be set to 0.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure consistent handling of credit assessments.",
+      "acceptance_criteria": [
+        "Credit score is set to 0 when no data is returned."
+      ],
+      "dependencies": [],
+      "tags": [
+        "credit",
+        "score",
+        "assessment"
+      ]
+    }
+  ],
+  "interface_requirements": [
+    {
+      "requirement_id": "IR-001",
+      "title": "User Interface for Account Creation",
+      "description": "The system must provide a user interface for input and validation of new account creation.",
+      "priority": "medium",
+      "source_component": "BNK1CAC.cbl",
+      "rationale": "To ensure data quality before account setup.",
+      "acceptance_criteria": [
+        "User interface validates customer and account parameters.",
+        "Interface links to backend operations for account creation."
+      ],
+      "dependencies": [],
+      "tags": [
+        "UI",
+        "validation",
+        "account"
+      ]
+    }
+  ],
+  "data_requirements": [
+    {
+      "requirement_id": "DR-001",
+      "title": "Data Storage for Customer Information",
+      "description": "The system must store customer information securely in either VSAM or DB2 databases.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure secure and reliable storage of customer data.",
+      "acceptance_criteria": [
+        "Customer data is stored in the selected database.",
+        "Data integrity is maintained during storage operations."
+      ],
+      "dependencies": [],
+      "tags": [
+        "data",
+        "storage",
+        "security"
+      ]
+    }
+  ],
+  "operational_requirements": [
+    {
+      "requirement_id": "OR-001",
+      "title": "Rollback Mechanism",
+      "description": "The system must implement rollback mechanisms if data persistence encounters issues.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To maintain business continuity and data integrity.",
+      "acceptance_criteria": [
+        "Rollback is triggered on data persistence failure.",
+        "System state is restored to pre-failure conditions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "rollback",
+        "continuity",
+        "integrity"
+      ]
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement_id": "CR-001",
+      "title": "Compliance with Banking Regulations",
+      "description": "All financial transactions must comply with banking regulations and internal policies.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure legal compliance and operational integrity.",
+      "acceptance_criteria": [
+        "Transactions adhere to regulatory standards.",
+        "Internal policies are enforced during transaction processing."
+      ],
+      "dependencies": [],
+      "tags": [
+        "compliance",
+        "regulations",
+        "policies"
+      ]
+    }
+  ],
+  "legacy_constraints": [
+    {
+      "requirement_id": "LC-001",
+      "title": "COBOL and CICS Environment",
+      "description": "The system operates within a COBOL and CICS environment, which imposes constraints on modernization efforts.",
+      "priority": "medium",
+      "source_component": "All components",
+      "rationale": "To acknowledge the limitations of the current technology stack.",
+      "acceptance_criteria": [
+        "Modernization plans account for COBOL and CICS constraints."
+      ],
+      "dependencies": [],
+      "tags": [
+        "legacy",
+        "COBOL",
+        "CICS"
+      ]
+    }
+  ],
+  "document_metadata": {
+    "system_name": "Legacy Banking System",
+    "extraction_date": "2025-11-20T09:39:13.586679",
+    "total_components_analyzed": 14
+  }
+}
+Database Analysis: {'search_phrase': 'Introduction. Document foundation and system context', 'components': [{'file_path': '/app/src/cbl/SYSINIT.CBL', 'file_name': 'SYSINIT.CBL', 'relevance_score': 0.95, 'summary': 'This COBOL program performs critical system initialization tasks, including reading global configuration parameters, establishing connections to core system resources (e.g., databases, message queues), and setting up the initial runtime environment for the application. It ensures the system is in a consistent and ready state before processing any business transactions.', 'business_analysis': {'business_purpose': 'To establish the foundational operational context and readiness for all subsequent business processes and transactions within the application suite. It ensures system integrity and resource availability from the outset.', 'entities': ['System_Configuration', 'Application_Resource', 'Environment_Variable'], 'business_rules': ['All mandatory system configuration parameters must be loaded successfully.', 'Core system resources (e.g., primary database, logging facility) must be accessible.', "System status must be set to 'INITIALIZED' upon successful completion."]}, 'functional_analysis': {'key_functions': ['Load_Configuration_Parameters', 'Initialize_Database_Connection', 'Setup_Logging_Facility', 'Set_System_Status'], 'inputs': ['SYSCONFIG (configuration file/dataset)', 'DB_CONNECT_INFO (database connection parameters)'], 'outputs': ['System_Status_Flag', 'Log_Messages', 'Initialized_System_Resources'], 'processing_logic': 'Reads configuration from SYSCONFIG. Attempts to connect to the database using DB_CONNECT_INFO. Initializes the logging subsystem. Sets a global system status flag. Handles errors during initialization by logging and terminating.'}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/src/cbl/copybooks/GLBPARMS.CPY', 'file_name': 'GLBPARMS.CPY', 'relevance_score': 0.98, 'summary': 'A COBOL copybook containing definitions for global system parameters, constants, and common data structures. These definitions provide a consistent foundation for data elements and operational values used across multiple programs and modules within the application.', 'business_analysis': {'business_purpose': 'To standardize and centralize the definition of fundamental system-wide constants, codes, and data structures that govern core business logic and data representation, ensuring consistency across the entire application.', 'entities': ['System_Constant', 'Application_Code', 'Global_Data_Structure'], 'business_rules': ['All system-wide codes (e.g., status codes, transaction types) must be defined here.', 'Maximum lengths for common fields (e.g., customer ID, product code) should be declared.', 'Error codes and messages should be standardized.']}, 'functional_analysis': {'key_functions': [], 'inputs': [], 'outputs': [], 'processing_logic': 'This file is a static definition of data structures and constants. It is included by COBOL programs during compilation, providing them with common data layouts and values. It contains no executable logic.'}, 'component_type': 'COBOL_COPYBOOK'}, {'file_path': '/db/ddl/DBSCHEMA.DDL', 'file_name': 'DBSCHEMA.DDL', 'relevance_score': 0.92, 'summary': 'This file contains Data Definition Language (DDL) scripts for creating and defining the foundational database schema for the application. It includes statements for tables, indexes, views, and relationships, establishing the core data model.', 'business_analysis': {'business_purpose': 'To formally define the persistent data structures (entities, attributes, relationships) that underpin all business operations and information storage for the application, serving as the fundamental data foundation.', 'entities': ['Customer', 'Product', 'Order', 'Account', 'Transaction_Record'], 'business_rules': ['Primary keys must be unique for each entity.', 'Foreign key constraints must enforce referential integrity between related entities.', 'Data types and lengths must conform to business requirements for data storage.']}, 'functional_analysis': {'key_functions': ['CREATE TABLE', 'CREATE INDEX', 'ALTER TABLE'], 'inputs': [], 'outputs': ['Database_Tables', 'Database_Indexes', 'Database_Constraints'], 'processing_logic': 'This file is executed by a database management system (DBMS) to define the physical and logical structure of the database. It does not contain procedural logic but rather declarative statements for data definition.'}, 'component_type': 'DATABASE_DDL'}, {'file_path': '/app/src/cbl/APPMSTR.CBL', 'file_name': 'APPMSTR.CBL', 'relevance_score': 0.9, 'summary': 'The main COBOL program serving as the primary entry point and orchestrator for the application. It controls the overall flow, calls various sub-modules based on transaction types or processing phases, and handles global error conditions and application shutdown.', 'business_analysis': {'business_purpose': 'To define and manage the overarching business process flow of the application, ensuring that individual business functions are executed in the correct sequence and that system-wide business rules for process orchestration are enforced.', 'entities': ['Transaction', 'Application_Module', 'Business_Process_Flow'], 'business_rules': ['All incoming transactions must be validated before processing.', 'Specific business modules must be invoked based on the transaction type.', 'Global error handling procedures must be followed for unrecoverable errors.']}, 'functional_analysis': {'key_functions': ['Process_Transaction_Loop', 'Call_Module_Router', 'Global_Error_Handler', 'Application_Shutdown'], 'inputs': ['Transaction_Input_File', 'Control_Parameters'], 'outputs': ['Processed_Transaction_File', 'Error_Log', 'Audit_Trail'], 'processing_logic': 'Reads transactions from an input file. Based on transaction type, calls appropriate sub-programs. Manages transaction commit/rollback logic. Logs errors and audit information. Performs application cleanup upon completion or error.'}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/jcl/batch/ENVSETUP.JCL', 'file_name': 'ENVSETUP.JCL', 'relevance_score': 0.85, 'summary': 'A Job Control Language (JCL) script used to set up the execution environment for batch jobs. It allocates necessary datasets, defines system libraries, sets environment variables, and prepares the context for running application programs.', 'business_analysis': {'business_purpose': 'To establish the correct operational environment and resource allocation for batch business processes, ensuring that programs have access to the necessary data, libraries, and system parameters to execute business logic correctly.', 'entities': ['Batch_Job', 'Dataset', 'System_Library', 'Environment_Parameter'], 'business_rules': ['All required input/output datasets for a batch job must be allocated.', 'Correct program libraries must be specified in the STEPLIB/JOBLIB.', 'Job parameters must be passed correctly to the executing programs.']}, 'functional_analysis': {'key_functions': ['DD_Allocation', 'Library_Concatenation', 'Parameter_Passing', 'Program_Execution'], 'inputs': ['Job_Parameters', 'Dataset_Definitions'], 'outputs': ['Allocated_Datasets', 'Execution_Environment'], 'processing_logic': 'Defines job steps. Uses DD statements to allocate datasets (input, output, work files). Specifies program libraries using STEPLIB or JOBLIB. Passes runtime parameters to programs via PARM or SYSIN. Executes specified programs.'}, 'component_type': 'JCL_SCRIPT'}], 'total_found': 5, 'search_method': 'phrase_based_semantic_search'}
+Component Details: {{component_analysis}}
+
+## CONTENT GENERATION APPROACH
+
+Generate documentation that describes the ACTUAL legacy  system based on the component analysis data. Document real  programs, actual business logic, genuine data structures, and existing interfaces found in the code analysis.
+
+## OUTPUT FORMAT
+CRITICAL: Return ONLY a pure JSON object. NO markdown formatting, NO code blocks, NO additional text before or after.
+
+Start your response directly with the opening brace { and end with the closing brace }
+
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "1",
+      "section_title": "Introduction",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "Clear statement of section purpose and scope",
+        "overview": "High-level summary of what this section covers",
+        "organization": "Brief description of section structure"
+      },
+      "main_sections": [
+        {
+          "subsection_number": "1.1",
+          "subsection_title": "Subsection Title",
+          "content": "Detailed technical content covering design specifications, implementation details, and architectural decisions. Include component descriptions, interfaces, data structures, and processing logic.",
+          "components": [
+            {
+              "name": "Component Name",
+              "type": " Program|Database|Interface",
+              "description": "Component purpose and functionality",
+              "source_files": ["FILE1.cbl", "COPY1.cpy"],
+              "key_features": ["Feature 1", "Feature 2"],
+              "interfaces": ["Input interfaces", "Output interfaces"]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "Design patterns used and rationale",
+            "algorithms": "Key algorithms and processing logic",
+            "data_structures": "Important data structures and formats",
+            "error_handling": "Error handling and exception management"
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Management",
+              "satisfaction": "How this design satisfies the requirement"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": ["Major design decisions made"],
+        "trade_offs": ["Important trade-offs and their justifications"],
+        "future_considerations": ["Considerations for future enhancements"]
+      }
+    },
+    "implementation": {
+      "development_guidance": ["Key implementation notes", "Best practices", "Common pitfalls to avoid"],
+      "testing_approach": "Testing strategy and key test scenarios",
+      "deployment_notes": "Deployment and configuration considerations"
+    },
+    "modernization": {
+      "current_technology": "Legacy technology stack used",
+      "modernization_options": ["Modern technology alternatives", "Migration strategies"],
+      "refactoring_opportunities": ["Areas for improvement", "Code quality enhancements"]
+    }
+  },
+  "markdown_content": "**CRITICAL: Generate COMPLETE markdown with all specific information. DO NOT use placeholders.**\n\nGenerate comprehensive markdown that includes:\n- Section title and number\n- Detailed introduction with actual system context\n- All component details with REAL  program names\n- Technical implementation with specific business logic\n- Actual requirements traceability with real requirement IDs\n- Implementation guidance with specific  standards\n- Modernization considerations with actual legacy constraints\n\nFormat as complete markdown documentation ready for immediate use."
+}
+```
+
+## CONTENT GENERATION GUIDELINES
+
+### CRITICAL DOCUMENTATION REQUIREMENTS:
+1. **Document Real Components**: Use actual  program names, file names, and modules found in analysis
+2. **Specific Technical Details**: Include actual data structures, business logic, and processing flows
+3. **Actual Implementation**: Describe how things ACTUALLY work in the legacy system
+4. **Real File References**: Use specific file names and line numbers where available
+5. **Genuine Architecture**: Document the actual technical architecture, not idealized design
+
+### CONTENT MUST INCLUDE:
+- **Real Program Names**: from component analysis
+- **Actual Business Logic**: Document the specific  operations implemented
+- **Existing Data Flows**: Describe actual data processing and file handling
+- **Legacy Technology**: Document technology as actually implemented
+- **Current Interfaces**: Document actual screen maps, batch jobs, database tables
+
+### CONTENT STRUCTURE:
+- **Introduction**: Brief overview of what this section documents in the ACTUAL system
+- **Actual Components**: Document 3-5 REAL components with specific file names and functionality  
+- **Technical Implementation**: Describe how the legacy system ACTUALLY implements this functionality
+- **Current Architecture**: Document the existing technical approach and design patterns
+- **Legacy Constraints**: Identify actual limitations and technical debt in current implementation
+
+### QUALITY STANDARDS:
+- Base 100% of content on provided component analysis data
+- Use specific program names and file references
+- Describe actual business logic implementation
+- Document current state, not future state
+- Include real technical constraints and dependencies
+
+## PROCESSING INSTRUCTIONS
+
+1. **Analyze Real Components**: Extract actual  programs, files, and modules from component_analysis
+2. **Document Current State**: Describe the existing implementation, not theoretical design
+3. **Use Real File Names**: Reference specific .cbl, .cpy, .jcl, .bms files found in the analysis
+4. **Extract Business Logic**: Document the actual  operations and data processing workflows
+5. **Focus on Legacy Reality**: Document the current technical architecture and implementation patterns
+
+## CRITICAL MANDATES FOR REAL DOCUMENTATION
+- ALWAYS reference specific file names from component_analysis
+- NEVER use generic language like "the system should" or "components include"
+- ALWAYS describe what the legacy system ACTUALLY does
+- USE real  program names and business logic discovered in analysis
+- DOCUMENT existing technical constraints and implementation approaches
+- FOCUS on reverse engineering documentation, not forward design
+
+## JSON RESPONSE REQUIREMENTS
+Return ONLY pure JSON with these CRITICAL requirements:
+
+### **MANDATORY FIELDS:**
+1. **sdd_section**: Complete structured data with real component information
+2. **markdown_content**: FULLY FORMATTED MARKDOWN (no placeholders!)
+
+### **MARKDOWN_CONTENT MUST INCLUDE:**
+- Complete markdown with program names 
+- Specific technical details from component_analysis 
+- Real business logic and data structures
+- Actual file references and implementation details
+- Ready-to-use documentation (no {{placeholders}})
+
+### **EXAMPLE MARKDOWN OUTPUT:**
+```markdown
+# 3 Component Design
+
+## Introduction
+This section documents the actual programs implementing customer management in the Legacy System.
+
+## Customer Management Components
+
+### CREACC.cbl - Account Creation Program
+- **Purpose**: Creates new customer accounts with validation
+- **Inputs**: Customer number, account type, interest rate
+- **Business Logic**: Validates customer exists via INQCUST, generates account numbers
+- **Database**: Updates ACCOUNT and PROCTRAN tables via DB2
+```
+
+Generate COMPLETE documentation with REAL system details now.

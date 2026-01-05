@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:38:22.912504",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/XFRFUN.cbl",
+    "filename": "XFRFUN.cbl",
+    "size_bytes": 66483,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/XFRFUN.cbl",
+    "analysis_type": "business",
+    "business_summary": "This COBOL program facilitates the transfer of funds between accounts, updating account balances and recording successful transactions in a datastore. It handles both over-the-counter and web application initiated transfers.",
+    "business_entities": [
+      "Account",
+      "Transaction",
+      "Customer"
+    ],
+    "business_rules": [
+      "Transfers cannot be made to the same account.",
+      "Negative transfer amounts are flagged as failures.",
+      "No overdraft limit checks are performed.",
+      "Successful transactions update both the account balances and the PROCTRAN datastore."
+    ],
+    "business_dependencies": [
+      "CICS for transaction processing",
+      "DB2 for account and transaction data storage",
+      "PROCTRAN datastore for recording processed transactions"
+    ],
+    "business_workflows": [
+      "Initiate fund transfer",
+      "Validate transfer details",
+      "Update account balances",
+      "Record transaction in PROCTRAN",
+      "Handle transaction failures and rollbacks"
+    ],
+    "data_transformations": [
+      "Account balances are adjusted by the transfer amount during updates."
+    ],
+    "error_handling": [
+      "Rollback transactions on failure to update account or PROCTRAN datastore.",
+      "Handle deadlocks and timeouts with retries and rollbacks.",
+      "Abend transactions on critical errors with specific codes."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "high",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for financial operations, involving complex error handling and transaction management. It relies heavily on CICS and DB2, indicating a high modernization impact.",
+    "extracted_constants": {
+      "business_constants": [
+        "'SAME'",
+        "'HROL'",
+        "'TO  '",
+        "'FROM'",
+        "'WPCD'",
+        "'RUF2'",
+        "'RUF3'"
+      ],
+      "validation_rules": [
+        "COMM-AMT <= ZERO indicates a failure.",
+        "COMM-FACCNO = COMM-TACCNO and COMM-FSCODE = COMM-TSCODE indicates an invalid transfer."
+      ]
+    },
+    "source_file": "src/base/cobol_src/XFRFUN.cbl",
+    "file_name": "XFRFUN.cbl",
+    "file_size": 66483,
+    "analysis_timestamp": "2025-11-20T00:38:22.912456",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/XFRFUN.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/XFRFUN.cbl.business.json"
+  }
+}

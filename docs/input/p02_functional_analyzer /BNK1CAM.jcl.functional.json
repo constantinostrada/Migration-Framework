@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:23:04.315023",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/BNK1CAM.jcl",
+    "filename": "BNK1CAM.jcl",
+    "size_bytes": 224,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/BNK1CAM.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is used to compile and link-edit a BMS map named BNK1CAM. It utilizes a procedure named MAPGEN and specifies the member BNK1CAM with a relocation mode of ANY. The output is directed to a specified location or output class.",
+    "api_like_spec": {
+      "function_name": "BNK1CAM",
+      "inputs": [
+        "PROC=MAPGEN",
+        "MEMBER=BNK1CAM",
+        "RMODE=ANY",
+        "OUTC='*'"
+      ],
+      "outputs": [
+        "Compiled and link-edited BMS map"
+      ],
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Include default settings from INCLUDE MEMBER=DEFAULT",
+      "Step 2: Execute PROC=MAPGEN with MEMBER=BNK1CAM",
+      "Step 3: Output directed to OUTC='*'"
+    ],
+    "state_changes": null,
+    "side_effects": [
+      "Compilation and link-editing of BMS map",
+      "Output directed to specified output class"
+    ],
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL library",
+      "DEFAULT member for default settings"
+    ],
+    "interface_points": [
+      "JCLLIB ORDER=CBSA.CICSBSA.BUILDJCL",
+      "INCLUDE MEMBER=DEFAULT"
+    ],
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL for modern build systems",
+      "Evaluate potential for automation using modern CI/CD tools"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 2,
+    "analysis_notes": "The JCL script is straightforward, primarily serving as a build script for a specific BMS map. It relies on external procedures and libraries for its operation.",
+    "source_file": "etc/install/base/buildjcl/BNK1CAM.jcl",
+    "file_name": "BNK1CAM.jcl",
+    "file_size": 224,
+    "analysis_timestamp": "2025-11-24T23:23:04.314893",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CAM.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CAM.jcl.functional.json"
+  }
+}

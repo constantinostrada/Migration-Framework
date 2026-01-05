@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:24:32.857161",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/BNK1DAM.jcl",
+    "filename": "BNK1DAM.jcl",
+    "size_bytes": 224,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/BNK1DAM.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is used to compile and link-edit a BMS map named BNK1DAM. It utilizes a procedure named MAPGEN and specifies the member BNK1DAM with a relocation mode of ANY. The output is directed to a specified location.",
+    "api_like_spec": {
+      "function_name": "BNK1DAM",
+      "inputs": [
+        "PROC=MAPGEN",
+        "MEMBER=BNK1DAM",
+        "RMODE=ANY",
+        "OUTC='*'"
+      ],
+      "outputs": [
+        "Compiled and link-edited BMS map"
+      ],
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: The JCL script is executed to initiate the compile and link-edit process.",
+      "Step 2: The MAPGEN procedure processes the BNK1DAM member.",
+      "Step 3: The output is generated and directed to the specified output location."
+    ],
+    "state_changes": [
+      "Creation of compiled and link-edited BMS map file"
+    ],
+    "side_effects": [
+      "File I/O operations for reading the member and writing the output"
+    ],
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL library for JCLLIB ORDER",
+      "DEFAULT member for INCLUDE"
+    ],
+    "interface_points": [
+      "File system interfaces for reading and writing files"
+    ],
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL to use modern build tools or scripts.",
+      "Evaluate the use of modern CI/CD pipelines for automation."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 2,
+    "analysis_notes": "The JCL script is straightforward, primarily serving as a build script for a specific BMS map. It relies on external procedures and libraries, which are not detailed in the provided content.",
+    "source_file": "etc/install/base/buildjcl/BNK1DAM.jcl",
+    "file_name": "BNK1DAM.jcl",
+    "file_size": 224,
+    "analysis_timestamp": "2025-11-24T23:24:32.857092",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1DAM.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1DAM.jcl.functional.json"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:36:02.270767",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/INQACC.cpy",
+    "filename": "INQACC.cpy",
+    "size_bytes": 1855,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/INQACC.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a data structure for account inquiry operations, encapsulating customer and account details, interest rates, balance information, and statement dates.",
+    "api_like_spec": {
+      "function_name": "INQACC-COMMAREA",
+      "inputs": [
+        "INQACC-CUSTNO",
+        "INQACC-SCODE",
+        "INQACC-ACCNO"
+      ],
+      "outputs": [
+        "INQACC-AVAIL-BAL",
+        "INQACC-ACTUAL-BAL",
+        "INQACC-SUCCESS"
+      ],
+      "return_values": [
+        "Success indicator",
+        "Error indicator"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize account inquiry data structure",
+      "Step 2: Populate fields with account and customer data",
+      "Step 3: Output balance and success status"
+    ],
+    "state_changes": [
+      "Memory state changes with data structure population"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": [
+      "Potential interface with account database for data retrieval"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Memory usage for data structure storage"
+    ],
+    "error_handling": [
+      "INQACC-SUCCESS field indicates success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to a modern data structure",
+      "Potential for API-based data retrieval"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The code primarily defines a data structure without explicit logic or algorithms, focusing on data representation for account inquiries.",
+    "source_file": "src/base/cobol_copy/INQACC.cpy",
+    "file_name": "INQACC.cpy",
+    "file_size": 1855,
+    "analysis_timestamp": "2025-11-24T23:36:02.270590",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACC.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACC.cpy.functional.json"
+  }
+}

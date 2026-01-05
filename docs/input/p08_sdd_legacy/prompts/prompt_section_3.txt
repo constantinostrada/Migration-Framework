@@ -1,0 +1,429 @@
+You are a legacy system analyst specializing in REVERSE ENGINEERING documentation from actual system analysis. Your task is to document WHAT THE LEGACY SYSTEM ACTUALLY CONTAINS based on real code analysis, not what it should contain.
+
+## CRITICAL MANDATE: DOCUMENT REALITY, NOT IDEALS
+- Document ACTUAL programs, files, and functionality found in the system analysis
+- Use REAL component names, file names, and business logic discovered
+- Base ALL content on the provided database analysis of actual legacy code
+- NEVER use generic templates or "should have" language
+- Focus on WHAT EXISTS, not what would be ideal
+
+## CONTEXT
+Project: Legacy  System Reverse Documentation
+Standard: IEEE 1016 Software Design Description  
+Processing Mode: Section-by-section documentation of ACTUAL system
+Target: Accurate documentation of existing legacy implementation
+
+## INPUT DATA
+TOC Section: 3 - Component Design
+P07 TOC Structure: {
+  "section_number": "3",
+  "section_title": "Component Design",
+  "page_estimate": 60,
+  "section_purpose": "Detailed design of individual system components",
+  "subsections": [
+    {
+      "subsection_number": "3.1",
+      "subsection_title": "Customer Management Components",
+      "content_description": "Customer-related processing modules and programs",
+      "source_requirements": [
+        "Customer requirements",
+        "Customer management components",
+        "COBOL programs"
+      ],
+      "page_estimate": 15,
+      "key_content": [
+        "Customer programs",
+        "Data structures",
+        "Business rules"
+      ]
+    },
+    {
+      "subsection_number": "3.2",
+      "subsection_title": "Account Management Components",
+      "content_description": "Account processing and management modules",
+      "source_requirements": [
+        "Account requirements",
+        "Account processing components",
+        "Transaction handling"
+      ],
+      "page_estimate": 15,
+      "key_content": [
+        "Account programs",
+        "Transaction processing",
+        "Balance management"
+      ]
+    },
+    {
+      "subsection_number": "3.3",
+      "subsection_title": "Transaction Processing Components",
+      "content_description": "Core transaction processing and validation logic",
+      "source_requirements": [
+        "Transaction requirements",
+        "Processing logic",
+        "Validation rules"
+      ],
+      "page_estimate": 20,
+      "key_content": [
+        "Transaction types",
+        "Processing flows",
+        "Validation logic"
+      ]
+    },
+    {
+      "subsection_number": "3.4",
+      "subsection_title": "Utility and Support Components",
+      "content_description": "Common utilities, validation, and support functions",
+      "source_requirements": [
+        "Utility components",
+        "Common functions",
+        "Support modules"
+      ],
+      "page_estimate": 10,
+      "key_content": [
+        "Common utilities",
+        "Validation functions",
+        "Error handling"
+      ]
+    }
+  ]
+}
+P06 Requirements: {
+  "functional_requirements": [
+    {
+      "requirement_id": "FR-001",
+      "title": "Customer Account Creation",
+      "description": "The system must allow for the creation of customer accounts by capturing essential customer details, performing a mandatory credit assessment, and securely storing the information.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To streamline the customer onboarding process and ensure data integrity.",
+      "acceptance_criteria": [
+        "Customer details are captured and stored securely.",
+        "Credit assessment is performed using external agencies.",
+        "Unique customer identifiers are managed correctly."
+      ],
+      "dependencies": [],
+      "tags": [
+        "customer",
+        "account",
+        "creation"
+      ]
+    },
+    {
+      "requirement_id": "FR-002",
+      "title": "Account Creation for Existing Customers",
+      "description": "The system must facilitate the addition of new accounts for existing customers, enforcing a limit of nine accounts per customer.",
+      "priority": "medium",
+      "source_component": "CREACC.cbl",
+      "rationale": "To manage customer accounts efficiently and prevent excessive account creation.",
+      "acceptance_criteria": [
+        "New accounts can only be created for existing customers.",
+        "A maximum of nine accounts per customer is enforced."
+      ],
+      "dependencies": [
+        "FR-001"
+      ],
+      "tags": [
+        "account",
+        "creation",
+        "limit"
+      ]
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-001",
+      "title": "System Performance",
+      "description": "The system must handle high transaction volumes with minimal latency.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure efficient processing of financial transactions.",
+      "acceptance_criteria": [
+        "System processes transactions within 2 seconds.",
+        "System supports up to 1000 concurrent transactions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "performance",
+        "scalability"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "requirement_id": "BR-001",
+      "title": "Credit Score Assignment",
+      "description": "If no data is returned from the credit assessment, the credit score must be set to 0.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure consistent handling of credit assessments.",
+      "acceptance_criteria": [
+        "Credit score is set to 0 when no data is returned."
+      ],
+      "dependencies": [],
+      "tags": [
+        "credit",
+        "score",
+        "assessment"
+      ]
+    }
+  ],
+  "interface_requirements": [
+    {
+      "requirement_id": "IR-001",
+      "title": "User Interface for Account Creation",
+      "description": "The system must provide a user interface for input and validation of new account creation.",
+      "priority": "medium",
+      "source_component": "BNK1CAC.cbl",
+      "rationale": "To ensure data quality before account setup.",
+      "acceptance_criteria": [
+        "User interface validates customer and account parameters.",
+        "Interface links to backend operations for account creation."
+      ],
+      "dependencies": [],
+      "tags": [
+        "UI",
+        "validation",
+        "account"
+      ]
+    }
+  ],
+  "data_requirements": [
+    {
+      "requirement_id": "DR-001",
+      "title": "Data Storage for Customer Information",
+      "description": "The system must store customer information securely in either VSAM or DB2 databases.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure secure and reliable storage of customer data.",
+      "acceptance_criteria": [
+        "Customer data is stored in the selected database.",
+        "Data integrity is maintained during storage operations."
+      ],
+      "dependencies": [],
+      "tags": [
+        "data",
+        "storage",
+        "security"
+      ]
+    }
+  ],
+  "operational_requirements": [
+    {
+      "requirement_id": "OR-001",
+      "title": "Rollback Mechanism",
+      "description": "The system must implement rollback mechanisms if data persistence encounters issues.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To maintain business continuity and data integrity.",
+      "acceptance_criteria": [
+        "Rollback is triggered on data persistence failure.",
+        "System state is restored to pre-failure conditions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "rollback",
+        "continuity",
+        "integrity"
+      ]
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement_id": "CR-001",
+      "title": "Compliance with Banking Regulations",
+      "description": "All financial transactions must comply with banking regulations and internal policies.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure legal compliance and operational integrity.",
+      "acceptance_criteria": [
+        "Transactions adhere to regulatory standards.",
+        "Internal policies are enforced during transaction processing."
+      ],
+      "dependencies": [],
+      "tags": [
+        "compliance",
+        "regulations",
+        "policies"
+      ]
+    }
+  ],
+  "legacy_constraints": [
+    {
+      "requirement_id": "LC-001",
+      "title": "COBOL and CICS Environment",
+      "description": "The system operates within a COBOL and CICS environment, which imposes constraints on modernization efforts.",
+      "priority": "medium",
+      "source_component": "All components",
+      "rationale": "To acknowledge the limitations of the current technology stack.",
+      "acceptance_criteria": [
+        "Modernization plans account for COBOL and CICS constraints."
+      ],
+      "dependencies": [],
+      "tags": [
+        "legacy",
+        "COBOL",
+        "CICS"
+      ]
+    }
+  ],
+  "document_metadata": {
+    "system_name": "Legacy Banking System",
+    "extraction_date": "2025-11-20T09:39:13.586679",
+    "total_components_analyzed": 14
+  }
+}
+Database Analysis: {'search_phrase': 'Component Design. Detailed design of individual system components', 'components': [{'file_path': '/app/src/cobol/CUSTVAL.CBL', 'file_name': 'CUSTVAL.CBL', 'relevance_score': 0.95, 'summary': 'This COBOL program is a core component responsible for validating customer master data against predefined business rules before any updates or transactions are processed. It ensures data integrity and consistency.', 'business_analysis': {'business_purpose': 'To ensure the accuracy and validity of customer information, preventing erroneous data from entering the system and impacting subsequent business processes like order processing or billing.', 'entities': ['Customer', 'Address', 'Account'], 'business_rules': ['Customer ID must be a unique, 10-digit numeric value.', "Customer status must be 'ACTIVE' for new transactions.", 'Billing address must contain non-empty Street, City, State, and Zip Code.', 'Credit limit must be a positive value if defined.']}, 'functional_analysis': {'key_functions': ['Validate Customer ID format and uniqueness', 'Validate Customer Status', 'Validate Billing and Shipping Address fields', 'Check Credit Limit against business policies'], 'inputs': ['WS-CUSTOMER-RECORD (Customer ID, Name, Status, Address details, Credit Limit)'], 'outputs': ['WS-VALIDATION-STATUS (Valid/Invalid)', 'WS-ERROR-MESSAGES (List of specific validation failures)'], 'processing_logic': "The program receives a customer record. It sequentially applies a series of validation checks: format validation for ID, presence checks for mandatory address fields, lookup for valid state codes, and business rule checks for status and credit limits. If any validation fails, an error message is generated, and the overall status is set to 'Invalid'. Otherwise, the status is 'Valid'."}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/src/pli/CALCINT.PLI', 'file_name': 'CALCINT.PLI', 'relevance_score': 0.92, 'summary': 'This PL/I program is a critical financial component that calculates and applies interest to various account types (e.g., savings, loans) based on their specific interest rate rules and compounding periods.', 'business_analysis': {'business_purpose': 'To accurately compute and post interest earnings or charges to customer accounts, ensuring compliance with financial regulations and internal accounting policies.', 'entities': ['Account', 'Interest Rate', 'Transaction'], 'business_rules': ['Interest is calculated daily for savings accounts based on average daily balance.', 'Loan interest is calculated monthly based on the outstanding principal.', 'Minimum balance requirements apply for interest accrual on certain savings accounts.', 'Interest rates are retrieved from a central rate table based on account type and tier.']}, 'functional_analysis': {'key_functions': ['Retrieve Account Details and Interest Rate', 'Calculate Daily/Monthly Interest', 'Apply Compounding Logic', 'Update Account Balance and Post Interest Transaction'], 'inputs': ['ACCOUNT_ID (Identifier for the account)', 'PROCESSING_DATE (Date for which interest is being calculated)'], 'outputs': ['UPDATED_ACCOUNT_RECORD (New balance, last interest calculation date)', 'INTEREST_TRANSACTION_RECORD (Amount, type, date)'], 'processing_logic': 'The program fetches account details including current balance, account type, and last interest calculation date. It then retrieves the applicable interest rate. Based on the account type, it applies the corresponding interest calculation algorithm (e.g., simple, compound, daily, monthly). The calculated interest is then added/subtracted from the account balance, and a transaction record is generated. Error handling for invalid account IDs or missing rates is included.'}, 'component_type': 'PLI_PROGRAM'}, {'file_path': '/app/src/cobol/copybooks/ORDERREC.CPY', 'file_name': 'ORDERREC.CPY', 'relevance_score': 0.88, 'summary': 'This COBOL copybook defines the standard data structure for an Order Record, including header and line item details. It serves as a common interface for all programs processing order information.', 'business_analysis': {'business_purpose': 'To standardize the representation of order data across various system components (e.g., order entry, inventory, billing), ensuring data consistency and facilitating interoperability between programs.', 'entities': ['Order', 'Order Item', 'Customer', 'Product'], 'business_rules': ['Order Number must be unique.', 'Order Date must be a valid date.', 'Each Order Item must reference a valid Product ID.', 'Quantity ordered must be greater than zero.']}, 'functional_analysis': {'key_functions': ['Define Order Header fields (Order ID, Customer ID, Order Date, Total Amount, Status)', 'Define Order Line Item fields (Line Number, Product ID, Quantity, Unit Price, Line Total)'], 'inputs': [], 'outputs': [], 'processing_logic': 'This file contains only data definitions (PIC clauses, OCCURS clauses) and does not contain executable processing logic. It is included by other COBOL programs to declare the structure of order data.'}, 'component_type': 'COBOL_COPYBOOK'}, {'file_path': '/app/src/cobol/PRTINV.CBL', 'file_name': 'PRTINV.CBL', 'relevance_score': 0.85, 'summary': 'This COBOL program is responsible for generating and printing customer invoices. It retrieves order and customer data, formats it according to a predefined template, and sends it to a printer.', 'business_analysis': {'business_purpose': 'To provide customers with a detailed record of their purchases and outstanding balances, facilitating payment and maintaining accurate financial records for the business.', 'entities': ['Invoice', 'Order', 'Customer', 'Product'], 'business_rules': ['Invoice must include customer name, address, and contact information.', 'Each invoice line item must show product description, quantity, unit price, and extended price.', 'Total amount due, taxes, and payment terms must be clearly displayed.', 'Invoice numbers must be sequential and unique.']}, 'functional_analysis': {'key_functions': ['Retrieve Invoice Data (Order, Customer, Product details)', 'Format Invoice Header and Detail Lines', 'Calculate and Display Totals (Subtotal, Tax, Grand Total)', 'Print Invoice to designated output device'], 'inputs': ['INVOICE-ID (Identifier for the invoice to be printed)', 'CUSTOMER-MASTER-FILE (For customer details)', 'ORDER-DETAIL-FILE (For line item details)'], 'outputs': ['PRINTED-INVOICE (Formatted output sent to printer or spool file)'], 'processing_logic': 'The program accepts an invoice ID, then reads corresponding order and customer records from respective files. It formats the data into a predefined invoice layout, including header information, line item details, and calculated totals. It handles pagination and sends the formatted output to a system printer or a print spool for later processing.'}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/src/assembler/SYSUTIL.ASM', 'file_name': 'SYSUTIL.ASM', 'relevance_score': 0.75, 'summary': 'This Assembler subroutine provides high-performance, low-level utility functions, primarily for date and time conversions, used by various higher-level application components.', 'business_analysis': {'business_purpose': 'To offer efficient and standardized date/time manipulation services to other application components, ensuring consistent date handling across the system and optimizing performance for frequently used operations.', 'entities': ['Date', 'Time'], 'business_rules': ['All date conversions must adhere to Gregorian calendar rules.', 'Julian dates are represented as YYYYDDD.', 'Standard date format for display is MMDDYYYY.']}, 'functional_analysis': {'key_functions': ['Convert Julian Date to Gregorian Date (MMDDYYYY)', 'Convert Gregorian Date to Julian Date (YYYYDDD)', 'Calculate Day of the Week for a given date', 'Add/Subtract Days from a Date'], 'inputs': ['DATE-INPUT (Date value in a specific format, e.g., Julian, MMDDYYYY)', 'FUNCTION-CODE (Specifies the desired conversion or operation)', 'DAYS-TO-ADD-SUBTRACT (For date arithmetic functions)'], 'outputs': ['DATE-OUTPUT (Resulting date in the requested format)', 'RETURN-CODE (Indicates success or specific error)'], 'processing_logic': 'The subroutine receives input parameters via registers or a parameter list. Based on the function code, it performs highly optimized bitwise operations and arithmetic calculations to convert date formats or perform date arithmetic. It handles leap years and validates input dates for correctness, returning an appropriate return code.'}, 'component_type': 'ASSEMBLER_SUBROUTINE'}], 'total_found': 5, 'search_method': 'phrase_based_semantic_search'}
+Component Details: {{component_analysis}}
+
+## CONTENT GENERATION APPROACH
+
+Generate documentation that describes the ACTUAL legacy  system based on the component analysis data. Document real  programs, actual business logic, genuine data structures, and existing interfaces found in the code analysis.
+
+## OUTPUT FORMAT
+CRITICAL: Return ONLY a pure JSON object. NO markdown formatting, NO code blocks, NO additional text before or after.
+
+Start your response directly with the opening brace { and end with the closing brace }
+
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "3",
+      "section_title": "Component Design",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "Clear statement of section purpose and scope",
+        "overview": "High-level summary of what this section covers",
+        "organization": "Brief description of section structure"
+      },
+      "main_sections": [
+        {
+          "subsection_number": "3.1",
+          "subsection_title": "Subsection Title",
+          "content": "Detailed technical content covering design specifications, implementation details, and architectural decisions. Include component descriptions, interfaces, data structures, and processing logic.",
+          "components": [
+            {
+              "name": "Component Name",
+              "type": " Program|Database|Interface",
+              "description": "Component purpose and functionality",
+              "source_files": ["FILE1.cbl", "COPY1.cpy"],
+              "key_features": ["Feature 1", "Feature 2"],
+              "interfaces": ["Input interfaces", "Output interfaces"]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "Design patterns used and rationale",
+            "algorithms": "Key algorithms and processing logic",
+            "data_structures": "Important data structures and formats",
+            "error_handling": "Error handling and exception management"
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Management",
+              "satisfaction": "How this design satisfies the requirement"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": ["Major design decisions made"],
+        "trade_offs": ["Important trade-offs and their justifications"],
+        "future_considerations": ["Considerations for future enhancements"]
+      }
+    },
+    "implementation": {
+      "development_guidance": ["Key implementation notes", "Best practices", "Common pitfalls to avoid"],
+      "testing_approach": "Testing strategy and key test scenarios",
+      "deployment_notes": "Deployment and configuration considerations"
+    },
+    "modernization": {
+      "current_technology": "Legacy technology stack used",
+      "modernization_options": ["Modern technology alternatives", "Migration strategies"],
+      "refactoring_opportunities": ["Areas for improvement", "Code quality enhancements"]
+    }
+  },
+  "markdown_content": "**CRITICAL: Generate COMPLETE markdown with all specific information. DO NOT use placeholders.**\n\nGenerate comprehensive markdown that includes:\n- Section title and number\n- Detailed introduction with actual system context\n- All component details with REAL  program names\n- Technical implementation with specific business logic\n- Actual requirements traceability with real requirement IDs\n- Implementation guidance with specific  standards\n- Modernization considerations with actual legacy constraints\n\nFormat as complete markdown documentation ready for immediate use."
+}
+```
+
+## CONTENT GENERATION GUIDELINES
+
+### CRITICAL DOCUMENTATION REQUIREMENTS:
+1. **Document Real Components**: Use actual  program names, file names, and modules found in analysis
+2. **Specific Technical Details**: Include actual data structures, business logic, and processing flows
+3. **Actual Implementation**: Describe how things ACTUALLY work in the legacy system
+4. **Real File References**: Use specific file names and line numbers where available
+5. **Genuine Architecture**: Document the actual technical architecture, not idealized design
+
+### CONTENT MUST INCLUDE:
+- **Real Program Names**: from component analysis
+- **Actual Business Logic**: Document the specific  operations implemented
+- **Existing Data Flows**: Describe actual data processing and file handling
+- **Legacy Technology**: Document technology as actually implemented
+- **Current Interfaces**: Document actual screen maps, batch jobs, database tables
+
+### CONTENT STRUCTURE:
+- **Introduction**: Brief overview of what this section documents in the ACTUAL system
+- **Actual Components**: Document 3-5 REAL components with specific file names and functionality  
+- **Technical Implementation**: Describe how the legacy system ACTUALLY implements this functionality
+- **Current Architecture**: Document the existing technical approach and design patterns
+- **Legacy Constraints**: Identify actual limitations and technical debt in current implementation
+
+### QUALITY STANDARDS:
+- Base 100% of content on provided component analysis data
+- Use specific program names and file references
+- Describe actual business logic implementation
+- Document current state, not future state
+- Include real technical constraints and dependencies
+
+## PROCESSING INSTRUCTIONS
+
+1. **Analyze Real Components**: Extract actual  programs, files, and modules from component_analysis
+2. **Document Current State**: Describe the existing implementation, not theoretical design
+3. **Use Real File Names**: Reference specific .cbl, .cpy, .jcl, .bms files found in the analysis
+4. **Extract Business Logic**: Document the actual  operations and data processing workflows
+5. **Focus on Legacy Reality**: Document the current technical architecture and implementation patterns
+
+## CRITICAL MANDATES FOR REAL DOCUMENTATION
+- ALWAYS reference specific file names from component_analysis
+- NEVER use generic language like "the system should" or "components include"
+- ALWAYS describe what the legacy system ACTUALLY does
+- USE real  program names and business logic discovered in analysis
+- DOCUMENT existing technical constraints and implementation approaches
+- FOCUS on reverse engineering documentation, not forward design
+
+## JSON RESPONSE REQUIREMENTS
+Return ONLY pure JSON with these CRITICAL requirements:
+
+### **MANDATORY FIELDS:**
+1. **sdd_section**: Complete structured data with real component information
+2. **markdown_content**: FULLY FORMATTED MARKDOWN (no placeholders!)
+
+### **MARKDOWN_CONTENT MUST INCLUDE:**
+- Complete markdown with program names 
+- Specific technical details from component_analysis 
+- Real business logic and data structures
+- Actual file references and implementation details
+- Ready-to-use documentation (no {{placeholders}})
+
+### **EXAMPLE MARKDOWN OUTPUT:**
+```markdown
+# 3 Component Design
+
+## Introduction
+This section documents the actual programs implementing customer management in the Legacy System.
+
+## Customer Management Components
+
+### CREACC.cbl - Account Creation Program
+- **Purpose**: Creates new customer accounts with validation
+- **Inputs**: Customer number, account type, interest rate
+- **Business Logic**: Validates customer exists via INQCUST, generates account numbers
+- **Database**: Updates ACCOUNT and PROCTRAN tables via DB2
+```
+
+Generate COMPLETE documentation with REAL system details now.

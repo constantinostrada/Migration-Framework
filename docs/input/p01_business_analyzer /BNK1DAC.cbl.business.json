@@ -1,0 +1,84 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:37:34.433682",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1DAC.cbl",
+    "filename": "BNK1DAC.cbl",
+    "size_bytes": 37739,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1DAC.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program supports displaying and deleting bank account information within a banking application. It handles user interactions for account inquiries and deletions, and communicates with other programs to retrieve or modify account data.",
+    "business_entities": [
+      "Customer",
+      "Account"
+    ],
+    "business_rules": [
+      "Account number must be provided and numeric.",
+      "Certain function keys trigger specific actions, such as returning to the main menu or deleting an account."
+    ],
+    "business_dependencies": [
+      "INQACC program for account inquiries",
+      "DELACC program for account deletions",
+      "CICS for transaction processing"
+    ],
+    "business_workflows": [
+      "Account inquiry process",
+      "Account deletion process",
+      "User interaction handling through function keys"
+    ],
+    "data_transformations": [
+      "Account number validation and transformation",
+      "Date and time formatting for logging and error handling"
+    ],
+    "error_handling": [
+      "Handling of invalid key presses",
+      "Error messages for account not found or deletion errors",
+      "CICS response code checks for transaction success"
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is integral to account management functions, relying heavily on CICS for transaction processing and interaction with other programs for data retrieval and modification.",
+    "extracted_constants": {
+      "business_constants": [
+        "Session Ended",
+        "Invalid key pressed.",
+        "Please enter an account number.",
+        "Sorry, but that account number was not found.",
+        "Account lookup successful.",
+        "Account was successfully deleted."
+      ],
+      "validation_rules": [
+        "Account number must be numeric and not zero or low-values."
+      ]
+    },
+    "source_file": "src/base/cobol_src/BNK1DAC.cbl",
+    "file_name": "BNK1DAC.cbl",
+    "file_size": 37739,
+    "analysis_timestamp": "2025-11-20T00:37:34.433611",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1DAC.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1DAC.cbl.business.json"
+  }
+}

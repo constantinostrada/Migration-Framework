@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:04.633844",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/ACCDB2.cpy",
+    "filename": "ACCDB2.cpy",
+    "size_bytes": 1204,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/ACCDB2.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a SQL table structure for storing account information, including fields for customer number, sort code, account number, type, interest rate, dates related to account activity, and balance details.",
+    "api_like_spec": {
+      "function_name": "DECLARE ACCOUNT TABLE",
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Definition of table structure for account data",
+      "Step 2: Potential population of table with account data in a database"
+    ],
+    "state_changes": [
+      "Database table creation or modification"
+    ],
+    "side_effects": [
+      "Database schema changes"
+    ],
+    "dependencies": [
+      "DB2 database system"
+    ],
+    "interface_points": [
+      "Database interfaces for executing SQL commands"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Dependent on database performance for table operations"
+    ],
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider using modern ORM frameworks for database interactions",
+      "Evaluate the use of JSON or XML for flexible data structures"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 2,
+    "analysis_notes": "The code is primarily a database table declaration with no procedural logic or error handling mechanisms present.",
+    "source_file": "src/base/cobol_copy/ACCDB2.cpy",
+    "file_name": "ACCDB2.cpy",
+    "file_size": 1204,
+    "analysis_timestamp": "2025-11-24T23:35:04.633778",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCDB2.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/ACCDB2.cpy.functional.json"
+  }
+}

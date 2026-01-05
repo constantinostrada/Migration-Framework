@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:41:35.714231",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BANKDATA.cbl",
+    "filename": "BANKDATA.cbl",
+    "size_bytes": 54073,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BANKDATA.cbl",
+    "analysis_type": "business",
+    "business_summary": "The BANKDATA program initializes data for a bank application by populating customer records in a VSAM file and account records in a DB2 table. It processes input parameters to generate customer and account data, ensuring data integrity and consistency across the system.",
+    "business_entities": [
+      "CUSTOMER",
+      "ACCOUNT",
+      "CONTROL"
+    ],
+    "business_rules": [
+      "Final customer number cannot be smaller than the first customer number.",
+      "Gap between customers cannot be zero.",
+      "Account open date must be after the customer's date of birth.",
+      "Commit every 1,000 records or so."
+    ],
+    "business_dependencies": [
+      "VSAM for CUSTOMER data storage",
+      "DB2 for ACCOUNT and CONTROL data storage"
+    ],
+    "business_workflows": [
+      "Initialize customer and account data",
+      "Delete existing data from ACCOUNT and CONTROL tables",
+      "Generate and insert new customer and account records"
+    ],
+    "data_transformations": [
+      "Convert current date to integer for processing",
+      "Generate random credit score and review date",
+      "Calculate account open date based on customer birth date"
+    ],
+    "error_handling": [
+      "Error opening CUSTOMER file",
+      "Error writing to VSAM file",
+      "Error inserting rows on ACCOUNT table",
+      "Error deleting rows from ACCOUNT and CONTROL tables"
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "high",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for initializing and maintaining the integrity of customer and account data in the banking system. It involves complex data generation and validation processes.",
+    "extracted_constants": {
+      "business_constants": [
+        "Maximum number of accounts per customer is 10",
+        "Account types include ISA, SAVING, CURRENT, LOAN, MORTGAGE"
+      ],
+      "validation_rules": [
+        "Customer number range validation",
+        "Non-zero step key validation",
+        "Account open date validation against birth date"
+      ]
+    },
+    "source_file": "src/base/cobol_src/BANKDATA.cbl",
+    "file_name": "BANKDATA.cbl",
+    "file_size": 54073,
+    "analysis_timestamp": "2025-11-20T00:41:35.714155",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BANKDATA.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BANKDATA.cbl.business.json"
+  }
+}

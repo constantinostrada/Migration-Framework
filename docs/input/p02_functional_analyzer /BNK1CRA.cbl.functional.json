@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:39:34.175178",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1CRA.cbl",
+    "filename": "BNK1CRA.cbl",
+    "size_bytes": 37728,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1CRA.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The BNK1CRA program is a CICS-based COBOL module that handles credit and debit transactions within a banking application. It processes user inputs from a terminal, validates the data, and updates account balances by interacting with a subprogram. The program also manages user interface interactions, error handling, and session termination.",
+    "api_like_spec": {
+      "function_name": "BNK1CRA",
+      "inputs": [
+        "COMM-ACCNO",
+        "COMM-SIGN",
+        "COMM-AMT"
+      ],
+      "outputs": [
+        "Updated account balance",
+        "Transaction success or failure message"
+      ],
+      "return_values": [
+        "Normal completion",
+        "Error codes for transaction failure"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize session and receive user input via CICS map",
+      "Step 2: Validate input data for account number and transaction amount",
+      "Step 3: Perform credit or debit operation by linking to DBCRFUN subprogram",
+      "Step 4: Update user interface with transaction results or error messages"
+    ],
+    "state_changes": [
+      "Account balance updates in the database",
+      "Session state changes based on user actions",
+      "Internal variable updates for transaction processing"
+    ],
+    "side_effects": [
+      "CICS transaction management",
+      "Linking to external subprograms for database operations",
+      "Sending and receiving data from user terminal"
+    ],
+    "dependencies": [
+      "BNK1CDM mapset",
+      "DFHAID copybook",
+      "DBCRFUN subprogram",
+      "ABNDINFO copybook"
+    ],
+    "interface_points": [
+      "CICS terminal interface for user input and output",
+      "Linkage to DBCRFUN for database operations",
+      "Error handling via ABNDPROC program"
+    ],
+    "algorithms": [
+      "Data validation for account number and transaction amount",
+      "String manipulation for error message construction",
+      "Conditional logic for user interface navigation"
+    ],
+    "performance_characteristics": [
+      "CICS transaction overhead",
+      "Potential bottlenecks in data validation and error handling",
+      "Resource usage primarily in CICS environment"
+    ],
+    "error_handling": [
+      "CICS RESP and RESP2 codes for error detection",
+      "Linking to ABNDPROC for error logging and handling",
+      "User feedback through terminal messages"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern APIs for database access",
+      "Potential to replace CICS maps with web-based interfaces",
+      "Use of modern error handling frameworks"
+    ],
+    "confidence": 0.8,
+    "complexity_score": 5,
+    "analysis_notes": "The program is tightly coupled with CICS and relies on legacy COBOL constructs. Modernization could focus on decoupling business logic from CICS-specific operations and improving error handling mechanisms.",
+    "source_file": "src/base/cobol_src/BNK1CRA.cbl",
+    "file_name": "BNK1CRA.cbl",
+    "file_size": 37728,
+    "analysis_timestamp": "2025-11-24T23:39:34.175114",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CRA.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BNK1CRA.cbl.functional.json"
+  }
+}

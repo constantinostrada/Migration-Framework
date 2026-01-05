@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:33:08.157013",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/DRPTS03.jcl",
+    "filename": "DRPTS03.jcl",
+    "size_bytes": 544,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/DRPTS03.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program using the DSNTEP2 utility to run SQL commands. It sets the current SQLID and drops a specific tablespace in the DB2 database.",
+    "api_like_spec": {
+      "function_name": "GRANT",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT"
+      ],
+      "return_values": [
+        "Job completion codes",
+        "Error messages in SYSOUT"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize DB2 environment with DSN SYSTEM(DBCG)",
+      "Step 2: Execute DSNTEP2 program with specified plan and library",
+      "Step 3: Set SQLID and execute SQL command to drop tablespace"
+    ],
+    "state_changes": [
+      "Database tablespace 'CONTROL' is dropped"
+    ],
+    "side_effects": [
+      "Execution of SQL commands on the DB2 database",
+      "Output generated to SYSOUT"
+    ],
+    "dependencies": [
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library",
+      "DB2 subsystem DBCG"
+    ],
+    "interface_points": [
+      "DB2 database interface via DSNTEP2",
+      "Job output interface via SYSOUT"
+    ],
+    "algorithms": [
+      "SQL execution via DSNTEP2 utility"
+    ],
+    "performance_characteristics": [
+      "Limited by DB2 execution performance",
+      "Resource usage dependent on DB2 subsystem configuration"
+    ],
+    "error_handling": [
+      "Errors are logged to SYSOUT",
+      "Job completion codes indicate success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern database management tools",
+      "Potential to convert JCL to a more modern scripting language"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The script is straightforward, primarily executing a single SQL command. Modernization could involve replacing JCL with a more contemporary automation tool.",
+    "source_file": "etc/install/base/db2jcl/DRPTS03.jcl",
+    "file_name": "DRPTS03.jcl",
+    "file_size": 544,
+    "analysis_timestamp": "2025-11-24T23:33:08.156936",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPTS03.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPTS03.jcl.functional.json"
+  }
+}

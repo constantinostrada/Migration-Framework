@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Framework Dashboard - v4.1-SIMPLE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .phases {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .phase {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .phase:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .phase-icon {
+            font-size: 1.5em;
+            width: 40px;
+            text-align: center;
+        }
+
+        .phase-info {
+            flex: 1;
+        }
+
+        .phase-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .phase-status {
+            opacity: 0.8;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .module {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid;
+        }
+
+        .module.completed {
+            border-color: #4CAF50;
+        }
+
+        .module.in_progress {
+            border-color: #FFC107;
+            animation: pulse 2s infinite;
+        }
+
+        .module.pending {
+            border-color: #9E9E9E;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .module-name {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .module-level {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .module-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #4CAF50;
+            margin-right: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-in-progress {
+            background: #FFC107;
+            color: black;
+        }
+
+        .status-pending {
+            background: #9E9E9E;
+            color: white;
+        }
+
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.6;
+            font-size: 1.2em;
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(76, 175, 80, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); }
+            to { transform: translateX(0); }
+        }
+
+        .spinner {
+            width: 15px;
+            height: 15px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .e2e-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🚀 Universal Migration Framework
+                <span style="font-size: 0.6em; opacity: 0.7;">v4.1-SIMPLE</span>
+            </h1>
+            <div class="subtitle">
+                <div id="project-name">Proyecto: <strong>Cargando...</strong></div>
+                <div id="elapsed-time">Tiempo: <strong>--:--:--</strong></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Progreso Global</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="global-progress" style="width: 0%">0%</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <div id="current-phase">Fase actual: <strong>--</strong></div>
+                <div id="current-module">Módulo actual: <strong>--</strong></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✅ Fases</h2>
+            <div class="phases" id="phases-container">
+                <!-- Phases will be populated here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📦 Módulos</h2>
+            <div class="modules-grid" id="modules-container">
+                <!-- Modules will be populated here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📝 Log de Actividad</h2>
+            <div class="log-container" id="log-container">
+                <div class="no-data">Esperando inicio de migración...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Estadísticas</h2>
+            <div class="stats-grid" id="stats-container">
+                <!-- Stats will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="refresh-indicator" id="refresh-indicator">
+        <div class="spinner"></div>
+        <span>Actualizando...</span>
+    </div>
+
+    <script>
+        let startTime = null;
+        let logEntries = [];
+
+        const phaseDefinitions = [
+            { id: 0, name: 'PHASE 0: SDD Analysis', key: 'analysis' },
+            { id: 1, name: 'PHASE 1: Contract Generation', key: 'contracts' },
+            { id: 2, name: 'PHASE 2: Test Generation', key: 'tests' },
+            { id: 3, name: 'PHASE 3: Database Setup', key: 'database' },
+            { id: 4, name: 'PHASE 4: Implementation', key: 'implementation' },
+            { id: 5, name: 'PHASE 5: E2E QA', key: 'e2e_testing' },
+            { id: 6, name: 'PHASE 6: Delivery', key: 'delivery' }
+        ];
+
+        async function loadGlobalState() {
+            try {
+                const response = await fetch('docs/state/global-state.json');
+                if (!response.ok) {
+                    throw new Error('File not found');
+                }
+                const data = await response.json();
+                updateDashboard(data);
+                showRefreshIndicator();
+            } catch (error) {
+                console.log('Waiting for global-state.json...', error.message);
+                showNoData();
+            }
+        }
+
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('refresh-indicator');
+            indicator.style.display = 'flex';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 1000);
+        }
+
+        function showNoData() {
+            document.getElementById('modules-container').innerHTML =
+                '<div class="no-data">No se encontró global-state.json. Inicia la migración primero.</div>';
+        }
+
+        function updateDashboard(state) {
+            if (!startTime) {
+                startTime = new Date();
+            }
+
+            // Update header
+            document.getElementById('project-name').innerHTML =
+                `Proyecto: <strong>${state.project_name || 'Sin nombre'}</strong>`;
+            updateElapsedTime();
+
+            // Update global progress
+            const progress = calculateGlobalProgress(state);
+            document.getElementById('global-progress').style.width = progress + '%';
+            document.getElementById('global-progress').textContent = progress.toFixed(0) + '%';
+
+            // Update current phase and module
+            document.getElementById('current-phase').innerHTML =
+                `Fase actual: <strong>${state.phase || 'N/A'}</strong>`;
+            document.getElementById('current-module').innerHTML =
+                `Módulo actual: <strong>${state.current_module || 'N/A'}</strong>`;
+
+            // Update phases
+            updatePhases(state);
+
+            // Update modules
+            updateModules(state);
+
+            // Update stats
+            updateStats(state);
+
+            // Add log entry
+            addLogEntry(state);
+        }
+
+        function calculateGlobalProgress(state) {
+            if (!state.modules) return 0;
+
+            const modules = Object.values(state.modules);
+            if (modules.length === 0) return 0;
+
+            let totalProgress = 0;
+            modules.forEach(module => {
+                let moduleProgress = 0;
+                if (module.contracts_generated) moduleProgress += 20;
+                if (module.tests_generated) moduleProgress += 20;
+                if (module.db_ready) moduleProgress += 10;
+                if (module.implementation_done) moduleProgress += 30;
+                if (module.status === 'completed') moduleProgress += 20;
+                totalProgress += moduleProgress;
+            });
+
+            return (totalProgress / modules.length);
+        }
+
+        function updatePhases(state) {
+            const container = document.getElementById('phases-container');
+            container.innerHTML = '';
+
+            const currentPhaseKey = state.phase;
+
+            phaseDefinitions.forEach(phase => {
+                const isCompleted = isPhaseCompleted(phase.key, state);
+                const isCurrent = currentPhaseKey === phase.key ||
+                                 state.phase?.includes(phase.key);
+                const isPending = !isCompleted && !isCurrent;
+
+                let icon = '⏳';
+                let status = 'Pendiente';
+                let statusClass = 'status-pending';
+
+                if (isCompleted) {
+                    icon = '✅';
+                    status = 'Completado';
+                    statusClass = 'status-completed';
+                } else if (isCurrent) {
+                    icon = '🔄';
+                    status = 'En progreso';
+                    statusClass = 'status-in-progress';
+                }
+
+                const phaseEl = document.createElement('div');
+                phaseEl.className = 'phase';
+                phaseEl.innerHTML = `
+                    <div class="phase-icon">${icon}</div>
+                    <div class="phase-info">
+                        <div class="phase-title">${phase.name}</div>
+                        <div class="phase-status">
+                            <span class="status-badge ${statusClass}">${status}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(phaseEl);
+            });
+        }
+
+        function isPhaseCompleted(phaseKey, state) {
+            if (!state.modules) return false;
+            const modules = Object.values(state.modules);
+
+            switch(phaseKey) {
+                case 'analysis':
+                    return modules.length > 0;
+                case 'contracts':
+                    return modules.every(m => m.contracts_generated);
+                case 'tests':
+                    return modules.every(m => m.tests_generated);
+                case 'database':
+                    return state.database?.status === 'ready';
+                case 'implementation':
+                    return modules.every(m => m.implementation_done);
+                case 'e2e_testing':
+                    return modules.every(m => m.status === 'completed');
+                case 'delivery':
+                    return state.phase === 'delivery';
+                default:
+                    return false;
+            }
+        }
+
+        function updateModules(state) {
+            const container = document.getElementById('modules-container');
+            if (!state.modules || Object.keys(state.modules).length === 0) {
+                container.innerHTML = '<div class="no-data">No hay módulos detectados aún.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            Object.entries(state.modules).forEach(([name, module]) => {
+                const moduleEl = document.createElement('div');
+                moduleEl.className = `module ${module.status || 'pending'}`;
+
+                const e2eInfo = module.e2e_pass_rate
+                    ? `<div class="e2e-result">
+                        <span>E2E: ${(module.e2e_pass_rate * 100).toFixed(1)}%</span>
+                        <span>${module.e2e_iterations || 0} iteraciones</span>
+                       </div>`
+                    : '';
+
+                moduleEl.innerHTML = `
+                    <div class="module-header">
+                        <div class="module-name">${getStatusIcon(module.status)} ${name}</div>
+                        <div class="module-level">Level ${module.level || 0}</div>
+                    </div>
+                    <div class="module-checklist">
+                        ${getChecklistItem('Contracts', module.contracts_generated)}
+                        ${getChecklistItem('Tests', module.tests_generated)}
+                        ${getChecklistItem('DB Ready', module.db_ready)}
+                        ${getChecklistItem('Implementation', module.implementation_done)}
+                    </div>
+                    ${e2eInfo}
+                    ${module.dependencies && module.dependencies.length > 0
+                        ? `<div style="margin-top: 10px; opacity: 0.7; font-size: 0.9em;">
+                             Dependencias: ${module.dependencies.join(', ')}
+                           </div>`
+                        : ''}
+                `;
+                container.appendChild(moduleEl);
+            });
+        }
+
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'completed': return '✅';
+                case 'in_progress':
+                case 'implemented':
+                case 'e2e_testing': return '🔄';
+                case 'pending': return '⏳';
+                default: return '📦';
+            }
+        }
+
+        function getChecklistItem(label, completed) {
+            const icon = completed ? '✅' : '⏳';
+            const style = completed ? 'opacity: 1;' : 'opacity: 0.6;';
+            return `<div class="checklist-item" style="${style}">
+                        <span>${icon}</span>
+                        <span>${label}</span>
+                    </div>`;
+        }
+
+        function updateStats(state) {
+            const container = document.getElementById('stats-container');
+            const modules = state.modules ? Object.values(state.modules) : [];
+
+            const completedModules = modules.filter(m => m.status === 'completed').length;
+            const totalModules = modules.length;
+
+            const avgPassRate = modules.length > 0
+                ? modules.reduce((sum, m) => sum + (m.e2e_pass_rate || 0), 0) / modules.length
+                : 0;
+
+            container.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-label">Módulos Completados</div>
+                    <div class="stat-value">${completedModules}/${totalModules}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Progreso Global</div>
+                    <div class="stat-value">${calculateGlobalProgress(state).toFixed(0)}%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">E2E Pass Rate</div>
+                    <div class="stat-value">${(avgPassRate * 100).toFixed(1)}%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Fase Actual</div>
+                    <div class="stat-value" style="font-size: 1.5em;">${state.phase || 'N/A'}</div>
+                </div>
+            `;
+        }
+
+        function addLogEntry(state) {
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+
+            let message = '';
+            if (state.current_module) {
+                const module = state.modules[state.current_module];
+                if (module) {
+                    if (module.status === 'e2e_testing') {
+                        message = `Ejecutando E2E tests para ${state.current_module} (iteración ${module.e2e_iterations})`;
+                    } else if (module.status === 'implemented') {
+                        message = `Implementación de ${state.current_module} completada`;
+                    } else {
+                        message = `Trabajando en ${state.current_module} - ${state.phase}`;
+                    }
+                }
+            } else {
+                message = `Fase: ${state.phase}`;
+            }
+
+            if (logEntries.length === 0 || logEntries[0].message !== message) {
+                logEntries.unshift({ time, message });
+                logEntries = logEntries.slice(0, 50); // Keep last 50 entries
+
+                const container = document.getElementById('log-container');
+                container.innerHTML = logEntries.map(entry =>
+                    `<div class="log-entry">
+                        <span class="log-time">${entry.time}</span>
+                        ${entry.message}
+                     </div>`
+                ).join('');
+            }
+        }
+
+        function updateElapsedTime() {
+            if (!startTime) return;
+
+            const now = new Date();
+            const diff = now - startTime;
+
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+
+            const timeStr = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            document.getElementById('elapsed-time').innerHTML =
+                `Tiempo: <strong>${timeStr}</strong>`;
+        }
+
+        function pad(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        // Auto-refresh every 2 seconds
+        setInterval(loadGlobalState, 2000);
+        setInterval(updateElapsedTime, 1000);
+
+        // Initial load
+        loadGlobalState();
+    </script>
+</body>
+</html>

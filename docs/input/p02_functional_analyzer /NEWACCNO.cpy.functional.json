@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:54.558778",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/NEWACCNO.cpy",
+    "filename": "NEWACCNO.cpy",
+    "size_bytes": 802,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/NEWACCNO.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a structure for handling new account numbers with specific functions for getting a new account number, rolling back an operation, and checking the current state. It includes fields for the account number, success status, and failure code.",
+    "api_like_spec": {
+      "function_name": "NEWACCNO-FUNCTION",
+      "inputs": [
+        "NEWACCNO-FUNCTION"
+      ],
+      "outputs": [
+        "ACCOUNT-NUMBER",
+        "NEWACCNO-SUCCESS",
+        "NEWACCNO-FAIL-CODE"
+      ],
+      "return_values": [
+        "G",
+        "R",
+        "C"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize NEWACCNO-FUNCTION with a specific value ('G', 'R', 'C')",
+      "Step 2: Based on the value, process the account number or handle rollback",
+      "Step 3: Set success or failure code"
+    ],
+    "state_changes": [
+      "Variable state changes: NEWACCNO-FUNCTION, ACCOUNT-NUMBER, NEWACCNO-SUCCESS, NEWACCNO-FAIL-CODE"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to a more modern language or framework",
+      "Potential to convert to a REST API for better integration"
+    ],
+    "confidence": 0.8,
+    "complexity_score": 3,
+    "analysis_notes": "The code is a simple COBOL copybook structure with limited functionality. It primarily defines data fields and associated values for account number operations.",
+    "source_file": "src/base/cobol_copy/NEWACCNO.cpy",
+    "file_name": "NEWACCNO.cpy",
+    "file_size": 802,
+    "analysis_timestamp": "2025-11-24T23:35:54.558715",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/NEWACCNO.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/NEWACCNO.cpy.functional.json"
+  }
+}

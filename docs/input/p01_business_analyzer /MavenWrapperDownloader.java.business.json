@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:36:30.145930",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 0.6666666666666666
+  },
+  "file_info": {
+    "relative_path": ".mvn/wrapper/MavenWrapperDownloader.java",
+    "filename": "MavenWrapperDownloader.java",
+    "size_bytes": 4946,
+    "extension": ".java"
+  },
+  "analysis": {
+    "file_path": ".mvn/wrapper/MavenWrapperDownloader.java",
+    "analysis_type": "business",
+    "business_summary": "This file supports the process of downloading and setting up the Maven Wrapper, which is used to ensure consistent Maven build environments across different systems. It handles downloading the necessary Maven Wrapper JAR file from a specified URL or a default location.",
+    "business_entities": null,
+    "business_rules": [
+      "If a custom wrapper URL is specified in the maven-wrapper.properties file, it overrides the default download URL.",
+      "The Maven Wrapper JAR is downloaded to a specific path within the project directory."
+    ],
+    "business_dependencies": [
+      "Depends on the availability of the Maven Wrapper JAR file from the specified URL.",
+      "Relies on system environment variables MVNW_USERNAME and MVNW_PASSWORD for authentication if needed."
+    ],
+    "business_workflows": [
+      "Checks for a custom URL in the properties file and downloads the Maven Wrapper JAR to the specified directory."
+    ],
+    "data_transformations": null,
+    "error_handling": [
+      "Logs an error message if the maven-wrapper.properties file cannot be loaded.",
+      "Logs an error message and exits if the output directory cannot be created.",
+      "Logs an error message and stack trace if the download fails."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "low",
+    "business_complexity": "low",
+    "modernization_impact": "low",
+    "confidence": 0.9,
+    "analysis_notes": "The file primarily deals with downloading a tool dependency and does not involve complex business logic or entities.",
+    "extracted_constants": {
+      "business_constants": [
+        "WRAPPER_VERSION",
+        "DEFAULT_DOWNLOAD_URL",
+        "MAVEN_WRAPPER_PROPERTIES_PATH",
+        "MAVEN_WRAPPER_JAR_PATH",
+        "PROPERTY_NAME_WRAPPER_URL"
+      ],
+      "validation_rules": null
+    },
+    "source_file": ".mvn/wrapper/MavenWrapperDownloader.java",
+    "file_name": "MavenWrapperDownloader.java",
+    "file_size": 4946,
+    "analysis_timestamp": "2025-11-20T00:36:30.145868",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.6666666666666666,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.6666666666666666
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/MavenWrapperDownloader.java.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/MavenWrapperDownloader.java.business.json"
+  }
+}

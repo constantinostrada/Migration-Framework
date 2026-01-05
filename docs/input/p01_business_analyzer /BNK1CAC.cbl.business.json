@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:37:55.615795",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BNK1CAC.cbl",
+    "filename": "BNK1CAC.cbl",
+    "size_bytes": 43293,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BNK1CAC.cbl",
+    "analysis_type": "business",
+    "business_summary": "The program supports the creation of new bank accounts by verifying input data and linking to another program to add the account to the datastore. It handles user interactions through a CICS interface, processing inputs and providing feedback based on user actions.",
+    "business_entities": [
+      "Customer",
+      "Account"
+    ],
+    "business_rules": [
+      "Customer number must be a 10-digit numeric value.",
+      "Account types must be one of ISA, CURRENT, LOAN, SAVING, or MORTGAGE.",
+      "Interest rate must be a numeric value between 0 and 9999.99.",
+      "Overdraft limit must be a numeric positive integer."
+    ],
+    "business_dependencies": [
+      "CREACC program for account creation",
+      "CICS for transaction processing"
+    ],
+    "business_workflows": [
+      "Receive user input via CICS map.",
+      "Validate input data.",
+      "Link to CREACC program to create account if data is valid.",
+      "Return to main menu or send termination message based on user actions."
+    ],
+    "data_transformations": [
+      "Interest rate is converted to a numeric value using FUNCTION NUMVAL.",
+      "Overdraft limit is processed to remove trailing spaces."
+    ],
+    "error_handling": [
+      "Handles invalid key presses by sending an error message.",
+      "Handles CICS response errors by initializing failure information and linking to an abend handler."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for account creation and involves complex validation and error handling processes. It heavily relies on CICS for transaction management.",
+    "extracted_constants": {
+      "business_constants": [
+        "ISA",
+        "CURRENT",
+        "LOAN",
+        "SAVING",
+        "MORTGAGE"
+      ],
+      "validation_rules": [
+        "Customer number must be numeric and 10 digits.",
+        "Account type must match predefined types.",
+        "Interest rate must be numeric and within specified range.",
+        "Overdraft limit must be numeric."
+      ]
+    },
+    "source_file": "src/base/cobol_src/BNK1CAC.cbl",
+    "file_name": "BNK1CAC.cbl",
+    "file_size": 43293,
+    "analysis_timestamp": "2025-11-20T00:37:55.615758",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CAC.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/BNK1CAC.cbl.business.json"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:44:18.628158",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/INQACCCU.cbl",
+    "filename": "INQACCCU.cbl",
+    "size_bytes": 28814,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/INQACCCU.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The INQACCCU program retrieves account information associated with a given customer number by querying a DB2 database. It handles database interactions, error conditions, and communicates with other modules to fetch customer data.",
+    "api_like_spec": {
+      "function_name": "INQACCCU",
+      "inputs": [
+        "CUSTOMER-NUMBER",
+        "SORTCODE"
+      ],
+      "outputs": [
+        "Account details for up to 20 accounts"
+      ],
+      "return_values": [
+        "COMM-SUCCESS",
+        "COMM-FAIL-CODE"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize variables and set up CICS ABEND handling.",
+      "Step 2: Perform CUSTOMER-CHECK to retrieve customer information.",
+      "Step 3: Open DB2 cursor and fetch account data.",
+      "Step 4: Process each account record and store in COMM area.",
+      "Step 5: Close DB2 cursor and handle any errors."
+    ],
+    "state_changes": [
+      "Database cursor operations (open, fetch, close)",
+      "COMM area updated with account data",
+      "Error codes and success flags set based on operation outcomes"
+    ],
+    "side_effects": [
+      "CICS SYNCPOINT ROLLBACK on error",
+      "CICS LINK to INQCUST for customer data retrieval",
+      "CICS ABEND handling for error conditions"
+    ],
+    "dependencies": [
+      "DB2 database with ACCOUNT table",
+      "CICS transaction processing",
+      "INQCUST module for customer data"
+    ],
+    "interface_points": [
+      "DB2 database for account data retrieval",
+      "CICS for transaction and error handling",
+      "INQCUST module for customer information"
+    ],
+    "algorithms": [
+      "Cursor-based retrieval of account data",
+      "Error handling with CICS ABEND and SYNCPOINT"
+    ],
+    "performance_characteristics": [
+      "Cursor operations may be performance-critical",
+      "Limited to processing 20 accounts per customer"
+    ],
+    "error_handling": [
+      "SQLCODE checks for database operations",
+      "CICS ABEND handling for transaction errors",
+      "SYNCPOINT ROLLBACK for data integrity"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern database access methods",
+      "Potential to replace CICS with RESTful services",
+      "Use of structured error handling mechanisms"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 7,
+    "analysis_notes": "The program heavily relies on CICS and DB2, indicating a tightly coupled legacy system. Modernization could focus on decoupling these dependencies.",
+    "source_file": "src/base/cobol_src/INQACCCU.cbl",
+    "file_name": "INQACCCU.cbl",
+    "file_size": 28814,
+    "analysis_timestamp": "2025-11-24T23:44:18.628106",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACCCU.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACCCU.cbl.functional.json"
+  }
+}

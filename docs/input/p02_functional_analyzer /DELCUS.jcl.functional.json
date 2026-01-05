@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:27:09.708046",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.54
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/DELCUS.jcl",
+    "filename": "DELCUS.jcl",
+    "size_bytes": 187,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/DELCUS.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The JCL script is designed to compile and link-edit a CICS COBOL program named DELCUS. It includes default settings and executes the CICS environment for the specified member.",
+    "api_like_spec": {
+      "function_name": "DELCUS",
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": null,
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL",
+      "DEFAULT"
+    ],
+    "interface_points": [
+      "CICS environment"
+    ],
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL scripts to use modern build automation tools.",
+      "Evaluate the use of cloud-based CICS services for modernization."
+    ],
+    "confidence": 0.6,
+    "complexity_score": 2,
+    "analysis_notes": "The provided JCL script is minimal and primarily serves as a build script for a COBOL program within a CICS environment. Detailed functional specifications are limited due to the lack of actual COBOL code or detailed JCL steps.",
+    "source_file": "etc/install/base/buildjcl/DELCUS.jcl",
+    "file_name": "DELCUS.jcl",
+    "file_size": 187,
+    "analysis_timestamp": "2025-11-24T23:27:09.707972",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.54,
+    "has_parsing_error": false,
+    "confidence_level": 0.6,
+    "metadata_complete": true,
+    "content_completeness": 0.6
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DELCUS.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DELCUS.jcl.functional.json"
+  }
+}

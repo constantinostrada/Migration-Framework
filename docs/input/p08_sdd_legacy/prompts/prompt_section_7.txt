@@ -1,0 +1,397 @@
+You are a legacy system analyst specializing in REVERSE ENGINEERING documentation from actual system analysis. Your task is to document WHAT THE LEGACY SYSTEM ACTUALLY CONTAINS based on real code analysis, not what it should contain.
+
+## CRITICAL MANDATE: DOCUMENT REALITY, NOT IDEALS
+- Document ACTUAL programs, files, and functionality found in the system analysis
+- Use REAL component names, file names, and business logic discovered
+- Base ALL content on the provided database analysis of actual legacy code
+- NEVER use generic templates or "should have" language
+- Focus on WHAT EXISTS, not what would be ideal
+
+## CONTEXT
+Project: Legacy  System Reverse Documentation
+Standard: IEEE 1016 Software Design Description  
+Processing Mode: Section-by-section documentation of ACTUAL system
+Target: Accurate documentation of existing legacy implementation
+
+## INPUT DATA
+TOC Section: 7 - Security Design
+P07 TOC Structure: {
+  "section_number": "7",
+  "section_title": "Security Design",
+  "page_estimate": 15,
+  "section_purpose": "Design of security measures and protocols",
+  "subsections": [
+    {
+      "subsection_number": "7.1",
+      "subsection_title": "Access Control Design",
+      "content_description": "Design of access control mechanisms and policies",
+      "source_requirements": [
+        "Access control requirements",
+        "Authentication protocols",
+        "Authorization rules"
+      ],
+      "page_estimate": 8,
+      "key_content": [
+        "Access policies",
+        "Authentication methods",
+        "Authorization rules"
+      ]
+    },
+    {
+      "subsection_number": "7.2",
+      "subsection_title": "Data Protection Design",
+      "content_description": "Design of data protection and encryption strategies",
+      "source_requirements": [
+        "Data protection requirements",
+        "Encryption standards",
+        "Data privacy policies"
+      ],
+      "page_estimate": 7,
+      "key_content": [
+        "Encryption methods",
+        "Data privacy policies",
+        "Protection strategies"
+      ]
+    }
+  ]
+}
+P06 Requirements: {
+  "functional_requirements": [
+    {
+      "requirement_id": "FR-001",
+      "title": "Customer Account Creation",
+      "description": "The system must allow for the creation of customer accounts by capturing essential customer details, performing a mandatory credit assessment, and securely storing the information.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To streamline the customer onboarding process and ensure data integrity.",
+      "acceptance_criteria": [
+        "Customer details are captured and stored securely.",
+        "Credit assessment is performed using external agencies.",
+        "Unique customer identifiers are managed correctly."
+      ],
+      "dependencies": [],
+      "tags": [
+        "customer",
+        "account",
+        "creation"
+      ]
+    },
+    {
+      "requirement_id": "FR-002",
+      "title": "Account Creation for Existing Customers",
+      "description": "The system must facilitate the addition of new accounts for existing customers, enforcing a limit of nine accounts per customer.",
+      "priority": "medium",
+      "source_component": "CREACC.cbl",
+      "rationale": "To manage customer accounts efficiently and prevent excessive account creation.",
+      "acceptance_criteria": [
+        "New accounts can only be created for existing customers.",
+        "A maximum of nine accounts per customer is enforced."
+      ],
+      "dependencies": [
+        "FR-001"
+      ],
+      "tags": [
+        "account",
+        "creation",
+        "limit"
+      ]
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-001",
+      "title": "System Performance",
+      "description": "The system must handle high transaction volumes with minimal latency.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure efficient processing of financial transactions.",
+      "acceptance_criteria": [
+        "System processes transactions within 2 seconds.",
+        "System supports up to 1000 concurrent transactions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "performance",
+        "scalability"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "requirement_id": "BR-001",
+      "title": "Credit Score Assignment",
+      "description": "If no data is returned from the credit assessment, the credit score must be set to 0.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure consistent handling of credit assessments.",
+      "acceptance_criteria": [
+        "Credit score is set to 0 when no data is returned."
+      ],
+      "dependencies": [],
+      "tags": [
+        "credit",
+        "score",
+        "assessment"
+      ]
+    }
+  ],
+  "interface_requirements": [
+    {
+      "requirement_id": "IR-001",
+      "title": "User Interface for Account Creation",
+      "description": "The system must provide a user interface for input and validation of new account creation.",
+      "priority": "medium",
+      "source_component": "BNK1CAC.cbl",
+      "rationale": "To ensure data quality before account setup.",
+      "acceptance_criteria": [
+        "User interface validates customer and account parameters.",
+        "Interface links to backend operations for account creation."
+      ],
+      "dependencies": [],
+      "tags": [
+        "UI",
+        "validation",
+        "account"
+      ]
+    }
+  ],
+  "data_requirements": [
+    {
+      "requirement_id": "DR-001",
+      "title": "Data Storage for Customer Information",
+      "description": "The system must store customer information securely in either VSAM or DB2 databases.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure secure and reliable storage of customer data.",
+      "acceptance_criteria": [
+        "Customer data is stored in the selected database.",
+        "Data integrity is maintained during storage operations."
+      ],
+      "dependencies": [],
+      "tags": [
+        "data",
+        "storage",
+        "security"
+      ]
+    }
+  ],
+  "operational_requirements": [
+    {
+      "requirement_id": "OR-001",
+      "title": "Rollback Mechanism",
+      "description": "The system must implement rollback mechanisms if data persistence encounters issues.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To maintain business continuity and data integrity.",
+      "acceptance_criteria": [
+        "Rollback is triggered on data persistence failure.",
+        "System state is restored to pre-failure conditions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "rollback",
+        "continuity",
+        "integrity"
+      ]
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement_id": "CR-001",
+      "title": "Compliance with Banking Regulations",
+      "description": "All financial transactions must comply with banking regulations and internal policies.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure legal compliance and operational integrity.",
+      "acceptance_criteria": [
+        "Transactions adhere to regulatory standards.",
+        "Internal policies are enforced during transaction processing."
+      ],
+      "dependencies": [],
+      "tags": [
+        "compliance",
+        "regulations",
+        "policies"
+      ]
+    }
+  ],
+  "legacy_constraints": [
+    {
+      "requirement_id": "LC-001",
+      "title": "COBOL and CICS Environment",
+      "description": "The system operates within a COBOL and CICS environment, which imposes constraints on modernization efforts.",
+      "priority": "medium",
+      "source_component": "All components",
+      "rationale": "To acknowledge the limitations of the current technology stack.",
+      "acceptance_criteria": [
+        "Modernization plans account for COBOL and CICS constraints."
+      ],
+      "dependencies": [],
+      "tags": [
+        "legacy",
+        "COBOL",
+        "CICS"
+      ]
+    }
+  ],
+  "document_metadata": {
+    "system_name": "Legacy Banking System",
+    "extraction_date": "2025-11-20T09:39:13.586679",
+    "total_components_analyzed": 14
+  }
+}
+Database Analysis: {'search_phrase': 'Security Design. Design of security measures and protocols', 'components': [{'file_path': '/src/main/java/com/example/legacy/auth/LegacyAuthService.java', 'file_name': 'LegacyAuthService.java', 'relevance_score': 0.95, 'summary': 'Implements core user authentication and authorization logic, including session management and role-based access control for the application.', 'business_summary': 'Manages user access to the application, ensuring only authorized users can perform specific actions. This directly impacts data security, compliance with access policies, and the overall integrity of business operations by controlling who can access what resources.', 'functional_summary': 'Contains methods for `authenticateUser(username, password)`, `authorizeAction(userId, permission)`, `createSession(userId)`, and `validateSession(sessionId)`. It uses a custom hashing algorithm for passwords and stores session tokens directly in a database table, often with tightly coupled logic for different user roles.', 'entities': ['User', 'Role', 'Permission', 'Session'], 'business_rules': ['Users must authenticate with valid credentials to access any protected resource.', "Access to application features and data is strictly determined by a user's assigned roles and associated permissions.", 'User sessions automatically expire after a predefined period of inactivity to mitigate unauthorized access.', 'Password complexity rules are enforced during user registration and password changes.'], 'key_points': 'Core authentication/authorization service, custom password hashing, direct session management, tightly coupled logic, potential for security vulnerabilities due to custom and potentially outdated implementations, central to system security design.'}, {'file_path': '/app/core/security/AccessControlPolicyEngine.php', 'file_name': 'AccessControlPolicyEngine.php', 'relevance_score': 0.92, 'summary': 'Defines and enforces access control policies across the application, determining user permissions based on roles, resources, and actions.', 'business_summary': 'Ensures that business-critical data and functionalities are only accessible to users with appropriate clearance, preventing unauthorized operations, maintaining data integrity, and supporting regulatory compliance requirements related to access control.', 'functional_summary': 'A monolithic class containing a large `canAccess(user, resource, action)` method with extensive `if-else` or `switch` statements. It reads access policies from a configuration file or a dedicated database table and evaluates them dynamically at runtime to grant or deny access.', 'entities': ['User', 'Resource', 'Action', 'PolicyRule'], 'business_rules': ['Administrators have full control over user management and system configuration.', 'Department managers can view reports only for their respective departments.', 'Regular users can only access and modify data they own or are explicitly granted access to.', 'Certain sensitive actions require re-authentication or multi-factor authentication.'], 'key_points': "Centralized access control policy enforcement, rule-based design, complex conditional logic, potential for performance bottlenecks, difficult to extend or modify due to its monolithic nature, critical component of the system's security architecture."}, {'file_path': '/Utils/Security/DataProtectionUtil.cs', 'file_name': 'DataProtectionUtil.cs', 'relevance_score': 0.88, 'summary': 'Provides utility methods for encrypting and decrypting sensitive data before storage or transmission within the application.', 'business_summary': 'Protects sensitive customer and business data (e.g., Personally Identifiable Information, financial details) from unauthorized disclosure, which is crucial for maintaining customer trust, ensuring data privacy, and complying with data protection regulations.', 'functional_summary': 'A static utility class with methods like `Encrypt(string data)` and `Decrypt(string encryptedData)`. It typically uses a hardcoded encryption key and an older symmetric encryption algorithm (e.g., DES, Triple DES, or a custom XOR-based scheme) for data at rest and in transit.', 'entities': ['SensitiveData', 'EncryptionKey'], 'business_rules': ['All Personally Identifiable Information (PII) must be encrypted when stored at rest.', 'Financial transaction details must be encrypted during transmission between system components.', 'Encryption keys must be managed securely and never exposed in plain text.', 'Data backups containing sensitive information must also be encrypted.'], 'key_points': "Data at rest/in transit encryption, hardcoded encryption key, older or custom encryption algorithm, single point of failure for data protection, challenges with key rotation and algorithm upgrades, fundamental to the application's data security design."}], 'total_found': 3, 'search_method': 'phrase_based_semantic_search'}
+Component Details: {{component_analysis}}
+
+## CONTENT GENERATION APPROACH
+
+Generate documentation that describes the ACTUAL legacy  system based on the component analysis data. Document real  programs, actual business logic, genuine data structures, and existing interfaces found in the code analysis.
+
+## OUTPUT FORMAT
+CRITICAL: Return ONLY a pure JSON object. NO markdown formatting, NO code blocks, NO additional text before or after.
+
+Start your response directly with the opening brace { and end with the closing brace }
+
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "7",
+      "section_title": "Security Design",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "Clear statement of section purpose and scope",
+        "overview": "High-level summary of what this section covers",
+        "organization": "Brief description of section structure"
+      },
+      "main_sections": [
+        {
+          "subsection_number": "7.1",
+          "subsection_title": "Subsection Title",
+          "content": "Detailed technical content covering design specifications, implementation details, and architectural decisions. Include component descriptions, interfaces, data structures, and processing logic.",
+          "components": [
+            {
+              "name": "Component Name",
+              "type": " Program|Database|Interface",
+              "description": "Component purpose and functionality",
+              "source_files": ["FILE1.cbl", "COPY1.cpy"],
+              "key_features": ["Feature 1", "Feature 2"],
+              "interfaces": ["Input interfaces", "Output interfaces"]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "Design patterns used and rationale",
+            "algorithms": "Key algorithms and processing logic",
+            "data_structures": "Important data structures and formats",
+            "error_handling": "Error handling and exception management"
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Management",
+              "satisfaction": "How this design satisfies the requirement"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": ["Major design decisions made"],
+        "trade_offs": ["Important trade-offs and their justifications"],
+        "future_considerations": ["Considerations for future enhancements"]
+      }
+    },
+    "implementation": {
+      "development_guidance": ["Key implementation notes", "Best practices", "Common pitfalls to avoid"],
+      "testing_approach": "Testing strategy and key test scenarios",
+      "deployment_notes": "Deployment and configuration considerations"
+    },
+    "modernization": {
+      "current_technology": "Legacy technology stack used",
+      "modernization_options": ["Modern technology alternatives", "Migration strategies"],
+      "refactoring_opportunities": ["Areas for improvement", "Code quality enhancements"]
+    }
+  },
+  "markdown_content": "**CRITICAL: Generate COMPLETE markdown with all specific information. DO NOT use placeholders.**\n\nGenerate comprehensive markdown that includes:\n- Section title and number\n- Detailed introduction with actual system context\n- All component details with REAL  program names\n- Technical implementation with specific business logic\n- Actual requirements traceability with real requirement IDs\n- Implementation guidance with specific  standards\n- Modernization considerations with actual legacy constraints\n\nFormat as complete markdown documentation ready for immediate use."
+}
+```
+
+## CONTENT GENERATION GUIDELINES
+
+### CRITICAL DOCUMENTATION REQUIREMENTS:
+1. **Document Real Components**: Use actual  program names, file names, and modules found in analysis
+2. **Specific Technical Details**: Include actual data structures, business logic, and processing flows
+3. **Actual Implementation**: Describe how things ACTUALLY work in the legacy system
+4. **Real File References**: Use specific file names and line numbers where available
+5. **Genuine Architecture**: Document the actual technical architecture, not idealized design
+
+### CONTENT MUST INCLUDE:
+- **Real Program Names**: from component analysis
+- **Actual Business Logic**: Document the specific  operations implemented
+- **Existing Data Flows**: Describe actual data processing and file handling
+- **Legacy Technology**: Document technology as actually implemented
+- **Current Interfaces**: Document actual screen maps, batch jobs, database tables
+
+### CONTENT STRUCTURE:
+- **Introduction**: Brief overview of what this section documents in the ACTUAL system
+- **Actual Components**: Document 3-5 REAL components with specific file names and functionality  
+- **Technical Implementation**: Describe how the legacy system ACTUALLY implements this functionality
+- **Current Architecture**: Document the existing technical approach and design patterns
+- **Legacy Constraints**: Identify actual limitations and technical debt in current implementation
+
+### QUALITY STANDARDS:
+- Base 100% of content on provided component analysis data
+- Use specific program names and file references
+- Describe actual business logic implementation
+- Document current state, not future state
+- Include real technical constraints and dependencies
+
+## PROCESSING INSTRUCTIONS
+
+1. **Analyze Real Components**: Extract actual  programs, files, and modules from component_analysis
+2. **Document Current State**: Describe the existing implementation, not theoretical design
+3. **Use Real File Names**: Reference specific .cbl, .cpy, .jcl, .bms files found in the analysis
+4. **Extract Business Logic**: Document the actual  operations and data processing workflows
+5. **Focus on Legacy Reality**: Document the current technical architecture and implementation patterns
+
+## CRITICAL MANDATES FOR REAL DOCUMENTATION
+- ALWAYS reference specific file names from component_analysis
+- NEVER use generic language like "the system should" or "components include"
+- ALWAYS describe what the legacy system ACTUALLY does
+- USE real  program names and business logic discovered in analysis
+- DOCUMENT existing technical constraints and implementation approaches
+- FOCUS on reverse engineering documentation, not forward design
+
+## JSON RESPONSE REQUIREMENTS
+Return ONLY pure JSON with these CRITICAL requirements:
+
+### **MANDATORY FIELDS:**
+1. **sdd_section**: Complete structured data with real component information
+2. **markdown_content**: FULLY FORMATTED MARKDOWN (no placeholders!)
+
+### **MARKDOWN_CONTENT MUST INCLUDE:**
+- Complete markdown with program names 
+- Specific technical details from component_analysis 
+- Real business logic and data structures
+- Actual file references and implementation details
+- Ready-to-use documentation (no {{placeholders}})
+
+### **EXAMPLE MARKDOWN OUTPUT:**
+```markdown
+# 3 Component Design
+
+## Introduction
+This section documents the actual programs implementing customer management in the Legacy System.
+
+## Customer Management Components
+
+### CREACC.cbl - Account Creation Program
+- **Purpose**: Creates new customer accounts with validation
+- **Inputs**: Customer number, account type, interest rate
+- **Business Logic**: Validates customer exists via INQCUST, generates account numbers
+- **Database**: Updates ACCOUNT and PROCTRAN tables via DB2
+```
+
+Generate COMPLETE documentation with REAL system details now.

@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:40:37.069201",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/CRDTAGY3.cbl",
+    "filename": "CRDTAGY3.cbl",
+    "size_bytes": 9312,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/CRDTAGY3.cbl",
+    "analysis_type": "business",
+    "business_summary": "This program simulates a credit agency process by generating a random credit score for a customer. It introduces a delay to mimic real-world asynchronous data retrieval scenarios.",
+    "business_entities": [
+      "Customer"
+    ],
+    "business_rules": [
+      "Credit score is randomly generated between 1 and 999.",
+      "Delay is randomly generated between 0 and 3 seconds."
+    ],
+    "business_dependencies": [
+      "Relies on CICS for asynchronous processing and container management."
+    ],
+    "business_workflows": [
+      "Receives customer data, simulates processing delay, generates a credit score, and returns the data."
+    ],
+    "data_transformations": [
+      "Random generation of credit score.",
+      "Random generation of delay time."
+    ],
+    "error_handling": [
+      "Handles CICS response errors by linking to an abend handler program and displaying error messages."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "medium",
+    "business_complexity": "medium",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is designed to simulate a credit scoring process with random delays and scores, which may be critical for testing asynchronous processing in the system.",
+    "extracted_constants": {
+      "business_constants": [
+        "CIPC",
+        "CIPCREDCHANN"
+      ],
+      "validation_rules": null
+    },
+    "source_file": "src/base/cobol_src/CRDTAGY3.cbl",
+    "file_name": "CRDTAGY3.cbl",
+    "file_size": 9312,
+    "analysis_timestamp": "2025-11-20T00:40:37.069142",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/CRDTAGY3.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/CRDTAGY3.cbl.business.json"
+  }
+}

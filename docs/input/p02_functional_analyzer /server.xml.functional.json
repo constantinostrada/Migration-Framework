@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:34:54.072644",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/zosconnectserver/server.xml",
+    "filename": "server.xml",
+    "size_bytes": 3000,
+    "extension": ".xml"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/zosconnectserver/server.xml",
+    "analysis_type": "functional",
+    "functional_summary": "This module configures a z/OS Connect server, enabling specific features, setting up security, and defining endpoints and CORS settings. It also manages polling configurations for APIs and services.",
+    "api_like_spec": {
+      "function_name": "zOS Connect Server Configuration",
+      "inputs": [
+        "Server configuration parameters"
+      ],
+      "outputs": [
+        "Configured server instance"
+      ],
+      "return_values": [
+        "Configuration success",
+        "Configuration error"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize server with features and security settings",
+      "Step 2: Configure HTTP and HTTPS endpoints",
+      "Step 3: Set CORS and polling configurations"
+    ],
+    "state_changes": [
+      "Server configuration state changes",
+      "Security settings updates"
+    ],
+    "side_effects": [
+      "Potential network communication setup",
+      "Security credential handling"
+    ],
+    "dependencies": [
+      "z/OS Connect EE features",
+      "Security modules",
+      "Network configuration"
+    ],
+    "interface_points": [
+      "HTTP/HTTPS endpoints",
+      "CICS IPIC connection"
+    ],
+    "algorithms": [
+      "Polling configuration: Disabling automatic polling for production environments"
+    ],
+    "performance_characteristics": [
+      "Polling intervals can affect performance",
+      "Security configurations may impact response times"
+    ],
+    "error_handling": [
+      "Basic authentication fallback",
+      "Configuration error logging"
+    ],
+    "modernization_notes": [
+      "Consider updating to newer z/OS Connect features",
+      "Evaluate security configurations for modern standards"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 4,
+    "analysis_notes": "The configuration is straightforward but requires careful handling of security and network settings. Modernization could focus on enhancing security and leveraging newer API management features.",
+    "source_file": "etc/install/base/zosconnectserver/server.xml",
+    "file_name": "server.xml",
+    "file_size": 3000,
+    "analysis_timestamp": "2025-11-24T23:34:54.072569",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/server.xml.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/server.xml.functional.json"
+  }
+}

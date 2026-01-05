@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:32:07.775599",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/DRPI101.jcl",
+    "filename": "DRPI101.jcl",
+    "size_bytes": 548,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/DRPI101.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program using the DSNTEP2 utility to run SQL commands. It sets the current SQLID, and then drops an index from the database.",
+    "api_like_spec": {
+      "function_name": "GRANT",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT from SYSTSPRT",
+        "SYSOUT from SYSPRINT",
+        "SYSOUT from SYSUDUMP"
+      ],
+      "return_values": [
+        "Job completion codes",
+        "Error messages in SYSOUT"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize job with JOB statement",
+      "Step 2: Execute DSNTEP2 program with specified plan and library",
+      "Step 3: Run SQL command to set SQLID and drop index"
+    ],
+    "state_changes": [
+      "Database index IBMUSER.ACCTINDX is dropped"
+    ],
+    "side_effects": [
+      "SYSOUT generated for job output and error logs"
+    ],
+    "dependencies": [
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library",
+      "DB2 subsystem DBCG"
+    ],
+    "interface_points": [
+      "DB2 database interface via DSNTEP2",
+      "Job output interface via SYSOUT"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Limited by DB2 subsystem performance",
+      "Dependent on job class and region allocation"
+    ],
+    "error_handling": [
+      "Errors logged in SYSOUT",
+      "Job completion codes indicate success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern DB2 utilities",
+      "Evaluate potential for integration with automated deployment pipelines"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The script is straightforward, primarily executing a single SQL command to drop an index. Modernization could involve using more advanced DB2 features or integrating with CI/CD tools.",
+    "source_file": "etc/install/base/db2jcl/DRPI101.jcl",
+    "file_name": "DRPI101.jcl",
+    "file_size": 548,
+    "analysis_timestamp": "2025-11-24T23:32:07.775530",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPI101.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/DRPI101.jcl.functional.json"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:25:01.739928",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.6
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/GETSCODE.jcl",
+    "filename": "GETSCODE.jcl",
+    "size_bytes": 191,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/GETSCODE.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The JCL script is designed to compile and link-edit a CICS COBOL program named GETSCODE. It includes default settings and executes the CICS environment setup for the specified program.",
+    "api_like_spec": {
+      "function_name": "GETSCODE",
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": null,
+    "state_changes": null,
+    "side_effects": null,
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL",
+      "DEFAULT JCL member"
+    ],
+    "interface_points": [
+      "CICS environment"
+    ],
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring JCL scripts to use modern build automation tools.",
+      "Evaluate the use of cloud-based CICS environments for scalability."
+    ],
+    "confidence": 0.7,
+    "complexity_score": 2,
+    "analysis_notes": "The JCL script is primarily a configuration and execution script for a COBOL program within a CICS environment. It lacks detailed functional logic or data processing steps, focusing instead on the setup and execution of the program.",
+    "source_file": "etc/install/base/buildjcl/GETSCODE.jcl",
+    "file_name": "GETSCODE.jcl",
+    "file_size": 191,
+    "analysis_timestamp": "2025-11-24T23:25:01.739868",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.6,
+    "has_parsing_error": false,
+    "confidence_level": 0.7,
+    "metadata_complete": true,
+    "content_completeness": 0.6
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETSCODE.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETSCODE.jcl.functional.json"
+  }
+}

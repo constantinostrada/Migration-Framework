@@ -1,0 +1,99 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:43:43.518987",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/BANKDATA.cbl",
+    "filename": "BANKDATA.cbl",
+    "size_bytes": 54073,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/BANKDATA.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The BANKDATA module is a batch program designed to initialize data for a bank application. It populates a VSAM file named CUSTOMER and a DB2 table named ACCOUNT. The program generates customer and account data based on input parameters and stores them in the respective data stores.",
+    "api_like_spec": {
+      "function_name": "BANKDATA",
+      "inputs": [
+        "parm='fffffff,ttttttt,ssssss,rrrrrr'"
+      ],
+      "outputs": [
+        "Populated VSAM file CUSTOMER",
+        "Populated DB2 table ACCOUNT"
+      ],
+      "return_values": [
+        "0 for success",
+        "12 for error conditions"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize arrays and variables",
+      "Step 2: Parse input parameters for data generation",
+      "Step 3: Generate and write customer data to VSAM file",
+      "Step 4: Generate and write account data to DB2 table",
+      "Step 5: Update control records in DB2"
+    ],
+    "state_changes": [
+      "Updates to CUSTOMER VSAM file",
+      "Inserts into ACCOUNT DB2 table",
+      "Inserts into CONTROL DB2 table"
+    ],
+    "side_effects": [
+      "File I/O operations on CUSTOMER VSAM file",
+      "Database transactions on ACCOUNT and CONTROL DB2 tables"
+    ],
+    "dependencies": [
+      "CUSTOMER VSAM file",
+      "ACCOUNT DB2 table",
+      "CONTROL DB2 table",
+      "External copybooks: CUSTOMER, ACCDB2, CUSTCTRL, ACCTCTRL, CONTDB2"
+    ],
+    "interface_points": [
+      "VSAM file interface for CUSTOMER",
+      "DB2 database interface for ACCOUNT and CONTROL tables"
+    ],
+    "algorithms": [
+      "Random data generation for customer and account attributes",
+      "Date calculations for account opening and review dates"
+    ],
+    "performance_characteristics": [
+      "Batch processing of customer and account records",
+      "Potential bottleneck in random data generation and database transactions"
+    ],
+    "error_handling": [
+      "SQLCODE checks for database operations",
+      "File status checks for VSAM operations",
+      "Return code management for error conditions"
+    ],
+    "modernization_notes": [
+      "Consider refactoring for modularity and readability",
+      "Potential for API-based data access instead of direct DB2 and VSAM operations",
+      "Use modern random number generation libraries"
+    ],
+    "confidence": 0.8,
+    "complexity_score": 5,
+    "analysis_notes": "The module heavily relies on random data generation and batch processing, which may affect performance. Error handling is primarily focused on SQL and file status codes.",
+    "source_file": "src/base/cobol_src/BANKDATA.cbl",
+    "file_name": "BANKDATA.cbl",
+    "file_size": 54073,
+    "analysis_timestamp": "2025-11-24T23:43:43.518914",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.8,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BANKDATA.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/BANKDATA.cbl.functional.json"
+  }
+}

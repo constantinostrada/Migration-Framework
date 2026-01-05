@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:00.383978",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/PROCISRT.cpy",
+    "filename": "PROCISRT.cpy",
+    "size_bytes": 4518,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/PROCISRT.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines a communication area (COMMAREA) for a COBOL program, which is used to perform various banking operations such as debit, credit, local transfer, and customer/account creation and deletion. It uses a series of 88-level condition names to identify the operation type and structures to hold the relevant data for each operation.",
+    "api_like_spec": {
+      "function_name": "PROCISRT",
+      "inputs": [
+        "PROCISRT-FUNCTION",
+        "PROCISRT-PCB-POINTER",
+        "Operation-specific structure"
+      ],
+      "outputs": [
+        "Operation-specific structure"
+      ],
+      "return_values": [
+        "Operation success or failure indicators"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize PROCISRT-COMMAREA with operation type",
+      "Step 2: Populate operation-specific structure with relevant data",
+      "Step 3: Process the operation based on the function code",
+      "Step 4: Return updated structure with results"
+    ],
+    "state_changes": [
+      "Memory state changes with updated COMMAREA structures"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": [
+      "Interfaces with other COBOL programs or modules that use the COMMAREA"
+    ],
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures",
+      "Potential for API conversion to RESTful services",
+      "Use of modern date handling libraries"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 4,
+    "analysis_notes": "The module primarily serves as a data structure definition for various banking operations, with a focus on ensuring the correct data format for each operation type. It lacks explicit error handling and performance optimization details.",
+    "source_file": "src/base/cobol_copy/PROCISRT.cpy",
+    "file_name": "PROCISRT.cpy",
+    "file_size": 4518,
+    "analysis_timestamp": "2025-11-24T23:35:00.383901",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/PROCISRT.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/PROCISRT.cpy.functional.json"
+  }
+}

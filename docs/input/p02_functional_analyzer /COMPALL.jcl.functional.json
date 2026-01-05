@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:23:11.754472",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/COMPALL.jcl",
+    "filename": "COMPALL.jcl",
+    "size_bytes": 3918,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/COMPALL.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The COMPALL.jcl file is a Job Control Language (JCL) script used to compile various programs within the CBSA system. It includes multiple EXEC statements to execute different members, primarily using CICS and BATCH processing. The script is structured to include default settings and execute specific procedures or members for each program.",
+    "api_like_spec": {
+      "function_name": "COMPALL",
+      "inputs": [
+        "JCLLIB ORDER",
+        "INCLUDE MEMBER",
+        "EXEC PROC/MEMBER"
+      ],
+      "outputs": [
+        "Compilation results",
+        "Return codes"
+      ],
+      "return_values": [
+        "RC=00",
+        "RC=04",
+        "RC=08"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Include default settings using INCLUDE MEMBER=DEFAULT",
+      "Step 2: Execute specific programs using EXEC statements",
+      "Step 3: Return compilation results with return codes"
+    ],
+    "state_changes": [
+      "Compilation of programs",
+      "Return code updates"
+    ],
+    "side_effects": [
+      "Execution of CICS and BATCH jobs",
+      "Potential updates to compiled program binaries"
+    ],
+    "dependencies": [
+      "CBSA.CICSBSA.BUILDJCL library",
+      "CICS and BATCH processing environments"
+    ],
+    "interface_points": [
+      "CICS interfaces for program execution",
+      "BATCH processing interfaces"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Dependent on the efficiency of CICS and BATCH processing",
+      "Potential bottlenecks in job execution order"
+    ],
+    "error_handling": [
+      "Return codes indicate success or failure",
+      "RC=00 for success, RC=04 and RC=08 for different levels of failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring JCL to use modern job scheduling tools",
+      "Evaluate potential for API-based compilation processes",
+      "Explore cloud-based compilation services"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 4,
+    "analysis_notes": "The JCL script is straightforward, primarily executing predefined members with minimal conditional logic. The return codes provide basic error handling, and the script relies heavily on the underlying CICS and BATCH environments for execution.",
+    "source_file": "etc/install/base/buildjcl/COMPALL.jcl",
+    "file_name": "COMPALL.jcl",
+    "file_size": 3918,
+    "analysis_timestamp": "2025-11-24T23:23:11.754409",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/COMPALL.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/COMPALL.jcl.functional.json"
+  }
+}

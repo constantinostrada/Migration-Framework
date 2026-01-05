@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:26:06.265734",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/MAPGEN.jcl",
+    "filename": "MAPGEN.jcl",
+    "size_bytes": 2067,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/MAPGEN.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The MAPGEN JCL script is designed to assemble BMS maps for a legacy system. It processes map definitions, assembles them using an assembler program, and links the resulting object code into a load library.",
+    "api_like_spec": {
+      "function_name": "MAPGEN",
+      "inputs": [
+        "MEMBER",
+        "A",
+        "AMODE",
+        "RMODE",
+        "ASMBLR",
+        "REG",
+        "OUTC",
+        "WORK"
+      ],
+      "outputs": [
+        "Assembled BMS map object code"
+      ],
+      "return_values": [
+        "Success",
+        "Failure"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Copy map source from &CBSAHLQ..BMS(&MEMBER) to temporary dataset",
+      "Step 2: Assemble map using specified assembler program",
+      "Step 3: Link assembled map into load library &CBSAHLQ..LOADLIB(&MEMBER)"
+    ],
+    "state_changes": [
+      "Creation of temporary datasets",
+      "Modification of load library with new map object code"
+    ],
+    "side_effects": [
+      "File I/O operations on temporary datasets",
+      "Updates to load library"
+    ],
+    "dependencies": [
+      "&CBSAHLQ..BMS(&MEMBER)",
+      "&CICSHLQ..SDFHMAC",
+      "SYS1.MACLIB",
+      "&CBSAHLQ..LOADLIB(&MEMBER)"
+    ],
+    "interface_points": [
+      "File system interfaces for dataset access",
+      "Assembler and linker program interfaces"
+    ],
+    "algorithms": [
+      "Use of IEBGENER for dataset copying",
+      "Assembly of map source using specified assembler",
+      "Linking of object code using IEWL"
+    ],
+    "performance_characteristics": [
+      "Dependent on assembler and linker performance",
+      "I/O operations on datasets may affect performance"
+    ],
+    "error_handling": [
+      "Relies on system-level error handling for JCL execution",
+      "No explicit error logging within the JCL script"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern build tools",
+      "Potential to convert JCL to a more modern scripting language",
+      "Evaluate use of modern CI/CD pipelines for map assembly"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 4,
+    "analysis_notes": "The JCL script is straightforward but relies heavily on legacy assembler and linker programs. Modernization could involve replacing these with more contemporary tools and processes.",
+    "source_file": "etc/install/base/buildjcl/MAPGEN.jcl",
+    "file_name": "MAPGEN.jcl",
+    "file_size": 2067,
+    "analysis_timestamp": "2025-11-24T23:26:06.265680",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/MAPGEN.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/MAPGEN.jcl.functional.json"
+  }
+}

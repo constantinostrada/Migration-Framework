@@ -1,0 +1,345 @@
+{
+  "additional_tasks": [
+    {
+      "id": "TASK-031",
+      "title": "Implement Configuration Management Service",
+      "description": "Create backend/app/services/config_service.py with class ConfigurationService. Implement CRUD operations for system configuration parameters stored in database table SYSTEM_CONFIG with columns: config_key (VARCHAR PRIMARY KEY), config_value (TEXT), config_type (VARCHAR - 'string', 'number', 'boolean', 'json'), is_encrypted (BOOLEAN), updated_at (TIMESTAMP), updated_by (VARCHAR). Implement get_config(key: str) -> Any: retrieve value, decrypt if is_encrypted=True using Fernet encryption, parse based on config_type, cache in memory with TTL. Implement set_config(key: str, value: Any, is_sensitive: bool) -> bool: validate value, encrypt if is_sensitive=True, store in database, invalidate cache, log change in audit trail with user who made change. Implement encryption using cryptography.fernet with SECRET_KEY from environment. Create migration for SYSTEM_CONFIG table. Implement access control: only users with 'admin' role can modify configurations, all authenticated users can read non-sensitive configs. Create API endpoints in backend/app/api/v1/endpoints/config.py: GET /config (returns non-sensitive configs), GET /config/{key} (requires auth), PUT /config/{key} (requires admin role), audit all configuration changes. Create unit tests verifying encryption/decryption, caching, access control.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": ["TASK-002", "TASK-003", "TASK-006"],
+      "acceptanceCriteria": [
+        "SYSTEM_CONFIG table created with encryption flag",
+        "Configuration service implements CRUD operations",
+        "Sensitive configurations encrypted at rest using Fernet",
+        "Configuration values cached with TTL",
+        "Access control: only admins can modify configs",
+        "All configuration changes logged in audit trail",
+        "API endpoints for configuration management",
+        "Unit tests verify encryption and access control"
+      ],
+      "relatedRequirements": ["FR-16", "NFR-15"],
+      "skillsRequired": ["Python", "Encryption", "Caching"],
+      "deliverables": [
+        "backend/app/services/config_service.py",
+        "backend/app/api/v1/endpoints/config.py",
+        "backend/alembic/versions/002_system_config_table.py",
+        "backend/tests/unit/test_config_service.py"
+      ]
+    },
+    {
+      "id": "TASK-032",
+      "title": "Implement Control Table for Batch Processing State",
+      "description": "Create backend/alembic/versions/003_control_table.py migration defining BATCH_CONTROL table: job_id (VARCHAR PRIMARY KEY), job_type (VARCHAR - 'customer_init', 'account_init', 'data_migration'), status (VARCHAR - 'pending', 'running', 'completed', 'failed'), total_records (INTEGER), processed_records (INTEGER), failed_records (INTEGER), last_commit_point (INTEGER), started_at (TIMESTAMP), completed_at (TIMESTAMP), error_message (TEXT), metadata (JSONB). Create backend/app/services/batch_control_service.py with class BatchControlService. Implement create_job(job_type: str, total_records: int) -> str: create job record with status='pending', return job_id. Implement start_job(job_id: str): update status='running', set started_at. Implement update_progress(job_id: str, processed: int, last_commit: int): update processed_records and last_commit_point for recovery. Implement complete_job(job_id: str, success: bool, error: str = None): update status, completed_at, error_message. Implement recover_job(job_id: str) -> int: return last_commit_point for resuming failed batch. Update batch_service.py from TASK-016 to integrate with BatchControlService: track progress every 1000 records, enable recovery from last commit point on failure. Create API endpoint GET /batch/jobs/{job_id} to query batch job status. Test batch recovery: simulate failure after 2500 records, verify resume from commit point 2000.",
+      "suggestedPhase": "PHASE-02",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": ["TASK-003", "TASK-016"],
+      "acceptanceCriteria": [
+        "BATCH_CONTROL table created with all fields",
+        "BatchControlService implements job lifecycle management",
+        "Job status tracked through states (pending, running, completed, failed)",
+        "Progress updated every 1000 records (commit interval)",
+        "Last commit point stored for recovery",
+        "Recovery function returns last successful commit point",
+        "Batch service integrated with control table",
+        "Failed batch can resume from last commit point",
+        "API endpoint queries batch job status",
+        "Test verifies recovery from failure"
+      ],
+      "relatedRequirements": ["FR-11", "NFR-1", "NFR-25"],
+      "skillsRequired": ["Python", "PostgreSQL", "Batch Processing"],
+      "deliverables": [
+        "backend/alembic/versions/003_control_table.py",
+        "backend/app/services/batch_control_service.py",
+        "backend/tests/unit/test_batch_control.py"
+      ]
+    },
+    {
+      "id": "TASK-033",
+      "title": "Implement Data Encryption at Rest for Sensitive Fields",
+      "description": "Install cryptography library. Create backend/app/core/encryption.py with class FieldEncryption using Fernet symmetric encryption. Implement encrypt_field(value: str) -> str: encrypt value, return base64-encoded ciphertext. Implement decrypt_field(ciphertext: str) -> str: decode and decrypt, handle decryption errors gracefully. Use SECRET_KEY from environment, derive encryption key using PBKDF2. Create SQLAlchemy custom type EncryptedString in backend/app/db/encrypted_types.py: TypeDecorator for String, automatically encrypts on write, decrypts on read. Update Customer model to use EncryptedString for sensitive fields: credit_score (optional - PII consideration), if storing SSN or sensitive identifiers. Update Account model if storing sensitive account details. Create migration to migrate existing data: read plaintext, encrypt, update records. Implement key rotation procedure in docs/SECURITY.md: how to rotate encryption keys, re-encrypt data with new key. Add encryption status to health check endpoint. Create unit tests: test encryption/decryption round-trip, test invalid ciphertext handling, test key derivation. Ensure encryption key never logged or exposed in API responses.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": ["TASK-004", "TASK-031"],
+      "acceptanceCriteria": [
+        "FieldEncryption class implements Fernet encryption",
+        "Encryption key derived from SECRET_KEY using PBKDF2",
+        "EncryptedString SQLAlchemy type automatically encrypts/decrypts",
+        "Sensitive fields in Customer/Account models encrypted at rest",
+        "Migration script re-encrypts existing plaintext data",
+        "Key rotation procedure documented",
+        "Encryption status included in health check",
+        "Unit tests verify encryption round-trip",
+        "Invalid ciphertext handled gracefully without crashes",
+        "Encryption key never logged or exposed"
+      ],
+      "relatedRequirements": ["NFR-15"],
+      "skillsRequired": ["Python", "Cryptography", "Security"],
+      "deliverables": [
+        "backend/app/core/encryption.py",
+        "backend/app/db/encrypted_types.py",
+        "backend/alembic/versions/004_encrypt_sensitive_data.py",
+        "docs/SECURITY.md",
+        "backend/tests/unit/test_encryption.py"
+      ]
+    },
+    {
+      "id": "TASK-034",
+      "title": "Implement API Rate Limiting Middleware",
+      "description": "Install slowapi library for rate limiting. Create backend/app/middleware/rate_limit.py implementing rate limiting using sliding window algorithm. Configure limits: 100 requests per minute per client IP for authenticated endpoints, 20 requests per minute for unauthenticated endpoints (login, public APIs), 10 requests per minute for sensitive operations (delete, transfer), identify client by IP address or user_id if authenticated. Implement rate limit storage using Redis (preferred) or in-memory dict with expiration. Return 429 Too Many Requests status when limit exceeded with headers: X-RateLimit-Limit (limit value), X-RateLimit-Remaining (requests remaining), X-RateLimit-Reset (timestamp when limit resets), Retry-After (seconds until reset). Add rate limit decorators for specific endpoints: @rate_limit('100/minute') for standard endpoints, @rate_limit('10/minute') for critical operations. Create backend/app/api/v1/endpoints/rate_limit_test.py for testing rate limits. Register rate limit middleware in main.py before route handlers. Create monitoring dashboard showing rate limit hits per endpoint. Document rate limits in API documentation. Create unit tests: test limit enforcement, test limit reset, test different limits for different endpoints, test bypassing rate limits for internal services (via API key).",
+      "suggestedPhase": "PHASE-01",
+      "priority": "medium",
+      "effortEstimate": "60 minutes",
+      "dependencies": ["TASK-002", "TASK-006"],
+      "acceptanceCriteria": [
+        "Rate limiting middleware uses sliding window algorithm",
+        "Limits: 100/min for auth'd, 20/min for unauth'd, 10/min for sensitive",
+        "Client identified by IP address or user_id",
+        "Redis used for rate limit storage (or in-memory fallback)",
+        "429 status returned when limit exceeded",
+        "Response headers include rate limit information",
+        "Rate limit decorators available for endpoint-level limits",
+        "Monitoring dashboard shows rate limit metrics",
+        "API documentation includes rate limit information",
+        "Unit tests verify limit enforcement and reset"
+      ],
+      "relatedRequirements": ["NFR-20"],
+      "skillsRequired": ["Python", "FastAPI", "Redis"],
+      "deliverables": [
+        "backend/app/middleware/rate_limit.py",
+        "backend/tests/unit/test_rate_limit.py"
+      ]
+    },
+    {
+      "id": "TASK-035",
+      "title": "Implement Comprehensive Input Sanitization and OWASP Validation",
+      "description": "Create backend/app/core/sanitization.py with sanitization functions. Implement sanitize_string(value: str) -> str: strip leading/trailing whitespace, remove null bytes, limit length, escape HTML entities if applicable. Implement sanitize_sql_input(value: str) -> str: validate against SQL injection patterns (though SQLAlchemy parameterized queries handle this, add defense in depth). Implement validate_account_type(value: str) -> bool: reject if contains only spaces, low-values (null bytes), or starts with space (per FR-35). Implement validate_amount(value: Decimal) -> bool: ensure positive, check max decimal places, reject scientific notation if not needed. Create middleware backend/app/middleware/input_sanitization.py: automatically sanitize all string inputs from request body/query params before processing, log any suspicious patterns (potential injection attempts), configurable whitelist/blacklist patterns. Implement OWASP validation rules: limit input lengths (prevent buffer overflow), validate data types strictly, check for command injection patterns, validate file uploads (if applicable), check for path traversal attempts (../, etc.). Add Content Security Policy headers to responses. Create security testing script backend/tests/security/test_injection_attempts.py: test SQL injection patterns, test XSS attempts, test command injection, test path traversal, verify all rejected with proper error messages. Document security practices in docs/SECURITY.md.",
+      "suggestedPhase": "PHASE-01",
+      "priority": "high",
+      "effortEstimate": "90 minutes",
+      "dependencies": ["TASK-002", "TASK-005"],
+      "acceptanceCriteria": [
+        "Sanitization functions for strings, SQL, amounts",
+        "Account type validation rejects spaces/low-values/start-with-space",
+        "Amount validation ensures positive values only",
+        "Input sanitization middleware sanitizes all request inputs",
+        "Suspicious patterns logged for security monitoring",
+        "OWASP validation rules implemented (length limits, type validation)",
+        "Command injection and path traversal patterns detected",
+        "Content Security Policy headers added",
+        "Security tests attempt SQL injection (all blocked)",
+        "Security tests attempt XSS (all blocked)",
+        "Security tests attempt command injection (all blocked)",
+        "Security practices documented"
+      ],
+      "relatedRequirements": ["FR-35", "NFR-7", "NFR-12"],
+      "skillsRequired": ["Python", "Security", "OWASP"],
+      "deliverables": [
+        "backend/app/core/sanitization.py",
+        "backend/app/middleware/input_sanitization.py",
+        "backend/tests/security/test_injection_attempts.py",
+        "docs/SECURITY.md"
+      ]
+    },
+    {
+      "id": "TASK-036",
+      "title": "Implement Performance Testing and Benchmarking",
+      "description": "Install locust for load testing. Create backend/tests/performance/locustfile.py defining load test scenarios: user_journey_1 (create customer, create account, make transfer) with think time, user_journey_2 (query customer, list accounts, view transactions), admin_journey (view monitoring dashboard, update configuration). Configure load test: ramp up to 100 concurrent users over 5 minutes, sustain for 10 minutes, measure: average response time (target < 200ms for 95th percentile per NFR-3), requests per second, error rate (target < 0.1%), database connection pool usage, CPU and memory usage. Create performance benchmarking script backend/tests/performance/benchmark_api.py using pytest-benchmark: benchmark individual operations (create customer, create account, process transfer), establish baseline performance metrics, fail tests if regression > 20% from baseline. Implement database query performance testing: use EXPLAIN ANALYZE for slow queries, identify missing indexes, test query performance with large datasets (1M customers, 5M accounts, 10M transactions). Create performance monitoring dashboard showing: API endpoint latency percentiles (50th, 95th, 99th), database query performance, resource utilization (CPU, memory, disk I/O), cache hit rates. Document performance targets in docs/PERFORMANCE.md: response time targets per endpoint type, throughput targets (transactions per second), database query time limits (< 100ms per NFR-9). Create alerts for performance degradation: alert if 95th percentile > 300ms, alert if error rate > 1%, alert if database queries > 200ms.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": ["TASK-013", "TASK-014", "TASK-015"],
+      "acceptanceCriteria": [
+        "Locust load test scenarios for user journeys",
+        "Load test ramps to 100 concurrent users",
+        "95th percentile response time measured (target < 200ms)",
+        "Error rate measured and tracked",
+        "Benchmark tests for individual operations",
+        "Baseline metrics established",
+        "Database query performance tested with EXPLAIN ANALYZE",
+        "Performance tested with large datasets (1M+ customers)",
+        "Performance dashboard shows latency percentiles",
+        "Cache hit rates monitored",
+        "PERFORMANCE.md documents all targets",
+        "Alerts configured for performance degradation"
+      ],
+      "relatedRequirements": ["NFR-3", "NFR-9", "NFR-21"],
+      "skillsRequired": ["Python", "Load Testing", "Performance Engineering"],
+      "deliverables": [
+        "backend/tests/performance/locustfile.py",
+        "backend/tests/performance/benchmark_api.py",
+        "docs/PERFORMANCE.md"
+      ]
+    },
+    {
+      "id": "TASK-037",
+      "title": "Create Customer Inquiry and Search Frontend",
+      "description": "Create frontend/src/components/CustomerSearch.tsx with search functionality. Implement search form with fields: customer_number (exact match), name (partial match), date_of_birth (exact or range), city (partial match). Add special inquiry buttons: 'Random Customer' (sends 0000000000), 'Last Customer' (sends 9999999999), regular search button. Implement debounced search (wait 300ms after typing stops before searching). Call GET /api/v1/customers with query parameters. Display results in table: customer_number, name, DOB, city, credit_score, 'View Details' button. Implement pagination for results (50 per page). Implement customer detail view frontend/src/app/customers/[customerId]/page.tsx: display all customer information, display credit score with visual indicator (green if >= 700, yellow 600-699, red < 600, gray if marked_for_review), display 'Credit Check Pending' badge if marked_for_review=true, show list of customer's accounts with balances, provide 'Edit Customer' and 'Delete Customer' buttons (with confirmation), breadcrumb navigation. Implement edit customer form: pre-populate with current values, same validation as creation form, call PUT /api/v1/customers/{customerId}. Implement delete confirmation modal: warn about cascading deletion of accounts, require typing customer number to confirm, call DELETE /api/v1/customers/{customerId}, show success message listing deleted accounts. Style with responsive design. Create tests: test search functionality, test special inquiry modes (random, last), test debouncing, test pagination.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": ["TASK-001", "TASK-013", "TASK-017"],
+      "acceptanceCriteria": [
+        "Search form with multiple criteria (number, name, DOB, city)",
+        "Special inquiry buttons for random and last customer",
+        "Debounced search (300ms delay after typing)",
+        "Search results displayed in paginated table",
+        "Customer detail view shows all information",
+        "Credit score displayed with color-coded indicator",
+        "'Credit Check Pending' badge shown when marked for review",
+        "Customer's accounts listed with current balances",
+        "Edit customer form pre-populated with current values",
+        "Delete confirmation requires typing customer number",
+        "Cascading deletion warning displayed",
+        "Success message lists deleted accounts",
+        "Responsive design for mobile and desktop",
+        "Tests verify special modes and pagination"
+      ],
+      "relatedRequirements": ["FR-3", "FR-7", "FR-22"],
+      "skillsRequired": ["React", "TypeScript", "UI/UX"],
+      "deliverables": [
+        "frontend/src/components/CustomerSearch.tsx",
+        "frontend/src/app/customers/[customerId]/page.tsx",
+        "frontend/src/components/CustomerDetail.tsx",
+        "frontend/src/components/DeleteConfirmationModal.tsx",
+        "frontend/src/__tests__/CustomerSearch.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-038",
+      "title": "Create Account Inquiry and Management Frontend",
+      "description": "Create frontend/src/app/accounts/[accountId]/page.tsx for account detail view. Display: account_number, account_type, customer information (with link), interest_rate (formatted as percentage), overdraft_limit (formatted as currency), available_balance and actual_balance (side-by-side with clear labels), opened_date, last_statement_date, next_statement_date. Add visual balance indicator: progress bar showing available vs overdraft limit. Display warning if account in overdraft (available_balance < 0). Implement 'Update Account' form: pre-populate current values, allow editing account_type, interest_rate, overdraft_limit, statement dates, CRITICAL: explicitly disable balance fields with tooltip 'Balances cannot be updated directly. Use transactions to modify balances', validate overdraft_limit >= 0, call PUT /api/v1/accounts/{accountId}. Implement transaction history section: call GET /api/v1/accounts/{accountId}/transactions, display paginated table (50 per page): date/time, transaction_code, amount (colored red for debits, green for credits), description, running balance (calculated), filter options: date range picker, transaction type dropdown (all 18 codes), 'Export to CSV' button. Add 'Make Transaction' quick actions: 'Credit This Account', 'Debit This Account', 'Transfer From This Account' buttons opening respective transaction forms with account pre-selected. Create frontend/src/components/TransactionHistory.tsx reusable component. Style with clear visual hierarchy. Test: verify balance update is disabled, verify transaction history filtering, verify pagination.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "high",
+      "effortEstimate": "120 minutes",
+      "dependencies": ["TASK-001", "TASK-014", "TASK-015", "TASK-037"],
+      "acceptanceCriteria": [
+        "Account detail view displays all account information",
+        "Available and actual balances shown side-by-side",
+        "Visual balance indicator with progress bar",
+        "Overdraft warning displayed when balance < 0",
+        "Update form pre-populated with current values",
+        "Balance fields explicitly disabled with explanatory tooltip",
+        "Tooltip explains balances updated via transactions only",
+        "Overdraft limit validation (>= 0)",
+        "Transaction history displayed with pagination",
+        "Transaction amounts color-coded (red debit, green credit)",
+        "Running balance calculated and displayed",
+        "Filter by date range and transaction type",
+        "Export to CSV functionality",
+        "Quick action buttons for credit, debit, transfer",
+        "Tests verify balance field disabled"
+      ],
+      "relatedRequirements": ["FR-3", "FR-8", "FR-21"],
+      "skillsRequired": ["React", "TypeScript", "Data Visualization"],
+      "deliverables": [
+        "frontend/src/app/accounts/[accountId]/page.tsx",
+        "frontend/src/components/TransactionHistory.tsx",
+        "frontend/src/components/AccountUpdateForm.tsx",
+        "frontend/src/__tests__/AccountDetail.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-039",
+      "title": "Create Comprehensive Error Handling and User Feedback System",
+      "description": "Create frontend/src/lib/errorHandler.ts with centralized error handling. Implement handleApiError(error: AxiosError) -> UserFriendlyError: map API error codes to user-friendly messages, extract error details from response, handle network errors (timeout, connection refused), handle authentication errors (401 -> redirect to login, 403 -> show 'Access Denied'), handle validation errors (400 -> show field-specific errors), handle rate limit errors (429 -> show 'Too many requests, please wait'), handle server errors (500 -> show 'System error, please try again' + error ID for support). Create frontend/src/components/ErrorBoundary.tsx React error boundary: catch unhandled errors, display fallback UI, log error to monitoring service, provide 'Reload Page' button. Create frontend/src/components/Toast.tsx notification system: success toast (green, auto-dismiss after 3s), error toast (red, auto-dismiss after 5s or user dismiss), warning toast (yellow), info toast (blue), support stacking multiple toasts, animate in/out smoothly. Create frontend/src/contexts/NotificationContext.tsx providing useNotification() hook: showSuccess(message), showError(message), showWarning(message), showInfo(message). Integrate error handling in all API calls: wrap axios calls in try-catch, call handleApiError on catch, display toast notification with error message. Create frontend/src/components/LoadingStates.tsx with loading components: full-page spinner, inline spinner, skeleton loading for tables/cards, progress bar for long operations. Implement optimistic updates where appropriate: mark UI as updated immediately, revert if API call fails, show inline error without losing user's work. Create tests: test error boundary catches errors, test toast notifications display and dismiss, test API error handling for all error types.",
+      "suggestedPhase": "PHASE-03",
+      "priority": "medium",
+      "effortEstimate": "90 minutes",
+      "dependencies": ["TASK-001", "TASK-017"],
+      "acceptanceCriteria": [
+        "Error handler maps API errors to user-friendly messages",
+        "Network errors handled (timeout, connection refused)",
+        "Authentication errors redirect to login (401)",
+        "Access denied shown for 403 errors",
+        "Validation errors display field-specific messages",
+        "Rate limit errors show retry message",
+        "Server errors show friendly message with error ID",
+        "Error boundary catches unhandled React errors",
+        "Fallback UI displayed when error caught",
+        "Toast notification system with 4 types (success, error, warning, info)",
+        "Toasts auto-dismiss after appropriate time",
+        "Multiple toasts stack properly",
+        "useNotification hook provides toast functions",
+        "All API calls wrapped with error handling",
+        "Loading states (spinner, skeleton, progress bar)",
+        "Tests verify error handling and notifications"
+      ],
+      "relatedRequirements": ["NFR-18"],
+      "skillsRequired": ["React", "TypeScript", "UX"],
+      "deliverables": [
+        "frontend/src/lib/errorHandler.ts",
+        "frontend/src/components/ErrorBoundary.tsx",
+        "frontend/src/components/Toast.tsx",
+        "frontend/src/contexts/NotificationContext.tsx",
+        "frontend/src/components/LoadingStates.tsx",
+        "frontend/src/__tests__/ErrorHandling.test.tsx"
+      ]
+    },
+    {
+      "id": "TASK-040",
+      "title": "Implement Comprehensive Security Testing Suite",
+      "description": "Create backend/tests/security/ directory with comprehensive security tests. Create test_authentication.py: test login with invalid credentials (expect 401), test access without token (expect 401), test expired token (expect 401), test token tampering (expect 401), test brute force protection (expect rate limit after 10 failed attempts), test password requirements enforced. Create test_authorization.py: test user accessing admin-only endpoints (expect 403), test accessing other user's data (expect 403), test role-based access control for all protected endpoints. Create test_injection_attacks.py (extending TASK-035): test SQL injection in all string inputs, test NoSQL injection if using any NoSQL databases, test command injection via file uploads or system calls, test LDAP injection if applicable, verify all rejected without execution. Create test_xss_attacks.py: test reflected XSS in error messages, test stored XSS in user-generated content, test DOM-based XSS, verify all HTML escaped. Create test_sensitive_data.py: test passwords never in logs, test passwords never in API responses, test authentication tokens properly secured (HttpOnly cookies or secure headers), test credit scores only accessible to authorized users, test sensitive config values encrypted. Create test_https_enforcement.py: test HTTP requests upgraded to HTTPS, test HSTS headers present, test secure cookie flags. Create test_csrf_protection.py: test CSRF tokens required for state-changing operations. Run security tests in CI pipeline, fail build on any security test failure. Create security testing documentation docs/SECURITY_TESTING.md: how to run security tests, how to add new security tests, common vulnerabilities to test for. Use OWASP ZAP or similar for automated security scanning.",
+      "suggestedPhase": "PHASE-04",
+      "priority": "high",
+      "effortEstimate": "150 minutes",
+      "dependencies": ["TASK-006", "TASK-013", "TASK-035"],
+      "acceptanceCriteria": [
+        "Authentication tests verify all failure cases",
+        "Brute force protection tested and working",
+        "Authorization tests verify role-based access control",
+        "Users cannot access other users' data",
+        "SQL injection tests cover all string inputs",
+        "Command injection attempts blocked",
+        "XSS tests verify HTML escaping (reflected, stored, DOM)",
+        "Passwords never logged or returned in responses",
+        "Authentication tokens secured properly",
+        "Sensitive data access controlled by authorization",
+        "HTTPS enforcement tested",
+        "HSTS headers present",
+        "Secure cookie flags set",
+        "CSRF protection tested for state changes",
+        "Security tests run in CI pipeline",
+        "Build fails on security test failure",
+        "SECURITY_TESTING.md documentation complete"
+      ],
+      "relatedRequirements": ["NFR-12", "NFR-13", "NFR-14"],
+      "skillsRequired": ["Python", "Security Testing", "OWASP"],
+      "deliverables": [
+        "backend/tests/security/test_authentication.py",
+        "backend/tests/security/test_authorization.py",
+        "backend/tests/security/test_injection_attacks.py",
+        "backend/tests/security/test_xss_attacks.py",
+        "backend/tests/security/test_sensitive_data.py",
+        "backend/tests/security/test_https_enforcement.py",
+        "backend/tests/security/test_csrf_protection.py",
+        "docs/SECURITY_TESTING.md"
+      ]
+    }
+  ],
+  "summary": {
+    "additional_tasks_count": 10,
+    "total_tasks_with_base": 40,
+    "new_requirements_covered": [
+      "FR-16 (Configuration Management)",
+      "FR-11 (Control Table for Batch Processing)",
+      "NFR-15 (Data Encryption at Rest)",
+      "NFR-20 (API Rate Limiting)",
+      "FR-35 (Account Type Whitespace Validation - enhanced)",
+      "NFR-7 (Input Validation with OWASP)",
+      "NFR-3 (API Response Time - performance testing)",
+      "NFR-9 (Database Query Performance - performance testing)",
+      "NFR-21 (Transaction Processing Performance)",
+      "FR-3 (Customer Account Inquiry - frontend)",
+      "FR-8 (Account Information Update - enhanced frontend)",
+      "FR-21 (Transaction Logging - frontend view)",
+      "NFR-18 (User Input Validation Feedback - error handling)",
+      "NFR-12 (Input Validation Security - comprehensive testing)",
+      "NFR-13 (Secure Data Transmission - testing)",
+      "NFR-14 (Access Control - testing)"
+    ],
+    "notes": "These 10 additional tasks (TASK-031 to TASK-040) significantly expand coverage of the requirements, particularly in areas of security, performance, and user experience. Combined with the base 30 tasks, this provides 40 comprehensive tasks covering approximately 90+ of the 121 requirements."
+  }
+}

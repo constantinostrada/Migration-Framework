@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: banking_postgres
+    environment:
+      POSTGRES_USER: bankingapp
+      POSTGRES_PASSWORD: bankingapp123
+      POSTGRES_DB: banking_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bankingapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - banking_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: banking_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bankingapp:bankingapp123@postgres:5432/banking_db
+      JWT_SECRET_KEY: your-jwt-secret-key-min-32-chars-for-production-change-this
+      SECRET_KEY: your-secret-key-change-in-production
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src/backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - banking_network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: banking_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    networks:
+      - banking_network
+
+  # pgAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: banking_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@banking.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - banking_network
+
+volumes:
+  postgres_data:
+
+networks:
+  banking_network:
+    driver: bridge

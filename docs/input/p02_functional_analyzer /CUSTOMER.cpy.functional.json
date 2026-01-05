@@ -1,0 +1,65 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:36:28.736977",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/CUSTOMER.cpy",
+    "filename": "CUSTOMER.cpy",
+    "size_bytes": 2063,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/CUSTOMER.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "The module defines the structure of a customer record in a COBOL copybook format. It includes fields for customer identification, name, address, date of birth, and credit score information. The module uses COBOL data types to specify the format and size of each field.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": null,
+      "outputs": null,
+      "return_values": null
+    },
+    "data_flow": [
+      "Step 1: Initialization of customer record structure with predefined fields",
+      "Step 2: Data assignment to each field as per the structure",
+      "Step 3: Potential output or storage in a database or file system"
+    ],
+    "state_changes": [
+      "Variable state changes as data is assigned to the customer record fields"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern data structures or ORM for database interactions",
+      "Potential conversion to a JSON or XML schema for better interoperability with modern systems"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The code is a straightforward definition of a data structure with no logic or processing. It serves as a template for customer data storage and retrieval in a COBOL-based system.",
+    "source_file": "src/base/cobol_copy/CUSTOMER.cpy",
+    "file_name": "CUSTOMER.cpy",
+    "file_size": 2063,
+    "analysis_timestamp": "2025-11-24T23:36:28.736920",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CUSTOMER.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CUSTOMER.cpy.functional.json"
+  }
+}

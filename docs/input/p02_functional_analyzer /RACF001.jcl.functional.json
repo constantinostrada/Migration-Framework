@@ -1,0 +1,89 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:29:29.415161",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/installjcl/RACF001.jcl",
+    "filename": "RACF001.jcl",
+    "size_bytes": 620,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/installjcl/RACF001.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is used to define and permit access to specific RACF facility classes related to DB2 authorization types. It sets up security profiles and permissions for users to access these facilities.",
+    "api_like_spec": {
+      "function_name": "RACF Security Definition",
+      "inputs": [
+        "FACILITY class names",
+        "OWNER",
+        "UACC",
+        "ID list"
+      ],
+      "outputs": [
+        "RACF profiles",
+        "Access permissions"
+      ],
+      "return_values": [
+        "Success",
+        "Failure"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Define RACF facility class with RDEFINE",
+      "Step 2: Permit access to defined class with PERMIT",
+      "Step 3: Refresh RACF list with SETR RACLIST"
+    ],
+    "state_changes": [
+      "RACF database updates with new profiles and permissions"
+    ],
+    "side_effects": [
+      "RACF list refresh affecting system security settings"
+    ],
+    "dependencies": [
+      "RACF subsystem",
+      "DB2 authorization types"
+    ],
+    "interface_points": [
+      "RACF command interface",
+      "DB2 authorization interface"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Dependent on RACF and system performance during refresh"
+    ],
+    "error_handling": [
+      "RACF command error messages",
+      "System log entries for failures"
+    ],
+    "modernization_notes": [
+      "Consider using modern security frameworks",
+      "Evaluate integration with centralized identity management systems"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The script is straightforward, focusing on security profile management within RACF for DB2 facilities. It assumes existing RACF infrastructure and user IDs.",
+    "source_file": "etc/install/base/installjcl/RACF001.jcl",
+    "file_name": "RACF001.jcl",
+    "file_size": 620,
+    "analysis_timestamp": "2025-11-24T23:29:29.415105",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/RACF001.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/RACF001.jcl.functional.json"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:22:49.768711",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/buildjcl/CICS.jcl",
+    "filename": "CICS.jcl",
+    "size_bytes": 2153,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/buildjcl/CICS.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is used to compile and link-edit COBOL programs with CICS and DB2 support. It sets up the necessary environment and libraries for the compilation and linking processes.",
+    "api_like_spec": {
+      "function_name": "CICS",
+      "inputs": [
+        "MEMBER"
+      ],
+      "outputs": [
+        "Compiled and linked program"
+      ],
+      "return_values": [
+        "0 for success",
+        "Non-zero for errors"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Read COBOL source from &CBSAHLQ..COBOL(&MEMBER)",
+      "Step 2: Compile COBOL source using IGYCRCTL",
+      "Step 3: Link-edit compiled object using IEWL"
+    ],
+    "state_changes": [
+      "Creation of compiled object in &CBSAHLQ..CBSAMOD(&MEMBER)",
+      "Creation of load module in &CBSAHLQ..LOADLIB"
+    ],
+    "side_effects": [
+      "Reads from various library datasets",
+      "Writes to output datasets for compiled objects and load modules"
+    ],
+    "dependencies": [
+      "&COBOLHLQ..SIGYCOMP",
+      "&CICSHLQ..SDFHLOAD",
+      "&DB2HLQ..SDSNLOAD",
+      "&CBSAHLQ..DSECT",
+      "&LEHLQ..SCEESAMP",
+      "&CICSHLQ..SDFHCOB",
+      "&CICSHLQ..SDFHSAMP"
+    ],
+    "interface_points": [
+      "COBOL compiler IGYCRCTL",
+      "Linkage editor IEWL"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Uses REGION=0M for COBOL compilation indicating high memory usage",
+      "Link-edit step uses REGION=4M"
+    ],
+    "error_handling": [
+      "COND parameter used to skip link-edit step if compilation fails"
+    ],
+    "modernization_notes": [
+      "Consider migrating to a modern build system like Jenkins or GitLab CI/CD",
+      "Explore using modern COBOL compilers with integrated CICS and DB2 support"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 5,
+    "analysis_notes": "The JCL script is straightforward but relies heavily on specific dataset naming conventions and high-level qualifiers, which may need to be adjusted for different environments.",
+    "source_file": "etc/install/base/buildjcl/CICS.jcl",
+    "file_name": "CICS.jcl",
+    "file_size": 2153,
+    "analysis_timestamp": "2025-11-24T23:22:49.768609",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CICS.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CICS.jcl.functional.json"
+  }
+}

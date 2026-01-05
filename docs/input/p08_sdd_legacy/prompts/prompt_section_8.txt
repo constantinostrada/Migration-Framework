@@ -1,0 +1,397 @@
+You are a legacy system analyst specializing in REVERSE ENGINEERING documentation from actual system analysis. Your task is to document WHAT THE LEGACY SYSTEM ACTUALLY CONTAINS based on real code analysis, not what it should contain.
+
+## CRITICAL MANDATE: DOCUMENT REALITY, NOT IDEALS
+- Document ACTUAL programs, files, and functionality found in the system analysis
+- Use REAL component names, file names, and business logic discovered
+- Base ALL content on the provided database analysis of actual legacy code
+- NEVER use generic templates or "should have" language
+- Focus on WHAT EXISTS, not what would be ideal
+
+## CONTEXT
+Project: Legacy  System Reverse Documentation
+Standard: IEEE 1016 Software Design Description  
+Processing Mode: Section-by-section documentation of ACTUAL system
+Target: Accurate documentation of existing legacy implementation
+
+## INPUT DATA
+TOC Section: 8 - Operational Design
+P07 TOC Structure: {
+  "section_number": "8",
+  "section_title": "Operational Design",
+  "page_estimate": 12,
+  "section_purpose": "Design of operational procedures and maintenance",
+  "subsections": [
+    {
+      "subsection_number": "8.1",
+      "subsection_title": "Deployment Procedures",
+      "content_description": "Design of deployment and release management processes",
+      "source_requirements": [
+        "Deployment requirements",
+        "Release management",
+        "Configuration management"
+      ],
+      "page_estimate": 6,
+      "key_content": [
+        "Deployment steps",
+        "Release schedules",
+        "Configuration management"
+      ]
+    },
+    {
+      "subsection_number": "8.2",
+      "subsection_title": "Monitoring and Maintenance",
+      "content_description": "Design of system monitoring and maintenance procedures",
+      "source_requirements": [
+        "Monitoring requirements",
+        "Maintenance schedules",
+        "Support processes"
+      ],
+      "page_estimate": 6,
+      "key_content": [
+        "Monitoring tools",
+        "Maintenance plans",
+        "Support procedures"
+      ]
+    }
+  ]
+}
+P06 Requirements: {
+  "functional_requirements": [
+    {
+      "requirement_id": "FR-001",
+      "title": "Customer Account Creation",
+      "description": "The system must allow for the creation of customer accounts by capturing essential customer details, performing a mandatory credit assessment, and securely storing the information.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To streamline the customer onboarding process and ensure data integrity.",
+      "acceptance_criteria": [
+        "Customer details are captured and stored securely.",
+        "Credit assessment is performed using external agencies.",
+        "Unique customer identifiers are managed correctly."
+      ],
+      "dependencies": [],
+      "tags": [
+        "customer",
+        "account",
+        "creation"
+      ]
+    },
+    {
+      "requirement_id": "FR-002",
+      "title": "Account Creation for Existing Customers",
+      "description": "The system must facilitate the addition of new accounts for existing customers, enforcing a limit of nine accounts per customer.",
+      "priority": "medium",
+      "source_component": "CREACC.cbl",
+      "rationale": "To manage customer accounts efficiently and prevent excessive account creation.",
+      "acceptance_criteria": [
+        "New accounts can only be created for existing customers.",
+        "A maximum of nine accounts per customer is enforced."
+      ],
+      "dependencies": [
+        "FR-001"
+      ],
+      "tags": [
+        "account",
+        "creation",
+        "limit"
+      ]
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "requirement_id": "NFR-001",
+      "title": "System Performance",
+      "description": "The system must handle high transaction volumes with minimal latency.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure efficient processing of financial transactions.",
+      "acceptance_criteria": [
+        "System processes transactions within 2 seconds.",
+        "System supports up to 1000 concurrent transactions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "performance",
+        "scalability"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "requirement_id": "BR-001",
+      "title": "Credit Score Assignment",
+      "description": "If no data is returned from the credit assessment, the credit score must be set to 0.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure consistent handling of credit assessments.",
+      "acceptance_criteria": [
+        "Credit score is set to 0 when no data is returned."
+      ],
+      "dependencies": [],
+      "tags": [
+        "credit",
+        "score",
+        "assessment"
+      ]
+    }
+  ],
+  "interface_requirements": [
+    {
+      "requirement_id": "IR-001",
+      "title": "User Interface for Account Creation",
+      "description": "The system must provide a user interface for input and validation of new account creation.",
+      "priority": "medium",
+      "source_component": "BNK1CAC.cbl",
+      "rationale": "To ensure data quality before account setup.",
+      "acceptance_criteria": [
+        "User interface validates customer and account parameters.",
+        "Interface links to backend operations for account creation."
+      ],
+      "dependencies": [],
+      "tags": [
+        "UI",
+        "validation",
+        "account"
+      ]
+    }
+  ],
+  "data_requirements": [
+    {
+      "requirement_id": "DR-001",
+      "title": "Data Storage for Customer Information",
+      "description": "The system must store customer information securely in either VSAM or DB2 databases.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To ensure secure and reliable storage of customer data.",
+      "acceptance_criteria": [
+        "Customer data is stored in the selected database.",
+        "Data integrity is maintained during storage operations."
+      ],
+      "dependencies": [],
+      "tags": [
+        "data",
+        "storage",
+        "security"
+      ]
+    }
+  ],
+  "operational_requirements": [
+    {
+      "requirement_id": "OR-001",
+      "title": "Rollback Mechanism",
+      "description": "The system must implement rollback mechanisms if data persistence encounters issues.",
+      "priority": "high",
+      "source_component": "CRECUST.cbl",
+      "rationale": "To maintain business continuity and data integrity.",
+      "acceptance_criteria": [
+        "Rollback is triggered on data persistence failure.",
+        "System state is restored to pre-failure conditions."
+      ],
+      "dependencies": [],
+      "tags": [
+        "rollback",
+        "continuity",
+        "integrity"
+      ]
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement_id": "CR-001",
+      "title": "Compliance with Banking Regulations",
+      "description": "All financial transactions must comply with banking regulations and internal policies.",
+      "priority": "high",
+      "source_component": "DBCRFUN.cbl",
+      "rationale": "To ensure legal compliance and operational integrity.",
+      "acceptance_criteria": [
+        "Transactions adhere to regulatory standards.",
+        "Internal policies are enforced during transaction processing."
+      ],
+      "dependencies": [],
+      "tags": [
+        "compliance",
+        "regulations",
+        "policies"
+      ]
+    }
+  ],
+  "legacy_constraints": [
+    {
+      "requirement_id": "LC-001",
+      "title": "COBOL and CICS Environment",
+      "description": "The system operates within a COBOL and CICS environment, which imposes constraints on modernization efforts.",
+      "priority": "medium",
+      "source_component": "All components",
+      "rationale": "To acknowledge the limitations of the current technology stack.",
+      "acceptance_criteria": [
+        "Modernization plans account for COBOL and CICS constraints."
+      ],
+      "dependencies": [],
+      "tags": [
+        "legacy",
+        "COBOL",
+        "CICS"
+      ]
+    }
+  ],
+  "document_metadata": {
+    "system_name": "Legacy Banking System",
+    "extraction_date": "2025-11-20T09:39:13.586679",
+    "total_components_analyzed": 14
+  }
+}
+Database Analysis: {'search_phrase': 'Operational Design. Design of operational procedures and maintenance', 'components': [{'file_path': '/app/legacy/programs/OPR_PLAN.CBL', 'file_name': 'OPR_PLAN.CBL', 'relevance_score': 0.95, 'summary': 'This COBOL program manages the scheduling and resource allocation for daily operational tasks, ensuring efficient execution of business processes.', 'business_analysis': {'business_purpose': "To ensure the efficient and timely execution of business operations by pre-defining task sequences, allocating necessary resources, and generating optimized schedules. It directly supports the 'Operational Design' phase by translating strategic operational goals into actionable plans.", 'entities': ['Operational_Task', 'Resource', 'Schedule', 'Dependency'], 'business_rules': ['All critical operational tasks must be scheduled.', 'Tasks must be scheduled within the available capacity of assigned resources.', 'Dependencies between tasks must be respected (e.g., Task B cannot start before Task A completes).', 'High-priority tasks must be given precedence in resource allocation.', 'Schedules must be generated daily for the next operational period.']}, 'functional_analysis': {'key_functions': ['Read operational task definitions', 'Allocate resources to tasks', 'Generate daily/weekly operational schedules', 'Detect and report scheduling conflicts', 'Calculate resource utilization'], 'inputs': ['OPR_TASK_DEF_FILE (Task ID, Description, Estimated Duration, Required Resources, Dependencies, Priority)', 'RESOURCE_AVAIL_FILE (Resource ID, Type, Available Capacity, Operating Hours)'], 'outputs': ['DAILY_SCHEDULE_FILE (Scheduled Task ID, Start Time, End Time, Assigned Resources)', 'RESOURCE_UTIL_REPORT (Resource ID, Actual Utilization Percentage, Overload/Underload Alerts)', 'SCHED_CONFLICT_REPORT (List of detected conflicts with proposed resolutions)'], 'processing_logic': 'The program reads operational task definitions and available resource data. It then applies a scheduling algorithm (e.g., a variant of critical path method or constraint programming) to assign tasks to time slots and resources, considering dependencies and priorities. It iteratively resolves conflicts by adjusting schedules or flagging unresolvable issues. Finally, it generates a detailed daily schedule and reports on resource utilization and any detected conflicts.'}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/legacy/programs/PROC_MGR.CBL', 'file_name': 'PROC_MGR.CBL', 'relevance_score': 0.9, 'summary': 'This COBOL program is responsible for storing, retrieving, and validating standard operating procedures (SOPs) for various business functions, ensuring consistency and compliance.', 'business_analysis': {'business_purpose': "To standardize and enforce operational procedures across the organization, ensuring consistency, compliance with regulations, and reduction of errors. It directly supports the 'Design of operational procedures' by acting as the central repository and validation engine for these procedures.", 'entities': ['Procedure', 'Procedure_Step', 'Role', 'Document_Version'], 'business_rules': ['Each procedure must have a unique identifier and a clear description.', 'Procedure steps must be defined sequentially with clear instructions.', 'Specific roles must be authorized to execute or approve certain procedures.', 'All procedures must be version-controlled, with an audit trail of changes.', 'Procedures must be reviewed and updated periodically.']}, 'functional_analysis': {'key_functions': ['Store new procedure definitions', 'Retrieve procedures by ID or type', 'Validate procedure step sequences and role assignments', 'Generate formatted procedure manuals', 'Manage procedure versions'], 'inputs': ['PROC_DEFINITION_INPUT (Procedure ID, Version, Description, List of Steps, Required Roles, Approval Status)', 'PROC_REQUEST_INPUT (Procedure ID, Version)'], 'outputs': ['PROC_MASTER_FILE (Stored procedure definitions)', 'PROC_MANUAL_PRINT (Formatted document of a requested procedure)', 'PROC_VALIDATION_REPORT (List of valid/invalid procedures with reasons for invalidity)', 'PROC_VERSION_HISTORY (Log of changes to procedures)'], 'processing_logic': 'The program reads new or updated procedure definitions, validates their structure (e.g., sequential steps, valid roles), and stores them in a master file, assigning a version number. Upon request, it retrieves specific procedures, formats them into a printable manual, or performs a validation check against predefined rules. It maintains a history of all procedure versions and changes.'}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/legacy/jcl/MAINT_SCHD.JCL', 'file_name': 'MAINT_SCHD.JCL', 'relevance_score': 0.88, 'summary': 'This JCL script automates the execution of routine system maintenance jobs, including database backups, log purges, and system cleanups, ensuring system health and data integrity.', 'business_analysis': {'business_purpose': "To ensure continuous system health, data integrity, and compliance with data retention policies through automated, scheduled maintenance tasks. This is a critical component of 'Maintenance' and the operational 'Design' for system upkeep.", 'entities': ['Maintenance_Job', 'Schedule_Window', 'System_Resource', 'Dataset'], 'business_rules': ['All critical databases must be backed up daily/weekly.', 'System logs must be purged after a defined retention period (e.g., 90 days).', 'Maintenance jobs must be scheduled during off-peak hours to minimize impact on business operations.', 'Successful completion of backup jobs must be verified.', 'Sufficient disk space must be available for temporary maintenance files.']}, 'functional_analysis': {'key_functions': ['Define and execute job steps for maintenance tasks', 'Specify execution order and dependencies', 'Allocate system resources (datasets, tape drives)', 'Handle job completion status and conditional execution'], 'inputs': ['System parameters (current date, time)', 'Dataset names for backup/purge operations', 'Utility program parameters (e.g., retention periods, backup types)'], 'outputs': ['Job completion status (return codes)', 'Updated datasets (e.g., backed up files, purged logs)', 'Job logs (SYSOUT, SYSPRINT)', 'Backup reports (generated by utility programs)'], 'processing_logic': 'The JCL script defines a series of job steps. Each step invokes a utility program (e.g., IEBGENER for copying, IDCAMS for dataset management, or custom COBOL programs for specific data processing) or another JCL procedure. Steps are executed sequentially, with conditional execution based on the return codes of preceding steps. It allocates necessary disk space, tape drives, and other system resources required for the maintenance operations. It ensures that critical tasks like backups are performed before less critical ones like purges.'}, 'component_type': 'JCL_SCRIPT'}, {'file_path': '/app/legacy/programs/INCIDENT_RPT.CBL', 'file_name': 'INCIDENT_RPT.CBL', 'relevance_score': 0.8, 'summary': 'This COBOL program processes and stores incident reports related to operational failures or system issues, facilitating problem resolution and trend analysis for continuous improvement.', 'business_analysis': {'business_purpose': "To systematically track, manage, and resolve operational incidents, minimizing downtime and improving overall system reliability and the effectiveness of 'operational procedures'. It is a core part of the 'Maintenance' process.", 'entities': ['Incident', 'Reporter', 'Resolution_Team', 'Affected_System', 'Resolution_Step'], 'business_rules': ['All operational incidents must be logged with a unique identifier.', 'Critical incidents require immediate escalation to a designated team.', 'Resolution steps and timelines must be documented for each incident.', 'Incidents must be categorized by type, severity, and affected system.', 'Incident data must be retained for historical analysis and reporting.']}, 'functional_analysis': {'key_functions': ['Receive and validate incident data', 'Assign unique incident IDs', 'Store incident details in a master file', 'Generate incident summary reports', 'Trigger escalation alerts based on severity', 'Update incident status and resolution details'], 'inputs': ['INCIDENT_INPUT_FILE (Reporter ID, Description, Severity, Affected System, Timestamp, Initial Category)', 'INCIDENT_UPDATE_FILE (Incident ID, New Status, Resolution Steps, Resolution Team, Closure Date)'], 'outputs': ['INCIDENT_MASTER_FILE (Comprehensive record of all incidents)', 'DAILY_INCIDENT_SUMMARY_REPORT (Overview of open/closed incidents, trends)', 'ESCALATION_ALERT_MESSAGE (For high-severity incidents, sent to relevant teams)', 'INCIDENT_HISTORY_LOG (Audit trail of changes to incident records)'], 'processing_logic': "The program reads incoming incident records, validates the data for completeness and correctness, and assigns a unique incident ID. It stores the incident details in a master file. Based on the incident's severity, it may trigger an escalation alert. The program also processes updates to existing incidents, recording resolution steps, status changes, and closure information. It generates various reports for operational oversight and trend analysis."}, 'component_type': 'COBOL_PROGRAM'}, {'file_path': '/app/legacy/programs/AUDIT_TRAIL.CBL', 'file_name': 'AUDIT_TRAIL.CBL', 'relevance_score': 0.75, 'summary': 'This COBOL program records and processes audit trails of critical operational activities to ensure compliance, detect unauthorized actions, and verify adherence to established procedures.', 'business_analysis': {'business_purpose': "To provide an immutable and verifiable record of critical operational events, ensuring compliance with regulatory requirements, enhancing security by detecting unauthorized activities, and verifying adherence to 'operational procedures'. It supports 'Operational Design' by ensuring the designed processes are followed and aids 'Maintenance' by identifying deviations.", 'entities': ['Audit_Event', 'User', 'System_Action', 'Timestamp', 'Affected_Object'], 'business_rules': ['All critical system actions (e.g., data modifications, access attempts) must be logged.', 'Audit logs must be tamper-proof and stored securely.', 'Audit data must be retained for a specified period (e.g., 7 years).', 'Unauthorized access attempts or procedural deviations must be flagged and reported.', 'Each audit event must include user, action, timestamp, and affected object.']}, 'functional_analysis': {'key_functions': ['Receive and timestamp audit event data', 'Store audit events in a secure log file', 'Generate compliance and activity reports', 'Flag suspicious activities or procedural deviations', 'Archive old audit logs'], 'inputs': ['AUDIT_EVENT_STREAM (User ID, Action Type, Affected Object ID, Status Code, Source System)', "AUDIT_RULE_SET_FILE (Rules for flagging suspicious activities, e.g., 'multiple failed logins')"], 'outputs': ['AUDIT_LOG_MASTER_FILE (Sequential, immutable record of all audit events)', 'COMPLIANCE_REPORT (Summary of audited actions, adherence to rules)', 'SECURITY_ALERT_MESSAGE (For flagged suspicious activities)', 'ACTIVITY_SUMMARY_REPORT (Overview of user/system actions)'], 'processing_logic': 'The program continuously receives audit event data from various system components. It timestamps each event and appends it to a secure, sequential audit log file. It then processes these events against a predefined set of audit rules to identify and flag any suspicious activities or deviations from expected operational procedures. It generates various reports for compliance, security, and operational analysis, and manages the archiving of older log data.'}, 'component_type': 'COBOL_PROGRAM'}], 'total_found': 5, 'search_method': 'phrase_based_semantic_search'}
+Component Details: {{component_analysis}}
+
+## CONTENT GENERATION APPROACH
+
+Generate documentation that describes the ACTUAL legacy  system based on the component analysis data. Document real  programs, actual business logic, genuine data structures, and existing interfaces found in the code analysis.
+
+## OUTPUT FORMAT
+CRITICAL: Return ONLY a pure JSON object. NO markdown formatting, NO code blocks, NO additional text before or after.
+
+Start your response directly with the opening brace { and end with the closing brace }
+
+{
+  "sdd_section": {
+    "metadata": {
+      "section_number": "8",
+      "section_title": "Operational Design",
+      "generated_date": "2025-11-20",
+      "estimated_pages": 12,
+      "word_count": 4500
+    },
+    "content": {
+      "introduction": {
+        "purpose": "Clear statement of section purpose and scope",
+        "overview": "High-level summary of what this section covers",
+        "organization": "Brief description of section structure"
+      },
+      "main_sections": [
+        {
+          "subsection_number": "8.1",
+          "subsection_title": "Subsection Title",
+          "content": "Detailed technical content covering design specifications, implementation details, and architectural decisions. Include component descriptions, interfaces, data structures, and processing logic.",
+          "components": [
+            {
+              "name": "Component Name",
+              "type": " Program|Database|Interface",
+              "description": "Component purpose and functionality",
+              "source_files": ["FILE1.cbl", "COPY1.cpy"],
+              "key_features": ["Feature 1", "Feature 2"],
+              "interfaces": ["Input interfaces", "Output interfaces"]
+            }
+          ],
+          "technical_details": {
+            "design_patterns": "Design patterns used and rationale",
+            "algorithms": "Key algorithms and processing logic",
+            "data_structures": "Important data structures and formats",
+            "error_handling": "Error handling and exception management"
+          },
+          "requirements_trace": [
+            {
+              "requirement_id": "FR-001",
+              "requirement_title": "Customer Management",
+              "satisfaction": "How this design satisfies the requirement"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "key_decisions": ["Major design decisions made"],
+        "trade_offs": ["Important trade-offs and their justifications"],
+        "future_considerations": ["Considerations for future enhancements"]
+      }
+    },
+    "implementation": {
+      "development_guidance": ["Key implementation notes", "Best practices", "Common pitfalls to avoid"],
+      "testing_approach": "Testing strategy and key test scenarios",
+      "deployment_notes": "Deployment and configuration considerations"
+    },
+    "modernization": {
+      "current_technology": "Legacy technology stack used",
+      "modernization_options": ["Modern technology alternatives", "Migration strategies"],
+      "refactoring_opportunities": ["Areas for improvement", "Code quality enhancements"]
+    }
+  },
+  "markdown_content": "**CRITICAL: Generate COMPLETE markdown with all specific information. DO NOT use placeholders.**\n\nGenerate comprehensive markdown that includes:\n- Section title and number\n- Detailed introduction with actual system context\n- All component details with REAL  program names\n- Technical implementation with specific business logic\n- Actual requirements traceability with real requirement IDs\n- Implementation guidance with specific  standards\n- Modernization considerations with actual legacy constraints\n\nFormat as complete markdown documentation ready for immediate use."
+}
+```
+
+## CONTENT GENERATION GUIDELINES
+
+### CRITICAL DOCUMENTATION REQUIREMENTS:
+1. **Document Real Components**: Use actual  program names, file names, and modules found in analysis
+2. **Specific Technical Details**: Include actual data structures, business logic, and processing flows
+3. **Actual Implementation**: Describe how things ACTUALLY work in the legacy system
+4. **Real File References**: Use specific file names and line numbers where available
+5. **Genuine Architecture**: Document the actual technical architecture, not idealized design
+
+### CONTENT MUST INCLUDE:
+- **Real Program Names**: from component analysis
+- **Actual Business Logic**: Document the specific  operations implemented
+- **Existing Data Flows**: Describe actual data processing and file handling
+- **Legacy Technology**: Document technology as actually implemented
+- **Current Interfaces**: Document actual screen maps, batch jobs, database tables
+
+### CONTENT STRUCTURE:
+- **Introduction**: Brief overview of what this section documents in the ACTUAL system
+- **Actual Components**: Document 3-5 REAL components with specific file names and functionality  
+- **Technical Implementation**: Describe how the legacy system ACTUALLY implements this functionality
+- **Current Architecture**: Document the existing technical approach and design patterns
+- **Legacy Constraints**: Identify actual limitations and technical debt in current implementation
+
+### QUALITY STANDARDS:
+- Base 100% of content on provided component analysis data
+- Use specific program names and file references
+- Describe actual business logic implementation
+- Document current state, not future state
+- Include real technical constraints and dependencies
+
+## PROCESSING INSTRUCTIONS
+
+1. **Analyze Real Components**: Extract actual  programs, files, and modules from component_analysis
+2. **Document Current State**: Describe the existing implementation, not theoretical design
+3. **Use Real File Names**: Reference specific .cbl, .cpy, .jcl, .bms files found in the analysis
+4. **Extract Business Logic**: Document the actual  operations and data processing workflows
+5. **Focus on Legacy Reality**: Document the current technical architecture and implementation patterns
+
+## CRITICAL MANDATES FOR REAL DOCUMENTATION
+- ALWAYS reference specific file names from component_analysis
+- NEVER use generic language like "the system should" or "components include"
+- ALWAYS describe what the legacy system ACTUALLY does
+- USE real  program names and business logic discovered in analysis
+- DOCUMENT existing technical constraints and implementation approaches
+- FOCUS on reverse engineering documentation, not forward design
+
+## JSON RESPONSE REQUIREMENTS
+Return ONLY pure JSON with these CRITICAL requirements:
+
+### **MANDATORY FIELDS:**
+1. **sdd_section**: Complete structured data with real component information
+2. **markdown_content**: FULLY FORMATTED MARKDOWN (no placeholders!)
+
+### **MARKDOWN_CONTENT MUST INCLUDE:**
+- Complete markdown with program names 
+- Specific technical details from component_analysis 
+- Real business logic and data structures
+- Actual file references and implementation details
+- Ready-to-use documentation (no {{placeholders}})
+
+### **EXAMPLE MARKDOWN OUTPUT:**
+```markdown
+# 3 Component Design
+
+## Introduction
+This section documents the actual programs implementing customer management in the Legacy System.
+
+## Customer Management Components
+
+### CREACC.cbl - Account Creation Program
+- **Purpose**: Creates new customer accounts with validation
+- **Inputs**: Customer number, account type, interest rate
+- **Business Logic**: Validates customer exists via INQCUST, generates account numbers
+- **Database**: Updates ACCOUNT and PROCTRAN tables via DB2
+```
+
+Generate COMPLETE documentation with REAL system details now.

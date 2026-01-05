@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:42:44.662176",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/GETCOMPY.cbl",
+    "filename": "GETCOMPY.cbl",
+    "size_bytes": 1071,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/GETCOMPY.cbl",
+    "analysis_type": "functional",
+    "functional_summary": "The GETCOMPY module is a COBOL program designed to set a specific value, 'CICS Bank Sample Application', to the COMPANY-NAME field within the DFHCOMMAREA structure and then return control to the CICS environment.",
+    "api_like_spec": {
+      "function_name": "GETCOMPY",
+      "inputs": [
+        "DFHCOMMAREA"
+      ],
+      "outputs": [
+        "COMPANY-NAME"
+      ],
+      "return_values": [
+        "CICS RETURN"
+      ]
+    },
+    "data_flow": [
+      "Step 1: DFHCOMMAREA is passed as input to the PROCEDURE DIVISION.",
+      "Step 2: The string 'CICS Bank Sample Application' is moved to COMPANY-NAME.",
+      "Step 3: Control is returned to CICS with the EXEC CICS RETURN statement."
+    ],
+    "state_changes": [
+      "COMPANY-NAME within DFHCOMMAREA is updated with a new value."
+    ],
+    "side_effects": [
+      "CICS RETURN statement is executed, returning control to the CICS environment."
+    ],
+    "dependencies": [
+      "CICS environment for execution",
+      "COPY GETCOMPY for DFHCOMMAREA structure"
+    ],
+    "interface_points": [
+      "CICS system interface for program execution and return"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Minimal processing as the program only sets a single value and returns."
+    ],
+    "error_handling": null,
+    "modernization_notes": [
+      "Consider refactoring to use modern API frameworks if integrating with newer systems.",
+      "Evaluate the necessity of using CICS for this simple operation."
+    ],
+    "confidence": 0.9,
+    "complexity_score": 2,
+    "analysis_notes": "The program is straightforward with limited functionality, primarily setting a value and returning control to CICS. There are no complex algorithms or error handling mechanisms present.",
+    "source_file": "src/base/cobol_src/GETCOMPY.cbl",
+    "file_name": "GETCOMPY.cbl",
+    "file_size": 1071,
+    "analysis_timestamp": "2025-11-24T23:42:44.662113",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETCOMPY.cbl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/GETCOMPY.cbl.functional.json"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:34:37.493303",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/CRETS01.jcl",
+    "filename": "CRETS01.jcl",
+    "size_bytes": 577,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/CRETS01.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "The JCL script is designed to execute a DB2 program that creates a tablespace in a DB2 database. It sets up the environment for running a DB2 utility program (DSNTEP2) under a specific plan (DSNTEP12) and uses a specified library for execution.",
+    "api_like_spec": {
+      "function_name": "GRANT EXEC PGM=IKJEFT01",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT"
+      ],
+      "return_values": [
+        "Job completion codes",
+        "Error messages in SYSOUT"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize job with JOB card",
+      "Step 2: Execute DB2 program with specified parameters",
+      "Step 3: Create tablespace in DB2 database"
+    ],
+    "state_changes": [
+      "Creation of a new tablespace in the DB2 database"
+    ],
+    "side_effects": [
+      "Database transaction to create tablespace"
+    ],
+    "dependencies": [
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library",
+      "DB2 subsystem DBCG"
+    ],
+    "interface_points": [
+      "DB2 database interface"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Dependent on DB2 subsystem performance",
+      "Resource usage based on REGION=4M setting"
+    ],
+    "error_handling": [
+      "Error messages directed to SYSOUT",
+      "Job completion codes indicate success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern DB2 utilities",
+      "Evaluate potential for API-based database interactions"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The JCL script is straightforward, primarily setting up and executing a DB2 utility program to create a tablespace. The complexity is low due to the limited scope of operations.",
+    "source_file": "etc/install/base/db2jcl/CRETS01.jcl",
+    "file_name": "CRETS01.jcl",
+    "file_size": 577,
+    "analysis_timestamp": "2025-11-24T23:34:37.493233",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CRETS01.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CRETS01.jcl.functional.json"
+  }
+}

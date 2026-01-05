@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:32:59.775419",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.9333333333333333
+  },
+  "file_info": {
+    "relative_path": "etc/install/base/db2jcl/CRESG01.jcl",
+    "filename": "CRESG01.jcl",
+    "size_bytes": 587,
+    "extension": ".jcl"
+  },
+  "analysis": {
+    "file_path": "etc/install/base/db2jcl/CRESG01.jcl",
+    "analysis_type": "functional",
+    "functional_summary": "This JCL script is designed to execute a DB2 program using the DSNTEP2 utility, which is a sample dynamic SQL program. It sets the current SQLID, creates a storage group in DB2, and specifies the volumes and VCAT for the storage group.",
+    "api_like_spec": {
+      "function_name": "GRANT",
+      "inputs": [
+        "SYSTEM(DBCG)",
+        "PROGRAM(DSNTEP2)",
+        "PLAN(DSNTEP12)",
+        "LIB('DSNC10.DBCG.RUNLIB.LOAD')",
+        "PARMS('/ALIGN(MID)')"
+      ],
+      "outputs": [
+        "SYSOUT from SYSTSPRT",
+        "SYSOUT from SYSPRINT",
+        "SYSOUT from SYSUDUMP"
+      ],
+      "return_values": [
+        "Job completion code",
+        "Error messages in SYSOUT"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize job with JOB card",
+      "Step 2: Execute DSNTEP2 program with specified plan and library",
+      "Step 3: Create storage group in DB2"
+    ],
+    "state_changes": [
+      "Creation of a new storage group in the DB2 database"
+    ],
+    "side_effects": [
+      "Execution of SQL commands in DB2",
+      "Output to system output streams"
+    ],
+    "dependencies": [
+      "DSNC10.SDSNLOAD library",
+      "DSNC10.DBCG.RUNLIB.LOAD library",
+      "DB2 subsystem DBCG"
+    ],
+    "interface_points": [
+      "DB2 database interface via DSN command",
+      "JCL job submission interface"
+    ],
+    "algorithms": null,
+    "performance_characteristics": [
+      "Limited by the performance of the DB2 subsystem and the execution of SQL commands"
+    ],
+    "error_handling": [
+      "Errors are logged to SYSOUT streams",
+      "Job completion codes indicate success or failure"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to use modern DB2 utilities or APIs",
+      "Evaluate the use of a more modern job scheduling system"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The JCL script is straightforward, primarily executing a DB2 utility program and creating a storage group. It relies on standard JCL and DB2 practices.",
+    "source_file": "etc/install/base/db2jcl/CRESG01.jcl",
+    "file_name": "CRESG01.jcl",
+    "file_size": 587,
+    "analysis_timestamp": "2025-11-24T23:32:59.775359",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.9333333333333333,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.9333333333333333
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CRESG01.jcl.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/CRESG01.jcl.functional.json"
+  }
+}

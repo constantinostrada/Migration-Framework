@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-24T23:35:36.295719",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer",
+    "quality_score": 0.8666666666666667
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_copy/INQACCCZ.cpy",
+    "filename": "INQACCCZ.cpy",
+    "size_bytes": 2037,
+    "extension": ".cpy"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_copy/INQACCCZ.cpy",
+    "analysis_type": "functional",
+    "functional_summary": "This module defines a data structure for handling customer account information, including the number of accounts, customer number, communication status, and detailed account information such as account number, type, interest rate, and balance details.",
+    "api_like_spec": {
+      "function_name": null,
+      "inputs": [
+        "NUMBER-OF-ACCOUNTS",
+        "CUSTOMER-NUMBER"
+      ],
+      "outputs": [
+        "ACCOUNT-DETAILS"
+      ],
+      "return_values": [
+        "COMM-SUCCESS",
+        "COMM-FAIL-CODE"
+      ]
+    },
+    "data_flow": [
+      "Step 1: Initialize NUMBER-OF-ACCOUNTS and CUSTOMER-NUMBER",
+      "Step 2: Populate ACCOUNT-DETAILS based on NUMBER-OF-ACCOUNTS",
+      "Step 3: Output COMM-SUCCESS or COMM-FAIL-CODE based on operation result"
+    ],
+    "state_changes": [
+      "Variable state changes for NUMBER-OF-ACCOUNTS and ACCOUNT-DETAILS"
+    ],
+    "side_effects": null,
+    "dependencies": null,
+    "interface_points": null,
+    "algorithms": null,
+    "performance_characteristics": null,
+    "error_handling": [
+      "COMM-FAIL-CODE indicates error states"
+    ],
+    "modernization_notes": [
+      "Consider refactoring to a modern data structure",
+      "Potential API conversion to RESTful service for account information retrieval"
+    ],
+    "confidence": 0.9,
+    "complexity_score": 3,
+    "analysis_notes": "The module primarily defines a data structure without explicit logic or processing algorithms. It is likely used as a data interface or schema for account information.",
+    "source_file": "src/base/cobol_copy/INQACCCZ.cpy",
+    "file_name": "INQACCCZ.cpy",
+    "file_size": 2037,
+    "analysis_timestamp": "2025-11-24T23:35:36.295652",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p02_functional_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 0.8666666666666667,
+    "has_parsing_error": false,
+    "confidence_level": 0.9,
+    "metadata_complete": true,
+    "content_completeness": 0.8666666666666667
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACCCZ.cpy.functional.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p02_functional_analyzer/INQACCCZ.cpy.functional.json"
+  }
+}

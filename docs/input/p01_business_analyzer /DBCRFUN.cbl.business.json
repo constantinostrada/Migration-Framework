@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "analysis_timestamp": "2025-11-20T00:38:58.618442",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer",
+    "quality_score": 1.0
+  },
+  "file_info": {
+    "relative_path": "src/base/cobol_src/DBCRFUN.cbl",
+    "filename": "DBCRFUN.cbl",
+    "size_bytes": 28015,
+    "extension": ".cbl"
+  },
+  "analysis": {
+    "file_path": "src/base/cobol_src/DBCRFUN.cbl",
+    "analysis_type": "business",
+    "business_summary": "This program handles cash transactions over the counter for bank accounts, updating account balances and recording processed transactions. It ensures that transactions are valid and updates the account and transaction records accordingly.",
+    "business_entities": [
+      "Account",
+      "Processed Transaction",
+      "Customer"
+    ],
+    "business_rules": [
+      "If the account does not exist, set SUCCESS flag to 'N' and return a fail code.",
+      "For debit transactions, ensure sufficient funds are available unless it is a credit.",
+      "Transactions from MORTGAGE or LOAN accounts via PAYMENT link are not allowed and result in a fail code."
+    ],
+    "business_dependencies": [
+      "DB2 datastore for account and transaction records",
+      "CICS for transaction processing"
+    ],
+    "business_workflows": [
+      "Retrieve account information from DB2.",
+      "Validate transaction type and account type.",
+      "Update account balances and record transaction.",
+      "Handle errors and rollback if necessary."
+    ],
+    "data_transformations": [
+      "Compute new available and actual balances by adding transaction amount.",
+      "Format and store transaction date and time."
+    ],
+    "error_handling": [
+      "Set SUCCESS flag to 'N' and return fail codes for various error conditions.",
+      "Rollback transactions in case of errors during updates.",
+      "Handle specific SQLCODEs for connection loss and deadlocks."
+    ],
+    "compliance_requirements": null,
+    "business_criticality": "high",
+    "business_complexity": "high",
+    "modernization_impact": "high",
+    "confidence": 0.85,
+    "analysis_notes": "The program is critical for handling real-time cash transactions and maintaining data integrity between account and transaction records. It involves complex business rules and error handling mechanisms.",
+    "extracted_constants": {
+      "business_constants": [
+        "COMM-FACILTYPE(496 = NONE)"
+      ],
+      "validation_rules": [
+        "COMM-AMT < 0 indicates a debit transaction.",
+        "HV-ACCOUNT-ACC-TYPE must not be 'MORTGAGE' or 'LOAN' for certain transactions."
+      ]
+    },
+    "source_file": "src/base/cobol_src/DBCRFUN.cbl",
+    "file_name": "DBCRFUN.cbl",
+    "file_size": 28015,
+    "analysis_timestamp": "2025-11-20T00:38:58.618379",
+    "model_used": "openai/gpt-4o",
+    "framework_version": "1.0.0-openrouter",
+    "program_id": "p01_business_analyzer"
+  },
+  "quality_metrics": {
+    "quality_score": 1.0,
+    "has_parsing_error": false,
+    "confidence_level": 0.85,
+    "metadata_complete": true,
+    "content_completeness": 1.0
+  },
+  "output_files": {
+    "markdown": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/DBCRFUN.cbl.business.md",
+    "json": "/Users/matiasnegri/Projects/taller/Agentic_framework/framework_openrouter/tmp/output_documentation/p01_business_analyzer/DBCRFUN.cbl.business.json"
+  }
+}
