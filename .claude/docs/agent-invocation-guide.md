@@ -1,8 +1,21 @@
-# Agent Invocation Guide
+# Agent Invocation Guide v4.4 (Hybrid Execution)
 
 **📖 Documentation Navigation:**
 - **← Previous**: [migration-phases.md](./migration-phases.md) - Complete phase-by-phase workflow
 - **→ Agent Files**: [../agents/](../agents/) - Individual agent instruction files
+
+---
+
+## 🆕 v4.4 HYBRID INVOCATION PATTERN
+
+**Key Change in v4.4**: Implementation agents are invoked TWICE per layer:
+
+| Invocation | Phase | Purpose |
+|------------|-------|---------|
+| **1st** | PHASE A | Agent selects tasks, saves queue. **NO IMPLEMENTATION** |
+| **2nd+** | PHASE B | Agent implements ONE task at a time. **REPEAT** for each task |
+
+**Why**: Prevents agent context overload with 50-200+ tasks.
 
 ---
 
@@ -25,11 +38,6 @@ The framework uses **11 specialized agents**. **10 are registered as dedicated s
 **1 agent** is NOT a subagent:
 - `smoke-test-agent` - orchestrator executes directly (Python/Bash scripts)
 
-**Why `/agents` command shows these agents:**
-- `/agents` shows registered `subagent_type` values (agents with proper frontmatter)
-- 10 agents have `name:` frontmatter and are registered as dedicated subagents
-- 1 agent is not a subagent (smoke-test-agent - direct execution)
-
 **Complete Invocation Matrix:**
 
 | Agent | File | Invocation Method |
@@ -49,90 +57,315 @@ The framework uses **11 specialized agents**. **10 are registered as dedicated s
 **✅ = Registered as dedicated subagent (has frontmatter)**
 **⚠️ = Not a subagent (orchestrator executes directly via Python/Bash)**
 
-**Standard Invocation Pattern (v4.3 - All Registered Agents):**
+---
+
+## 🔄 v4.4 HYBRID INVOCATION PATTERNS
+
+### Implementation Agents (domain, use-case, infrastructure)
+
+**PHASE A: Task Selection**
 
 ```python
-# For ALL REGISTERED agents (10 agents with dedicated subagent_type)
-# Use agent-specific subagent_type
+# Invoke agent for task selection ONLY
 Task(
-    description="{Agent-name} task",
+    description="{Agent} - Phase A: Task Selection",
     prompt="""
-    [Context and mission specific to this invocation]
+    You are the {agent-name}. Read .claude/agents/{agent-name}.md for instructions.
 
-    You are the {agent-name}. Your instruction file contains your complete workflow.
+    **PHASE A: TASK SELECTION**
 
-    For implementation agents (domain, use-case, infrastructure):
-    - Read ALL tasks from docs/state/tasks.json
-    - Identify YOUR tasks based on your role and keywords
-    - Claim ownership autonomously
-    - Implement with TDD (test-first approach)
-    - Update progress tracking
+    YOUR MISSION:
+    1. Read ALL tasks from docs/state/tasks.json
+    2. Identify YOUR tasks (layer = "{layer}", owner = null)
+    3. Save queue to: docs/state/agent-queues/{queue-file}.json
+    4. Update tasks.json (set owner = "{agent-name}", status = "queued")
+    5. Return list of task IDs in your queue
 
-    For analysis/validation agents (sdd-analyzer, tech-stack-validator, qa-test-generator):
-    - Follow your specific workflow in instruction file
-    - Generate required output files
-    - Validate completeness
+    **DO NOT IMPLEMENT ANYTHING.**
+    **ONLY select tasks and save queue.**
     """,
-    subagent_type="{agent-name}",  # Use the registered agent name
+    subagent_type="{agent-name}",
     model="sonnet"
 )
 ```
 
-**Example Invocations:**
+**PHASE B: Single Task Execution (repeat for each task)**
 
 ```python
-# 1. Invoking domain-agent
-Task(
-    description="Domain layer implementation",
-    prompt="""
-    Module: Customer
-    Phase: Domain Layer (PHASE 2)
+# Read queue file
+Read: docs/state/agent-queues/{queue-file}.json
+tasks = queue["queue"]
 
-    Implement the domain layer for the Customer module. Read tasks from docs/state/tasks.json,
-    identify your tasks (domain layer), and implement following TDD principles.
+# Execute each task one-by-one
+for task in tasks:
+    Task(
+        description=f"{Agent} - Execute {task['task_id']}",
+        prompt=f"""
+        You are the {agent-name}. Read .claude/agents/{agent-name}.md for instructions.
+
+        **PHASE B: SINGLE TASK EXECUTION**
+
+        Implement THIS task: {task['task_id']} - {task['title']}
+
+        YOUR MISSION:
+        1. Read test files for this task (from tasks.json → test_files)
+        2. Understand what tests expect
+        3. Implement code to make tests GREEN
+        4. Run tests until ALL pass
+        5. Update tasks.json (status = "completed")
+        6. Update queue file (task status = "completed")
+
+        **CRITICAL**:
+        - Tests already exist (qa-test-generator wrote them)
+        - You write CODE, not tests
+        - Make tests GREEN
+        """,
+        subagent_type="{agent-name}",
+        model="sonnet"
+    )
+```
+
+---
+
+### Example: Domain Agent Hybrid Invocation
+
+**PHASE A:**
+
+```python
+Task(
+    description="Domain agent - Phase A: Task Selection",
+    prompt="""
+    You are the domain-agent. Read .claude/agents/domain-agent.md for instructions.
+
+    **PHASE A: TASK SELECTION**
+
+    YOUR MISSION:
+    1. Read ALL tasks from docs/state/tasks.json
+    2. Identify YOUR tasks (layer = "domain", owner = null)
+    3. Save queue to: docs/state/agent-queues/domain-queue.json
+    4. Update tasks.json (set owner = "domain-agent", status = "queued")
+
+    **DO NOT IMPLEMENT ANYTHING.**
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
+```
 
-# 2. Invoking tech-stack-validator
+**PHASE B (for each task):**
+
+```python
 Task(
-    description="Validate tech stack compatibility",
+    description="Domain agent - Execute TASK-CUST-DOM-001",
     prompt="""
-    Module: Customer
-    Phase: Tech Stack Validation (PHASE 0.5)
+    You are the domain-agent. Read .claude/agents/domain-agent.md for instructions.
 
-    Validate compatibility between Radix UI and Playwright for E2E testing.
-    Research GitHub issues and official documentation.
+    **PHASE B: SINGLE TASK EXECUTION**
+
+    Implement THIS task: TASK-CUST-DOM-001 - Implement Customer Entity
+
+    YOUR MISSION:
+    1. Read test files: tests/unit/domain/entities/test_customer.py
+    2. Understand what tests expect
+    3. Implement domain code to make tests GREEN
+    4. Run: pytest tests/unit/domain/entities/test_customer.py -v
+    5. Update tasks.json (status = "completed")
+    6. Update queue file
+
+    **CRITICAL**:
+    - Tests already exist
+    - NO framework dependencies (pure Python only)
     """,
-    subagent_type="tech-stack-validator",
-    model="sonnet"
-)
-
-# 3. Invoking ui-approval-agent
-Task(
-    description="Generate UI mockup for approval",
-    prompt="""
-    Module: Customer
-    Phase: UI Approval (PHASE 2.5)
-
-    Generate HTML mockup from shadcn-ui-agent design document.
-    Output: docs/ui-mockups/customer-mockup.html
-    """,
-    subagent_type="ui-approval-agent",
+    subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Key Points (v4.3 Updates):**
-- ✅ **10 agents are registered** as dedicated subagents (have frontmatter)
-- ✅ **Always use agent-specific `subagent_type`** (NEVER use "Explore" for registered agents)
-- ✅ Implementation agents auto-assign tasks (no orchestrator guidance)
-- ✅ Agents update dual tracking (tasks.json + progress.json)
-- ✅ Fully autonomous workflow (no FDD approval)
-- ✅ Only 1 agent is not a subagent (smoke-test-agent - direct execution)
-- ⚠️ `smoke-test-agent` is executed by Orchestrator (Python script, not Task invocation)
+---
+
+### Example: Infrastructure Agent (Backend + Frontend)
+
+Infrastructure agent is invoked **4 times** per module:
+
+1. **PHASE A (Backend)**: Select infrastructure_backend tasks
+2. **PHASE B (Backend)**: Execute backend tasks one-by-one
+3. **PHASE A (Frontend)**: Select infrastructure_frontend tasks
+4. **PHASE B (Frontend)**: Execute frontend tasks one-by-one
+
+**Backend PHASE A:**
+
+```python
+Task(
+    description="Infrastructure agent (backend) - Phase A",
+    prompt="""
+    You are the infrastructure-agent. Read .claude/agents/infrastructure-agent.md.
+
+    **PHASE A: TASK SELECTION (Backend)**
+
+    YOUR MISSION:
+    1. Identify tasks with layer = "infrastructure_backend"
+    2. Save queue to: docs/state/agent-queues/infrastructure-backend-queue.json
+
+    **DO NOT IMPLEMENT.**
+    """,
+    subagent_type="infrastructure-agent",
+    model="sonnet"
+)
+```
+
+**Frontend PHASE A:**
+
+```python
+Task(
+    description="Infrastructure agent (frontend) - Phase A",
+    prompt="""
+    You are the infrastructure-agent. Read .claude/agents/infrastructure-agent.md.
+
+    **PHASE A: TASK SELECTION (Frontend)**
+
+    YOUR MISSION:
+    1. Verify UI mockup is approved
+    2. Identify tasks with layer = "infrastructure_frontend"
+    3. Save queue to: docs/state/agent-queues/infrastructure-frontend-queue.json
+
+    **DO NOT IMPLEMENT.**
+    """,
+    subagent_type="infrastructure-agent",
+    model="sonnet"
+)
+```
 
 ---
 
-**Ready to migrate legacy systems with Clean Architecture!** 🚀
+### Non-Implementation Agents (Single Invocation)
+
+These agents don't use hybrid pattern - single invocation:
+
+**qa-test-generator (v4.4 - writes REAL tests):**
+
+```python
+Task(
+    description="Generate REAL test files for TDD",
+    prompt="""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md.
+
+    **v4.4 MISSION**: Write REAL pytest files (.py), not just specs.
+
+    OUTPUT:
+    - tests/unit/domain/**/*.py
+    - tests/unit/application/**/*.py
+    - tests/integration/**/*.py
+    - Update tasks.json with test_files array
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+```
+
+**sdd-analyzer:**
+
+```python
+Task(
+    description="Analyze SDD",
+    prompt="""
+    Read .claude/agents/sdd-analyzer.md for instructions.
+
+    Analyze SDD and generate:
+    - docs/analysis/module-map.json
+    - docs/analysis/requirements.json
+    - docs/analysis/business-rules.json
+    """,
+    subagent_type="sdd-analyzer",
+    model="sonnet"
+)
+```
+
+**tech-stack-validator:**
+
+```python
+Task(
+    description="Validate tech stack compatibility",
+    prompt="""
+    Read .claude/agents/tech-stack-validator.md for instructions.
+
+    Validate compatibility:
+    - Radix UI + Playwright
+    - FastAPI + SQLAlchemy
+
+    Output: docs/tech-stack/compatibility-report.json
+    """,
+    subagent_type="tech-stack-validator",
+    model="sonnet"
+)
+```
+
+**e2e-qa-agent:**
+
+```python
+Task(
+    description="Execute E2E tests",
+    prompt="""
+    Read .claude/agents/e2e-qa-agent.md for instructions.
+
+    Execute E2E tests using Playwright MCP.
+    Write report: docs/qa/e2e-report-{module}-iter-{n}.json
+    """,
+    subagent_type="e2e-qa-agent",
+    model="sonnet"
+)
+```
+
+---
+
+## 📊 v4.4 QUEUE FILE STRUCTURE
+
+Each implementation agent creates a queue file during PHASE A:
+
+```json
+{
+  "agent": "domain-agent",
+  "created_at": "2026-01-06T10:00:00Z",
+  "total_tasks": 15,
+  "completed": 0,
+  "queue": [
+    {
+      "position": 1,
+      "task_id": "TASK-CUST-DOM-001",
+      "title": "Implement Customer Entity",
+      "module": "Customer",
+      "status": "pending",
+      "test_files": ["tests/unit/domain/entities/test_customer.py"]
+    },
+    {
+      "position": 2,
+      "task_id": "TASK-CUST-DOM-002",
+      "title": "Implement Email Value Object",
+      "module": "Customer",
+      "status": "pending",
+      "test_files": ["tests/unit/domain/value_objects/test_email.py"]
+    }
+  ]
+}
+```
+
+**Queue Files Location**: `docs/state/agent-queues/`
+- `domain-queue.json`
+- `application-queue.json`
+- `infrastructure-backend-queue.json`
+- `infrastructure-frontend-queue.json`
+
+---
+
+## 🔑 KEY POINTS (v4.4)
+
+1. **Hybrid execution is MANDATORY** for implementation agents (domain, use-case, infrastructure)
+2. **PHASE A**: Agent selects tasks, saves queue. **NO IMPLEMENTATION**
+3. **PHASE B**: Orchestrator sends ONE task at a time. Agent implements and returns
+4. **Queue files track progress** - essential for session recovery
+5. **qa-test-generator writes REAL tests** - .py files, not just specs
+6. **Implementation agents don't write tests** - they make existing tests GREEN
+7. **smoke-test-agent** is executed directly by Orchestrator (not a Task invocation)
+
+---
+
+**Ready to migrate legacy systems with v4.4 Hybrid Execution!** 🚀
