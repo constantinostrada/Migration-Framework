@@ -1,3 +1,9 @@
+---
+name: ui-approval-agent
+description: Generates HTML mockups for user approval before frontend implementation
+color: magenta
+---
+
 # UI/UX Approval Agent
 
 **Version:** 4.3

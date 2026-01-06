@@ -277,41 +277,60 @@ print("Phase 1 complete. Should I continue to Phase 2? (yes/no) ❌")
 
 | Agent | Type | Responsibility | Invocation | Version |
 |-------|------|----------------|------------|---------|
-| 🔵 **sdd-analyzer** | Analysis | Analyzes SDD → module-map.json + requirements.json | `subagent_type="Explore"` | v4.2 |
-| 🔍 **tech-stack-validator** | Validation | Validates library compatibility before implementation | `subagent_type="Explore"` | **v4.3** |
-| 🧪 **qa-test-generator** | TDD | Enriches tasks with test specifications | `subagent_type="Explore"` | v4.2 |
-| 🟦 **domain-agent** | Implementation | Domain entities, value objects (pure logic) | `subagent_type="Explore"` | v4.2 |
-| 🟩 **use-case-agent** | Implementation | Use cases, DTOs, repository interfaces | `subagent_type="Explore"` | v4.2 |
-| 🟨 **infrastructure-agent** | Implementation | ORM, API endpoints, frontend (ALL UI) | `subagent_type="Explore"` | v4.2 |
+| 🔵 **sdd-analyzer** | Analysis | Analyzes SDD → module-map.json + requirements.json | `subagent_type="sdd-analyzer"` | v4.2 |
+| 🔍 **tech-stack-validator** | Validation | Validates library compatibility before implementation | `subagent_type="tech-stack-validator"` | **v4.3** |
+| 🧪 **qa-test-generator** | TDD | Enriches tasks with test specifications | `subagent_type="qa-test-generator"` | v4.2 |
+| 🟦 **domain-agent** | Implementation | Domain entities, value objects (pure logic) | `subagent_type="domain-agent"` | v4.2 |
+| 🟩 **use-case-agent** | Implementation | Use cases, DTOs, repository interfaces | `subagent_type="use-case-agent"` | v4.2 |
+| 🟨 **infrastructure-agent** | Implementation | ORM, API endpoints, frontend (ALL UI) | `subagent_type="infrastructure-agent"` | v4.2 |
 | 🔷 **context7-agent** | Tech Research | Researches official docs via Context7 MCP (no code) | `subagent_type="context7-agent"` | v4.2 |
-| 🎨 **shadcn-ui-agent** | UI Design | Researches shadcn/ui, designs UI (no code) | `subagent_type="Explore"` | v4.2 |
-| ✅ **ui-approval-agent** | Approval | Generates HTML mockups for user approval | `subagent_type="Explore"` | **v4.3** |
-| 🚀 **smoke-test-agent** | Testing | Fast API tests with real payloads (30 seconds) | **Orchestrator executes directly** | **v4.3** |
+| 🎨 **shadcn-ui-agent** | UI Design | Researches shadcn/ui, designs UI (no code) | `subagent_type="shadcn-ui-agent"` | v4.2 |
+| ✅ **ui-approval-agent** | Approval | Generates HTML mockups for user approval | `subagent_type="ui-approval-agent"` | **v4.3** |
+| 🚀 **smoke-test-agent** | Testing | Fast API tests with real payloads (30 seconds) | **Orchestrator executes directly** ⚠️ | **v4.3** |
 | 🟢 **e2e-qa-agent** | Testing | Executes E2E tests (max 3 iterations), reports failures | `subagent_type="e2e-qa-agent"` | v4.2 |
+
+**⚠️ = Not a subagent (orchestrator executes directly via Python/Bash)**
 
 **How to Invoke Agents:**
 
-Most agents use `subagent_type="Explore"` and read their instructions from `.claude/agents/{agent-name}.md`:
+**All 10 agents** are registered as dedicated subagents and should be invoked with their specific `subagent_type`:
 
 ```python
-# Standard pattern for most agents
+# Standard pattern for ALL agents (10 registered agents)
 Task(
     description="Short description",
     prompt="""
-    Read .claude/agents/{agent-name}.md for complete instructions.
-
     [Context and mission specific to this invocation]
+
+    You are the {agent-name}. Follow your instruction file workflow.
     """,
-    subagent_type="Explore",  # Most agents use Explore
+    subagent_type="{agent-name}",  # Use agent's registered name
     model="sonnet"
 )
 ```
 
-**Special Cases:**
+**Examples:**
+```python
+# Invoke domain-agent
+Task(
+    description="Domain layer implementation",
+    prompt="Module: Customer. Implement domain layer following TDD principles.",
+    subagent_type="domain-agent",
+    model="sonnet"
+)
 
-1. **context7-agent**: Uses dedicated `subagent_type="context7-agent"` (has Context7 MCP access)
-2. **e2e-qa-agent**: Uses dedicated `subagent_type="e2e-qa-agent"` (has Playwright MCP access)
-3. **smoke-test-agent**: Orchestrator executes directly via Python script or Bash commands (no Task invocation needed)
+# Invoke tech-stack-validator
+Task(
+    description="Validate tech stack compatibility",
+    prompt="Validate Radix UI + Playwright compatibility for Customer module.",
+    subagent_type="tech-stack-validator",
+    model="sonnet"
+)
+```
+
+**Special Case:**
+
+**smoke-test-agent**: Not a subagent. Orchestrator executes smoke tests directly via Python script or Bash commands (no Task invocation needed)
 
 ### **Clean Architecture Layers**
 
@@ -571,9 +590,18 @@ This document contains:
 
 | Agent | Invocation |
 |-------|-----------|
-| Most agents (9/11) | `Task(..., subagent_type="Explore")` + read instruction file |
-| context7-agent | `Task(..., subagent_type="context7-agent")` |
-| e2e-qa-agent | `Task(..., subagent_type="e2e-qa-agent")` |
+| **Registered subagents (10)** | `Task(..., subagent_type="{agent-name}")` |
+| sdd-analyzer | `subagent_type="sdd-analyzer"` |
+| tech-stack-validator | `subagent_type="tech-stack-validator"` |
+| qa-test-generator | `subagent_type="qa-test-generator"` |
+| domain-agent | `subagent_type="domain-agent"` |
+| use-case-agent | `subagent_type="use-case-agent"` |
+| infrastructure-agent | `subagent_type="infrastructure-agent"` |
+| context7-agent | `subagent_type="context7-agent"` |
+| shadcn-ui-agent | `subagent_type="shadcn-ui-agent"` |
+| ui-approval-agent | `subagent_type="ui-approval-agent"` |
+| e2e-qa-agent | `subagent_type="e2e-qa-agent"` |
+| **Not a subagent (1)** | Direct execution |
 | smoke-test-agent | **Orchestrator executes directly** (Python/Bash) |
 
 ---

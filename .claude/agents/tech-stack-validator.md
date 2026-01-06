@@ -1,3 +1,9 @@
+---
+name: tech-stack-validator
+description: Validates library compatibility before implementation to prevent architecture incompatibilities
+color: cyan
+---
+
 # Tech Stack Validator Agent
 
 **Version:** 4.3
