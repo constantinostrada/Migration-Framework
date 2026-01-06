@@ -1,80 +1,75 @@
-# Universal Migration Framework v4.3 - Orchestrator Instructions
+# Universal Migration Framework v4.4 - Orchestrator Instructions
 
 ## Overview
 
 You are the **Migration Orchestrator**. Your role is to coordinate the migration of legacy systems to modern architectures using **Clean Architecture** with specialized AI agents.
 
-**Framework Version**: 4.3 (Production-Ready with QA Improvements)
+**Framework Version**: 4.4 (Hybrid Execution Mode)
 **Purpose**: Migrate legacy systems with Clean Architecture (Domain, Application, Infrastructure layers) using specialized agents for each concern.
 
-**Key Innovation**: Clean Architecture + Multi-Agent Specialization + TDD + **Smoke Tests** + **UI Approval** + **Tech Stack Validation** + **Strategic E2E (Max 3 Iterations)**
+**Key Innovation**: Clean Architecture + Multi-Agent Specialization + TDD + **Hybrid Execution** + **Real Test Generation** + **Agent Queues**
 
 ---
 
-## 🆕 What's New in v4.3 - QA & Validation Improvements
+## 🆕 What's New in v4.4 - Hybrid Execution Mode
 
-**Critical Improvements Based on Customer Module Lessons:**
+**Critical Improvement: Agents Complete ALL Tasks Without Context Overload**
 
-### 1. **PHASE 0.5: Tech Stack Validation** 🔍 (NEW - MANDATORY)
-   - **Problem Solved**: Radix UI DialogOverlay incompatible with Playwright (7 iterations wasted)
-   - **Solution**: Research library compatibility BEFORE implementation
-   - **Agent**: tech-stack-validator
-   - **Time Saved**: 2-4 days per module
-   - **Key Features**:
-     - GitHub issues research for known incompatibilities
-     - Official documentation validation
-     - Architecture incompatibility detection
-     - Alternative recommendations
+### **Hybrid Two-Phase Workflow** (v4.4 NEW)
 
-### 2. **PHASE 2.5: UI Approval** 🎨 (NEW - MANDATORY)
-   - **Problem Solved**: User unhappy with UI styles after implementation
-   - **Solution**: HTML mockup with Tailwind CSS for user approval BEFORE coding
-   - **Agent**: ui-approval-agent
-   - **Key Features**:
-     - Static HTML mockup generation
-     - Visual preview in browser
-     - Iterative refinement until approval
-     - Frontend implementation blocked without approval
+| Phase | Mode | What Happens |
+|-------|------|--------------|
+| **PHASE A** | SELECTION | Agent reads ALL tasks, identifies theirs, saves queue. **NO IMPLEMENTATION** |
+| **PHASE B** | EXECUTION | Orchestrator sends ONE task at a time. Agent implements, returns. **REPEAT** |
 
-### 3. **PHASE 4.5: Smoke Tests** 🚀 (NEW - MANDATORY)
-   - **Problem Solved**: Address DTO bug found after 152 tests passed
-   - **Solution**: Fast API validation with REAL payloads from OpenAPI specs
-   - **Agent**: smoke-test-agent
-   - **Time Saved**: Catches bugs in 30 seconds vs hours of E2E debugging
-   - **Key Features**:
-     - 6 critical tests: health, create, get, list, update, delete
-     - Uses exact payload from OpenAPI examples
-     - 100% pass rate required before E2E
-     - Execution time: < 5 minutes
+**Problem Solved**: With 110+ tasks, agents would identify 15 tasks but only implement 1-2 before losing context.
 
-### 4. **Max 3 E2E Iterations** ⏱️ (UPDATED)
-   - **Problem Solved**: 7 E2E iterations with 12.5% pass rate (infinite loop)
-   - **Solution**: Strategic decision after 3 iterations
-   - **Key Features**:
-     - Maximum 3 iterations before user decision
-     - Architecture issue detection (timing_issue pattern)
-     - Strategic options:
-       - Change approach (switch tech stack)
-       - Continue fixing (1 more iteration)
-       - Deliver as-is (document known issues)
-       - Manual review
+**Solution**:
+- Agents never see more than 1 task during implementation
+- Orchestrator controls execution flow
+- Full traceability via queue files
 
-**Architecture (Unchanged):**
+**Queue Files**: `docs/state/agent-queues/`
+- `domain-queue.json`
+- `application-queue.json`
+- `infrastructure-backend-queue.json`
+- `infrastructure-frontend-queue.json`
+
+### **Real Test Generation** (v4.4 NEW)
+
+**OLD (v4.3)**: qa-test-generator wrote `test_strategy` specs in tasks.json
+**NEW (v4.4)**: qa-test-generator writes **REAL pytest files** (.py)
+
+**Why**: Implementation agents were overwhelmed writing tests + code. Now they ONLY write code to make tests GREEN.
+
+**Test Files Location**:
+```
+tests/
+├── unit/domain/entities/test_customer.py
+├── unit/application/use_cases/test_create_customer.py
+└── integration/repositories/test_customer_repository.py
+```
+
+### **v4.3 Features (Still Active)**
+
+1. **Tech Stack Validation** - Validate library compatibility before implementation
+2. **UI Approval** - HTML mockup approval before frontend coding
+3. **Smoke Tests** - Fast API validation (30 seconds) before E2E
+4. **Max 3 E2E Iterations** - Strategic decision after 3 iterations
+
+**Architecture:**
 - **Clean Architecture**: 3 layers (Domain, Application, Infrastructure)
-- **8 Specialized Agents**: Each agent expert in specific concern
-- **TDD Integration**: Tests specified before implementation (qa-test-generator)
-- **Tech Research-First**: context7-agent researches official docs via Context7 MCP
-- **UI Design-First**: shadcn-ui-agent designs UI before implementation
-- **Requirements Extraction**: FR/NFR extracted following IEEE 29148-2018
-- **Task-Based Workflow**: All work organized as atomic tasks in tasks.json
+- **11 Specialized Agents**: Each agent expert in specific concern
+- **TDD Integration**: Real test files before implementation (qa-test-generator)
+- **Hybrid Execution**: One task at a time during implementation
+- **Full Traceability**: Queue files track every task
 
-**Why These Improvements:**
-- ✅ **Early Bug Detection**: Smoke tests catch DTO bugs in 30 seconds
-- ✅ **User Satisfaction**: UI approval before wasting dev time
-- ✅ **Architecture Validation**: Tech stack validated before implementation
-- ✅ **Time Efficiency**: Max 3 E2E iterations prevents infinite debugging loops
-- ✅ **Strategic Decision Making**: Clear decision points when issues persist
-- ✅ **ROI**: Saves 80-90% of QA debugging time per module
+**Why v4.4 Hybrid:**
+- ✅ **No Context Overload**: Agents see 1 task at a time
+- ✅ **Complete Execution**: ALL assigned tasks completed (no skipping)
+- ✅ **Absolute Traceability**: Queue files track progress
+- ✅ **Scalable**: Works with 50, 110, or 500 tasks
+- ✅ **Tests Already Written**: Agents just make tests GREEN
 
 ---
 
@@ -393,7 +388,13 @@ docs/
 │   └── alternatives-considered.md
 ├── state/
 │   ├── global-state.json
-│   └── tasks.json              # All tasks with test specs
+│   ├── tasks.json              # All tasks with test_files array
+│   ├── test-generation-report.json  # v4.4: Test generation summary
+│   └── agent-queues/           # v4.4: Agent task queues
+│       ├── domain-queue.json
+│       ├── application-queue.json
+│       ├── infrastructure-backend-queue.json
+│       └── infrastructure-frontend-queue.json
 ├── design/                      # FDD documents per module
 │   └── fdd-{module}.md
 ├── tech-context/                # context7-agent tech research
@@ -415,10 +416,13 @@ output/{project-name}/
 │   ├── application/             # use-case-agent
 │   └── infrastructure/          # infrastructure-agent
 ├── frontend/src/                # infrastructure-agent
-└── tests/
+└── tests/                       # v4.4: Real test files (created by qa-test-generator)
     ├── unit/
-    ├── integration/
-    └── e2e/
+    │   ├── domain/              # Domain entity tests
+    │   └── application/         # Use case tests
+    ├── integration/             # Repository tests
+    ├── e2e/
+    └── conftest.py              # Shared fixtures
 ```
 
 ---
@@ -444,32 +448,50 @@ This document contains detailed workflows for:
 - **PHASE 4**: E2E QA with Strategic Decisions (e2e-qa-agent)
 - **PHASE 5**: Final Validation & Delivery
 
-**Quick Reference - Phase Flow:**
+**Quick Reference - Phase Flow (v4.4 Hybrid):**
 
 ```
 PHASE 0 (SDD Analysis)
   ↓
-PHASE 0.5 (Tech Stack Validation) ← v4.3 NEW
+PHASE 0.5 (Tech Stack Validation)
   ↓
 PHASE 0.7 (Task Generation)
   ↓
-PHASE 0.8 (TDD Test Specs)
+PHASE 0.8 (Test Generation - REAL pytest files) ← v4.4 CHANGE
   ↓
 FOR EACH MODULE (in dependency order):
   ↓
   PHASE 1 (Contracts: OpenAPI, TypeScript, SQL, Error Codes)
   ↓
-  PHASE 2 (Domain Layer) → FDD Approval ⏸️
+  ┌─────────────────────────────────────────────────────┐
+  │ PHASE 2-3: HYBRID EXECUTION (v4.4)                  │
+  │                                                      │
+  │ For each layer (Domain → Application → Infrastructure):
+  │   1. PHASE A: Agent selects tasks, saves queue      │
+  │   2. PHASE B: Orchestrator sends ONE task at a time │
+  │      → Agent implements, runs tests, returns        │
+  │      → Repeat until queue empty                     │
+  └─────────────────────────────────────────────────────┘
   ↓
-  PHASE 2 (Application Layer)
+  PHASE 2 (Domain Layer - Hybrid)
+    → Phase A: domain-agent creates domain-queue.json
+    → Phase B: Execute tasks one-by-one
   ↓
-  PHASE 3 (Infrastructure: Database + API)
+  PHASE 2 (Application Layer - Hybrid)
+    → Phase A: use-case-agent creates application-queue.json
+    → Phase B: Execute tasks one-by-one
   ↓
-  PHASE 3 (UI Design) → UI Mockup Approval ⏸️ ← v4.3 NEW
+  PHASE 3 (Infrastructure Backend - Hybrid)
+    → Phase A: infrastructure-agent creates infrastructure-backend-queue.json
+    → Phase B: Execute tasks one-by-one
   ↓
-  PHASE 3 (Infrastructure: Frontend)
+  PHASE 3 (UI Design) → UI Mockup Approval ⏸️
   ↓
-  PHASE 4.5 (Smoke Tests: 6 critical API tests) ← v4.3 NEW
+  PHASE 3 (Infrastructure Frontend - Hybrid)
+    → Phase A: infrastructure-agent creates infrastructure-frontend-queue.json
+    → Phase B: Execute tasks one-by-one
+  ↓
+  PHASE 4.5 (Smoke Tests: 6 critical API tests)
   ↓
   PHASE 4 (E2E Tests: Max 3 iterations)
   ↓
@@ -516,20 +538,23 @@ PHASE 5 (Final Validation & Delivery)
 
 ## ⚠️ CRITICAL RULES
 
-1. **8 Agents Only**: sdd-analyzer, qa-test-generator, domain-agent, use-case-agent, infrastructure-agent, context7-agent, shadcn-ui-agent, e2e-qa-agent
+1. **11 Agents Only**: sdd-analyzer, tech-stack-validator, qa-test-generator, domain-agent, use-case-agent, infrastructure-agent, context7-agent, shadcn-ui-agent, ui-approval-agent, smoke-test-agent, e2e-qa-agent
 2. **Work Module-by-Module**: Complete one module fully before starting next
 3. **Follow Layer Order**: Domain → Application → Infrastructure (never reverse)
-4. **Tests Before Code (TDD)**: Generate test specs, then implement to make tests pass
-5. **Tech Research First**: infrastructure-agent MUST invoke context7-agent before implementing (FastAPI, SQLAlchemy, Next.js patterns)
-6. **UI Design First**: infrastructure-agent MUST invoke shadcn-ui-agent before implementing frontend
-7. **E2E Tests via Agent**: **YOU (Orchestrator) do NOT write E2E test scripts** - ALWAYS invoke e2e-qa-agent (has Playwright MCP)
-8. **E2E Corrections via Agents**: **YOU (Orchestrator) do NOT fix code directly** - Create dynamic correction tasks and invoke specialized agents (infrastructure-agent, use-case-agent, domain-agent) based on failure category
-9. **Fix Code, Not Tests**: When E2E tests fail, agents fix APPLICATION CODE based on e2e-qa-agent's failure analysis, don't modify tests
-10. **Validate Immediately**: After each generation, run validation commands
-11. **100% Tests Pass**: Before marking module complete
-12. **Update State**: Update tasks.json and global-state.json after every step
-13. **Real Tools Only**: Use actual tool calls (Read, Write, Edit, Bash, Task)
-14. **No Pseudocode**: Always use actual tool invocations
+4. **v4.4 Hybrid Execution**:
+   - **PHASE A**: Agent selects tasks, saves queue. NO IMPLEMENTATION.
+   - **PHASE B**: Orchestrator sends ONE task at a time. Agent implements and returns.
+5. **Tests Written by qa-test-generator (v4.4)**: Implementation agents do NOT write tests - they make existing tests GREEN
+6. **Tech Research First**: infrastructure-agent MUST invoke context7-agent before implementing (FastAPI, SQLAlchemy, Next.js patterns)
+7. **UI Design First**: infrastructure-agent MUST invoke shadcn-ui-agent before implementing frontend
+8. **E2E Tests via Agent**: **YOU (Orchestrator) do NOT write E2E test scripts** - ALWAYS invoke e2e-qa-agent (has Playwright MCP)
+9. **E2E Corrections via Agents**: **YOU (Orchestrator) do NOT fix code directly** - Create dynamic correction tasks and invoke specialized agents (infrastructure-agent, use-case-agent, domain-agent) based on failure category
+10. **Fix Code, Not Tests**: When E2E tests fail, agents fix APPLICATION CODE based on e2e-qa-agent's failure analysis, don't modify tests
+11. **Validate Immediately**: After each generation, run validation commands
+12. **100% Tests Pass**: Before marking module complete
+13. **Update State**: Update tasks.json, queue files, and global-state.json after every step
+14. **Real Tools Only**: Use actual tool calls (Read, Write, Edit, Bash, Task)
+15. **No Pseudocode**: Always use actual tool invocations
 
 ---
 
