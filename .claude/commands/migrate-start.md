@@ -219,7 +219,7 @@ Task(
 
 #### STEP 6.1: DOMAIN LAYER (Hybrid)
 
-**PHASE A: Task Selection**
+**PHASE A: Task Selection + Validation**
 
 ```python
 print("🔄 DOMAIN LAYER - PHASE A: Task Selection")
@@ -234,30 +234,36 @@ Task(
     YOUR MISSION:
     1. Read ALL tasks from docs/state/tasks.json
     2. Identify YOUR tasks (layer = "domain", owner = null)
-    3. Save queue to: docs/state/agent-queues/domain-queue.json
-    4. Update tasks.json (set owner = "domain-agent", status = "queued")
-    5. Return list of task IDs in your queue
+    3. VALIDATE each task - Is it REALLY a domain task? (Step 2.5 in your instructions)
+    4. REJECT tasks that are NOT domain layer and re-classify them
+    5. Save queue to: docs/state/agent-queues/domain-queue.json (includes rejected_tasks)
+    6. Update tasks.json (set owner, status, rejection_history for rejected tasks)
+    7. Return list of accepted + rejected tasks
 
     **DO NOT IMPLEMENT ANYTHING.**
-    **ONLY select tasks and save queue.**
+    **ONLY select tasks, validate, and save queue.**
 
     OUTPUT:
-    - docs/state/agent-queues/domain-queue.json
-    - docs/state/tasks.json (updated with ownership)
-    - Report: list of tasks in your queue
+    - docs/state/agent-queues/domain-queue.json (with rejected_tasks array)
+    - docs/state/tasks.json (updated with ownership + rejections)
+    - Report: accepted tasks + rejected tasks with suggested layers
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Read queue and execute PHASE B:**
+**Read queue, handle rejections, and execute PHASE B:**
 
 ```python
 # Read domain-agent's queue
 Read: docs/state/agent-queues/domain-queue.json
 domain_tasks = queue["queue"]
-print(f"📋 Domain agent tiene {len(domain_tasks)} tareas")
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Domain agent aceptó {len(domain_tasks)} tareas")
+if rejected:
+    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
 
 # PHASE B: Execute each task one-by-one
 for task in domain_tasks:
@@ -300,7 +306,7 @@ print(f"✅ DOMAIN LAYER COMPLETE - {len(domain_tasks)} tasks")
 
 #### STEP 6.2: APPLICATION LAYER (Hybrid)
 
-**PHASE A: Task Selection**
+**PHASE A: Task Selection + Validation**
 
 ```python
 print("🔄 APPLICATION LAYER - PHASE A: Task Selection")
@@ -316,19 +322,36 @@ Task(
     1. Read ALL tasks from docs/state/tasks.json
     2. Verify domain layer is complete (required dependency)
     3. Identify YOUR tasks (layer = "application", owner = null)
-    4. Save queue to: docs/state/agent-queues/application-queue.json
-    5. Update tasks.json
+    4. VALIDATE each task - Is it REALLY an application task? (Step 2.5 in your instructions)
+    5. REJECT tasks that are NOT application layer and re-classify them
+    6. Save queue to: docs/state/agent-queues/application-queue.json (includes rejected_tasks)
+    7. Update tasks.json (set owner, status, rejection_history for rejected tasks)
 
     **DO NOT IMPLEMENT ANYTHING.**
+    **ONLY select tasks, validate, and save queue.**
     """,
     subagent_type="use-case-agent",
     model="sonnet"
 )
 ```
 
+**Read queue, handle rejections, and execute PHASE B:**
+
+```python
+Read: docs/state/agent-queues/application-queue.json
+application_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Use-case agent aceptó {len(application_tasks)} tareas")
+if rejected:
+    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
+```
+
 **PHASE B: Execute each task** (same pattern as domain layer)
 
 #### STEP 6.3: INFRASTRUCTURE BACKEND (Hybrid)
+
+**PHASE A: Task Selection + Validation**
 
 ```python
 print("🔄 INFRASTRUCTURE BACKEND - PHASE A: Task Selection")
@@ -344,13 +367,29 @@ Task(
     1. Read ALL tasks from docs/state/tasks.json
     2. Verify domain AND application layers are complete
     3. Identify YOUR tasks (layer = "infrastructure_backend", owner = null)
-    4. Save queue to: docs/state/agent-queues/infrastructure-backend-queue.json
+    4. VALIDATE each task - Is it REALLY an infrastructure_backend task? (Step 3.5 in your instructions)
+    5. REJECT tasks that are NOT infrastructure_backend and re-classify them
+    6. Save queue to: docs/state/agent-queues/infrastructure-backend-queue.json (includes rejected_tasks)
+    7. Update tasks.json (set owner, status, rejection_history for rejected tasks)
 
     **DO NOT IMPLEMENT ANYTHING.**
+    **ONLY select tasks, validate, and save queue.**
     """,
     subagent_type="infrastructure-agent",
     model="sonnet"
 )
+```
+
+**Read queue, handle rejections, and execute PHASE B:**
+
+```python
+Read: docs/state/agent-queues/infrastructure-backend-queue.json
+backend_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Infrastructure agent (backend) aceptó {len(backend_tasks)} tareas")
+if rejected:
+    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
 ```
 
 **PHASE B: Execute each task** (same pattern)
@@ -388,6 +427,8 @@ AskUserQuestion(questions=[{
 
 #### STEP 6.5: INFRASTRUCTURE FRONTEND (Hybrid)
 
+**PHASE A: Task Selection + Validation**
+
 ```python
 print("🔄 INFRASTRUCTURE FRONTEND - PHASE A: Task Selection")
 
@@ -402,13 +443,29 @@ Task(
     1. Verify UI mockup is approved
     2. Verify backend infrastructure is complete
     3. Identify YOUR tasks (layer = "infrastructure_frontend", owner = null)
-    4. Save queue to: docs/state/agent-queues/infrastructure-frontend-queue.json
+    4. VALIDATE each task - Is it REALLY an infrastructure_frontend task? (Step 3.5 in your instructions)
+    5. REJECT tasks that are NOT infrastructure_frontend and re-classify them
+    6. Save queue to: docs/state/agent-queues/infrastructure-frontend-queue.json (includes rejected_tasks)
+    7. Update tasks.json (set owner, status, rejection_history for rejected tasks)
 
     **DO NOT IMPLEMENT ANYTHING.**
+    **ONLY select tasks, validate, and save queue.**
     """,
     subagent_type="infrastructure-agent",
     model="sonnet"
 )
+```
+
+**Read queue, handle rejections, and execute PHASE B:**
+
+```python
+Read: docs/state/agent-queues/infrastructure-frontend-queue.json
+frontend_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Infrastructure agent (frontend) aceptó {len(frontend_tasks)} tareas")
+if rejected:
+    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
 ```
 
 **PHASE B: Execute each task** (same pattern)

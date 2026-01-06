@@ -150,6 +150,136 @@ t.get("layer") == "infrastructure_frontend" or t.get("implementation_layer") == 
 t.get("owner") is None or t.get("owner") == "infrastructure-agent"
 ```
 
+### Step 3.5: 🆕 VALIDATE - Is This REALLY an Infrastructure Task?
+
+**CRITICAL**: For each candidate task, verify it's ACTUALLY an infrastructure layer task.
+
+**✅ IS Infrastructure Backend (Accept):**
+- ORM models (SQLAlchemy models)
+- Repository implementations (concrete classes, NOT interfaces)
+- FastAPI API endpoints and routes
+- Database migrations (Alembic)
+- Dependency injection setup
+- Database session/connection configuration
+- Authentication middleware (JWT implementation)
+- External service integrations
+
+**✅ IS Infrastructure Frontend (Accept):**
+- React components
+- Next.js pages and layouts
+- UI state management (Context, Zustand)
+- API clients (fetch, axios)
+- Form implementations (react-hook-form)
+- Tailwind CSS/shadcn/ui implementations
+
+**❌ NOT Infrastructure Layer (Reject):**
+- Domain entities (Customer, Account) → `domain`
+- Value objects (Email, Money) → `domain`
+- Business rules (BR-XXX) → `domain`
+- Use cases (CreateCustomerUseCase) → `application`
+- DTOs (Pydantic models for input/output) → `application`
+- Repository interfaces (abstract classes) → `application`
+- Application exceptions → `application`
+
+**Validation Logic (Backend):**
+```python
+def is_valid_infrastructure_backend_task(task):
+    title = task.get("title", "").lower()
+    description = task.get("description", "").lower()
+    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # REJECT if it's domain layer
+    domain_keywords = ["domain entity", "value object", "business rule", "br-", "pure python", "no framework"]
+    for keyword in domain_keywords:
+        if keyword in title or keyword in description:
+            return False, "domain"
+
+    # REJECT if it's application layer
+    application_keywords = [
+        "use case", "usecase", "application service",
+        "dto schema", "data transfer object", "pydantic model",
+        "repository interface", "irepository", "abstract repository",
+        "application exception"
+    ]
+    for keyword in application_keywords:
+        if keyword in title or keyword in description:
+            return False, "application"
+
+    # REJECT if deliverables are NOT in infrastructure paths
+    if deliverables:
+        backend_paths = ["infrastructure/", "api/", "models/", "database/", "repositories/"]
+        if not any(path in deliverables for path in backend_paths):
+            if "domain/" in deliverables:
+                return False, "domain"
+            if "application/" in deliverables or "use_cases/" in deliverables:
+                return False, "application"
+            if "frontend/" in deliverables or "components/" in deliverables:
+                return False, "infrastructure_frontend"
+
+    # ACCEPT if has infrastructure backend keywords
+    accept_keywords = [
+        "sqlalchemy", "orm", "fastapi", "endpoint", "api route",
+        "repository implementation", "concrete repository", "repositoryimpl",
+        "migration", "alembic", "database", "session",
+        "jwt", "middleware", "dependency injection"
+    ]
+    if any(kw in title or kw in description for kw in accept_keywords):
+        return True, None
+
+    return True, None
+```
+
+**Validation Logic (Frontend):**
+```python
+def is_valid_infrastructure_frontend_task(task):
+    title = task.get("title", "").lower()
+    description = task.get("description", "").lower()
+    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # REJECT if it's domain layer
+    domain_keywords = ["domain entity", "value object", "business rule", "br-"]
+    for keyword in domain_keywords:
+        if keyword in title or keyword in description:
+            return False, "domain"
+
+    # REJECT if it's application layer
+    application_keywords = ["use case", "usecase", "dto", "repository interface"]
+    for keyword in application_keywords:
+        if keyword in title or keyword in description:
+            return False, "application"
+
+    # REJECT if it's backend infrastructure
+    backend_keywords = [
+        "sqlalchemy", "orm model", "fastapi", "api endpoint",
+        "repository implementation", "alembic", "database migration"
+    ]
+    for keyword in backend_keywords:
+        if keyword in title or keyword in description:
+            return False, "infrastructure_backend"
+
+    # REJECT if deliverables are NOT in frontend paths
+    if deliverables:
+        frontend_paths = ["frontend/", "components/", "app/", "src/"]
+        if not any(path in deliverables for path in frontend_paths):
+            if "domain/" in deliverables:
+                return False, "domain"
+            if "application/" in deliverables:
+                return False, "application"
+            if "backend/" in deliverables or "api/" in deliverables:
+                return False, "infrastructure_backend"
+
+    # ACCEPT if has frontend keywords
+    accept_keywords = [
+        "react", "next.js", "component", "page", "layout",
+        "ui", "frontend", "client", "form",
+        "shadcn", "tailwind", "typescript", "tsx"
+    ]
+    if any(kw in title or kw in description for kw in accept_keywords):
+        return True, None
+
+    return True, None
+```
+
 ### Step 4: Verify Dependencies Complete
 
 **IMPORTANT**: Infrastructure layer depends on domain AND application layers.
@@ -177,11 +307,29 @@ if not backend_complete:
     return
 ```
 
-### Step 5: Save Queue File
+### Step 5: Save Queue File + Rejected Tasks
 
 ```python
-my_tasks = [... filtered tasks ...]
+my_tasks = []
+rejected_tasks = []
 invocation_type = "backend"  # or "frontend"
+
+# Use appropriate validation function based on invocation type
+validate_fn = is_valid_infrastructure_backend_task if invocation_type == "backend" else is_valid_infrastructure_frontend_task
+
+for task in candidate_tasks:
+    is_valid, suggested_layer = validate_fn(task)
+
+    if is_valid:
+        my_tasks.append(task)
+    else:
+        rejected_tasks.append({
+            "task_id": task["id"],
+            "title": task["title"],
+            "original_layer": task.get("layer"),
+            "suggested_layer": suggested_layer,
+            "reason": f"Task is not infrastructure_{invocation_type} - should be {suggested_layer}"
+        })
 
 queue = {
     "agent": "infrastructure-agent",
@@ -189,6 +337,7 @@ queue = {
     "created_at": "2026-01-06T10:00:00Z",
     "total_tasks": len(my_tasks),
     "completed": 0,
+    "rejected_tasks": rejected_tasks,  # 🆕 Track rejections
     "queue": [
         {
             "position": i + 1,
@@ -205,12 +354,23 @@ queue = {
 Write: docs/state/agent-queues/infrastructure-{invocation_type}-queue.json
 ```
 
-### Step 6: Update tasks.json (Claim Ownership)
+### Step 6: Update tasks.json (Claim Ownership + Mark Rejections)
 
 ```python
 for task in my_tasks:
     task["owner"] = "infrastructure-agent"
     task["status"] = "queued"
+
+# 🆕 Update rejected tasks with suggested layer
+for rejected in rejected_tasks:
+    task = find_task_by_id(rejected["task_id"])
+    task["layer"] = rejected["suggested_layer"]  # Re-classify
+    task["rejection_history"] = task.get("rejection_history", [])
+    task["rejection_history"].append({
+        "rejected_by": "infrastructure-agent",
+        "reason": rejected["reason"],
+        "suggested_layer": rejected["suggested_layer"]
+    })
 
 Write: docs/state/tasks.json
 ```
@@ -220,7 +380,7 @@ Write: docs/state/tasks.json
 ```
 ✅ INFRASTRUCTURE-AGENT SELECTION COMPLETE (Backend)
 
-📋 Tasks identified: 8
+📋 Tasks accepted: 8
 📁 Queue saved to: docs/state/agent-queues/infrastructure-backend-queue.json
 
 Tasks in queue:
@@ -228,6 +388,14 @@ Tasks in queue:
   2. [TASK-CUST-INF-002] Implement CustomerRepositoryImpl
   3. [TASK-CUST-INF-003] Create Customer API endpoints
   ... (5 more)
+
+⚠️ Tasks REJECTED (not infrastructure_backend): 2
+  1. [TASK-089] "Define IAccountRepository interface"
+     → Should be: application (repository INTERFACE is application layer)
+  2. [TASK-091] "Create AccountDTO Pydantic model"
+     → Should be: application (DTO is application layer)
+
+📝 Rejected tasks re-classified in tasks.json
 
 🔜 Ready for PHASE B: Execute tasks one by one
 ```

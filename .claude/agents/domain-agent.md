@@ -79,7 +79,7 @@ all_tasks = data["tasks"]
 print(f"📊 Total tasks: {len(all_tasks)}")
 ```
 
-### Step 2: Filter YOUR Tasks
+### Step 2: Filter YOUR Tasks + Validate Each Task
 
 Identify tasks that belong to you based on:
 
@@ -104,16 +104,85 @@ t.get("layer") == "domain" or t.get("implementation_layer") == "domain"
 t.get("owner") is None or t.get("owner") == "domain-agent"
 ```
 
-### Step 3: Save Queue File
+### Step 2.5: 🆕 VALIDATE - Is This REALLY a Domain Task?
+
+**CRITICAL**: For each candidate task, verify it's ACTUALLY a domain layer task.
+
+**✅ IS Domain Layer (Accept):**
+- Pure business entities with identity (Customer, Account, Transaction)
+- Value objects (Email, Money, AccountNumber, CreditScore)
+- Domain services with pure business logic
+- Business rule implementations (BR-XXX-001)
+- Validation logic that is business-specific
+- **NO framework dependencies** (no SQLAlchemy, FastAPI, Pydantic)
+
+**❌ NOT Domain Layer (Reject):**
+- ORM models (SQLAlchemy) → `infrastructure_backend`
+- API endpoints (FastAPI) → `infrastructure_backend`
+- DTOs/Schemas (Pydantic) → `application`
+- Repository implementations → `infrastructure_backend`
+- Use cases / Application services → `application`
+- React components → `infrastructure_frontend`
+- Database migrations → `infrastructure_backend`
+- Authentication/JWT → `infrastructure_backend`
+
+**Validation Logic:**
+```python
+def is_valid_domain_task(task):
+    title = task.get("title", "").lower()
+    description = task.get("description", "").lower()
+    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # REJECT if has framework keywords
+    reject_keywords = [
+        "sqlalchemy", "fastapi", "pydantic", "orm", "api endpoint",
+        "repository implementation", "migration", "alembic",
+        "react", "next.js", "component", "dto schema", "use case",
+        "jwt", "authentication", "middleware", "crud endpoint"
+    ]
+
+    for keyword in reject_keywords:
+        if keyword in title or keyword in description:
+            return False, suggest_correct_layer(keyword)
+
+    # REJECT if deliverables are NOT in domain/
+    if deliverables and "domain/" not in deliverables:
+        if "infrastructure/" in deliverables or "api/" in deliverables:
+            return False, "infrastructure_backend"
+        if "application/" in deliverables or "use_cases/" in deliverables:
+            return False, "application"
+        if "frontend/" in deliverables or "components/" in deliverables:
+            return False, "infrastructure_frontend"
+
+    return True, None
+```
+
+### Step 3: Save Queue File + Rejected Tasks
 
 ```python
-my_tasks = [... filtered tasks ...]
+my_tasks = []
+rejected_tasks = []
+
+for task in candidate_tasks:
+    is_valid, suggested_layer = is_valid_domain_task(task)
+
+    if is_valid:
+        my_tasks.append(task)
+    else:
+        rejected_tasks.append({
+            "task_id": task["id"],
+            "title": task["title"],
+            "original_layer": task.get("layer"),
+            "suggested_layer": suggested_layer,
+            "reason": f"Task is not domain layer - should be {suggested_layer}"
+        })
 
 queue = {
     "agent": "domain-agent",
     "created_at": "2026-01-06T10:00:00Z",
     "total_tasks": len(my_tasks),
     "completed": 0,
+    "rejected_tasks": rejected_tasks,  # 🆕 Track rejections
     "queue": [
         {
             "position": i + 1,
@@ -130,12 +199,23 @@ queue = {
 Write: docs/state/agent-queues/domain-queue.json
 ```
 
-### Step 4: Update tasks.json (Claim Ownership)
+### Step 4: Update tasks.json (Claim Ownership + Mark Rejections)
 
 ```python
 for task in my_tasks:
     task["owner"] = "domain-agent"
     task["status"] = "queued"
+
+# 🆕 Update rejected tasks with suggested layer
+for rejected in rejected_tasks:
+    task = find_task_by_id(rejected["task_id"])
+    task["layer"] = rejected["suggested_layer"]  # Re-classify
+    task["rejection_history"] = task.get("rejection_history", [])
+    task["rejection_history"].append({
+        "rejected_by": "domain-agent",
+        "reason": rejected["reason"],
+        "suggested_layer": rejected["suggested_layer"]
+    })
 
 Write: docs/state/tasks.json
 ```
@@ -145,14 +225,24 @@ Write: docs/state/tasks.json
 ```
 ✅ DOMAIN-AGENT SELECTION COMPLETE
 
-📋 Tasks identified: 15
+📋 Tasks accepted: 12
 📁 Queue saved to: docs/state/agent-queues/domain-queue.json
 
 Tasks in queue:
   1. [TASK-CUST-DOM-001] Implement Customer entity
   2. [TASK-CUST-DOM-002] Implement Email value object
   3. [TASK-CUST-DOM-003] Implement CreditScore value object
-  ... (12 more)
+  ... (9 more)
+
+⚠️ Tasks REJECTED (not domain layer): 3
+  1. [TASK-042] "Create CustomerDTO schemas"
+     → Should be: application (DTO is application layer)
+  2. [TASK-055] "Implement customer repository"
+     → Should be: infrastructure_backend (repository impl is infrastructure)
+  3. [TASK-078] "Setup customer validation middleware"
+     → Should be: infrastructure_backend (middleware is infrastructure)
+
+📝 Rejected tasks re-classified in tasks.json
 
 🔜 Ready for PHASE B: Execute tasks one by one
 ```

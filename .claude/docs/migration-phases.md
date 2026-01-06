@@ -29,6 +29,85 @@
 
 ---
 
+## 🔄 v4.4 TASK REJECTION & RE-CLASSIFICATION
+
+**Key Innovation**: Agents can REJECT incorrectly classified tasks and suggest the correct layer.
+
+### Why This Matters
+
+The initial layer assignment in PHASE 0.7 uses keyword detection which can be wrong:
+- "Create CustomerDTO" might be assigned to `domain` (wrong - should be `application`)
+- "Define IRepository interface" might be assigned to `infrastructure` (wrong - should be `application`)
+
+### How Rejection Works
+
+**During PHASE A (Task Selection)**, each agent:
+1. Identifies candidate tasks by layer field
+2. **VALIDATES each task** - Is this REALLY my layer?
+3. **Accepts valid tasks** → Adds to queue
+4. **Rejects invalid tasks** → Re-classifies in tasks.json
+
+**Validation Criteria per Agent:**
+
+| Agent | ACCEPT | REJECT |
+|-------|--------|--------|
+| **domain-agent** | Entities, Value Objects, Business Rules (pure Python) | DTOs, Use Cases, ORM, APIs, Components |
+| **use-case-agent** | Use Cases, DTOs, Repository Interfaces | Entities, ORM implementations, APIs |
+| **infrastructure-agent** | ORM, Repositories (concrete), APIs, React Components | Entities, Value Objects, Use Cases, DTOs |
+
+### Queue File with Rejections
+
+```json
+{
+  "agent": "use-case-agent",
+  "total_tasks": 10,
+  "completed": 0,
+  "rejected_tasks": [
+    {
+      "task_id": "TASK-045",
+      "title": "Implement CustomerRepositoryImpl with SQLAlchemy",
+      "original_layer": "application",
+      "suggested_layer": "infrastructure_backend",
+      "reason": "Repository IMPLEMENTATION is infrastructure, not application"
+    }
+  ],
+  "queue": [...]
+}
+```
+
+### tasks.json with Rejection History
+
+```json
+{
+  "id": "TASK-045",
+  "title": "Implement CustomerRepositoryImpl with SQLAlchemy",
+  "layer": "infrastructure_backend",
+  "rejection_history": [
+    {
+      "rejected_by": "use-case-agent",
+      "reason": "Task is not application layer - should be infrastructure_backend",
+      "suggested_layer": "infrastructure_backend"
+    }
+  ]
+}
+```
+
+### Orchestrator Handling of Rejected Tasks
+
+After PHASE A completes, orchestrator should:
+
+```python
+Read: docs/state/agent-queues/{agent}-queue.json
+
+if queue["rejected_tasks"]:
+    print(f"⚠️ {len(queue['rejected_tasks'])} tasks rejected and re-classified")
+
+    # Re-run task assignment for re-classified tasks
+    # Or let the correct agent pick them up in their PHASE A
+```
+
+---
+
 ## 📋 MIGRATION PHASES
 
 ### **PHASE 0: SDD Analysis**
@@ -502,28 +581,34 @@ Task(
     YOUR MISSION:
     1. Read ALL tasks from docs/state/tasks.json
     2. Identify YOUR tasks (layer = "domain", owner = null)
-    3. Save queue to: docs/state/agent-queues/domain-queue.json
-    4. Update tasks.json (set owner = "domain-agent", status = "queued")
-    5. Return list of task IDs in your queue
+    3. VALIDATE each task - Is it REALLY a domain task?
+    4. REJECT tasks that are NOT domain layer (re-classify them)
+    5. Save queue to: docs/state/agent-queues/domain-queue.json
+    6. Update tasks.json (set owner, status, rejection_history)
+    7. Return list of accepted + rejected tasks
 
     DO NOT IMPLEMENT ANYTHING.
-    ONLY select tasks and save queue.
+    ONLY select tasks, validate, and save queue.
 
     OUTPUT:
-    - docs/state/agent-queues/domain-queue.json
-    - docs/state/tasks.json (updated with ownership)
-    - Report: list of tasks in your queue
+    - docs/state/agent-queues/domain-queue.json (with rejected_tasks)
+    - docs/state/tasks.json (updated with ownership + rejections)
+    - Report: list of accepted tasks + rejected tasks with suggested layers
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Read domain-agent's queue:**
+**Read domain-agent's queue and handle rejections:**
 ```python
 Read: docs/state/agent-queues/domain-queue.json
 domain_tasks = queue["queue"]
-print(f"📋 Domain agent has {len(domain_tasks)} tasks to execute")
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Domain agent accepted {len(domain_tasks)} tasks")
+if rejected:
+    print(f"⚠️ Rejected {len(rejected)} tasks (re-classified in tasks.json)")
 ```
 
 **PHASE B: Execute Each Task One-by-One**
@@ -593,22 +678,33 @@ Task(
     1. Read ALL tasks from docs/state/tasks.json
     2. Verify domain layer is complete (required dependency)
     3. Identify YOUR tasks (layer = "application", owner = null)
-    4. Save queue to: docs/state/agent-queues/application-queue.json
-    5. Update tasks.json (set owner = "use-case-agent", status = "queued")
+    4. VALIDATE each task - Is it REALLY an application task?
+    5. REJECT tasks that are NOT application layer (re-classify them)
+    6. Save queue to: docs/state/agent-queues/application-queue.json
+    7. Update tasks.json (set owner, status, rejection_history)
 
     DO NOT IMPLEMENT ANYTHING.
-    ONLY select tasks and save queue.
+    ONLY select tasks, validate, and save queue.
     """,
     subagent_type="use-case-agent",
     model="sonnet"
 )
 ```
 
+**Read use-case-agent's queue and handle rejections:**
+```python
+Read: docs/state/agent-queues/application-queue.json
+application_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Use-case agent accepted {len(application_tasks)} tasks")
+if rejected:
+    print(f"⚠️ Rejected {len(rejected)} tasks (re-classified in tasks.json)")
+```
+
 **PHASE B: Execute Each Task One-by-One**
 
 ```python
-Read: docs/state/agent-queues/application-queue.json
-
 for task in application_tasks:
     task_id = task["task_id"]
 
@@ -667,22 +763,33 @@ Task(
     1. Read ALL tasks from docs/state/tasks.json
     2. Verify domain AND application layers are complete
     3. Identify YOUR tasks (layer = "infrastructure_backend", owner = null)
-    4. Save queue to: docs/state/agent-queues/infrastructure-backend-queue.json
-    5. Update tasks.json
+    4. VALIDATE each task - Is it REALLY an infrastructure_backend task?
+    5. REJECT tasks that are NOT infrastructure_backend (re-classify them)
+    6. Save queue to: docs/state/agent-queues/infrastructure-backend-queue.json
+    7. Update tasks.json (set owner, status, rejection_history)
 
     DO NOT IMPLEMENT ANYTHING.
-    ONLY select tasks and save queue.
+    ONLY select tasks, validate, and save queue.
     """,
     subagent_type="infrastructure-agent",
     model="sonnet"
 )
 ```
 
+**Read infrastructure-agent's queue and handle rejections:**
+```python
+Read: docs/state/agent-queues/infrastructure-backend-queue.json
+backend_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Infrastructure agent (backend) accepted {len(backend_tasks)} tasks")
+if rejected:
+    print(f"⚠️ Rejected {len(rejected)} tasks (re-classified in tasks.json)")
+```
+
 **PHASE B: Execute Each Task**
 
 ```python
-Read: docs/state/agent-queues/infrastructure-backend-queue.json
-
 for task in backend_tasks:
     task_id = task["task_id"]
 
@@ -787,21 +894,33 @@ Task(
     1. Verify UI mockup is approved
     2. Verify backend infrastructure is complete
     3. Identify YOUR tasks (layer = "infrastructure_frontend", owner = null)
-    4. Save queue to: docs/state/agent-queues/infrastructure-frontend-queue.json
+    4. VALIDATE each task - Is it REALLY an infrastructure_frontend task?
+    5. REJECT tasks that are NOT infrastructure_frontend (re-classify them)
+    6. Save queue to: docs/state/agent-queues/infrastructure-frontend-queue.json
+    7. Update tasks.json (set owner, status, rejection_history)
 
     DO NOT IMPLEMENT ANYTHING.
-    ONLY select tasks and save queue.
+    ONLY select tasks, validate, and save queue.
     """,
     subagent_type="infrastructure-agent",
     model="sonnet"
 )
 ```
 
+**Read infrastructure-agent's queue and handle rejections:**
+```python
+Read: docs/state/agent-queues/infrastructure-frontend-queue.json
+frontend_tasks = queue["queue"]
+rejected = queue.get("rejected_tasks", [])
+
+print(f"📋 Infrastructure agent (frontend) accepted {len(frontend_tasks)} tasks")
+if rejected:
+    print(f"⚠️ Rejected {len(rejected)} tasks (re-classified in tasks.json)")
+```
+
 **PHASE B: Execute Each Task**
 
 ```python
-Read: docs/state/agent-queues/infrastructure-frontend-queue.json
-
 for task in frontend_tasks:
     Task(
         description=f"Infrastructure agent - Execute {task["task_id"]}",

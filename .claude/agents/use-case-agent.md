@@ -76,7 +76,7 @@ all_tasks = data["tasks"]
 print(f"📊 Total tasks: {len(all_tasks)}")
 ```
 
-### Step 2: Filter YOUR Tasks
+### Step 2: Filter YOUR Tasks + Validate Each Task
 
 Identify tasks that belong to you based on:
 
@@ -101,6 +101,76 @@ t.get("layer") == "application" or t.get("implementation_layer") == "application
 t.get("owner") is None or t.get("owner") == "use-case-agent"
 ```
 
+### Step 2.5: 🆕 VALIDATE - Is This REALLY an Application Layer Task?
+
+**CRITICAL**: For each candidate task, verify it's ACTUALLY an application layer task in Clean Architecture.
+
+**✅ IS Application Layer (Accept):**
+- **Use Cases**: Application services that orchestrate business flows (CreateCustomerUseCase, GetAccountBalanceUseCase)
+- **DTOs**: Data Transfer Objects for API requests/responses (Pydantic models for input/output)
+- **Repository Interfaces**: Abstract classes defining data access contracts (ICustomerRepository, IAccountRepository)
+- **Application Exceptions**: Application-specific errors (CustomerNotFoundError, InsufficientBalanceError)
+- **Input/Output Ports**: Interfaces for external systems
+
+**❌ NOT Application Layer (Reject):**
+- Domain entities (Customer, Account) → `domain`
+- Value objects (Email, Money) → `domain`
+- Business rules (BR-XXX) → `domain`
+- ORM models (SQLAlchemy) → `infrastructure_backend`
+- Repository implementations (concrete classes) → `infrastructure_backend`
+- API endpoints (FastAPI routes) → `infrastructure_backend`
+- React components → `infrastructure_frontend`
+- Database migrations → `infrastructure_backend`
+- Authentication/JWT implementation → `infrastructure_backend`
+
+**Validation Logic:**
+```python
+def is_valid_application_task(task):
+    title = task.get("title", "").lower()
+    description = task.get("description", "").lower()
+    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # REJECT if it's domain layer
+    domain_keywords = ["domain entity", "value object", "business rule", "br-"]
+    for keyword in domain_keywords:
+        if keyword in title or keyword in description:
+            return False, "domain"
+
+    # REJECT if it's infrastructure
+    infra_keywords = [
+        "sqlalchemy", "orm model", "fastapi", "api endpoint", "route",
+        "repository implementation", "concrete repository",
+        "migration", "alembic", "database connection",
+        "react", "next.js", "component", "page",
+        "jwt", "authentication implementation", "middleware"
+    ]
+    for keyword in infra_keywords:
+        if keyword in title or keyword in description:
+            if "frontend" in keyword or "react" in keyword or "next.js" in keyword:
+                return False, "infrastructure_frontend"
+            return False, "infrastructure_backend"
+
+    # REJECT if deliverables are NOT in application/
+    if deliverables and "application/" not in deliverables:
+        if "domain/" in deliverables:
+            return False, "domain"
+        if "infrastructure/" in deliverables or "api/" in deliverables or "models/" in deliverables:
+            return False, "infrastructure_backend"
+        if "frontend/" in deliverables or "components/" in deliverables:
+            return False, "infrastructure_frontend"
+
+    # ACCEPT if has use case / DTO / interface keywords
+    accept_keywords = ["use case", "usecase", "dto", "repository interface", "irepository"]
+    if any(kw in title or kw in description for kw in accept_keywords):
+        return True, None
+
+    # If deliverables are in application/, accept
+    if "application/" in deliverables:
+        return True, None
+
+    return True, None
+```
+
 ### Step 3: Verify Domain Layer Complete
 
 **IMPORTANT**: Application layer depends on domain layer.
@@ -115,16 +185,32 @@ if not domain_complete:
     return  # Exit and report to orchestrator
 ```
 
-### Step 4: Save Queue File
+### Step 4: Save Queue File + Rejected Tasks
 
 ```python
-my_tasks = [... filtered tasks ...]
+my_tasks = []
+rejected_tasks = []
+
+for task in candidate_tasks:
+    is_valid, suggested_layer = is_valid_application_task(task)
+
+    if is_valid:
+        my_tasks.append(task)
+    else:
+        rejected_tasks.append({
+            "task_id": task["id"],
+            "title": task["title"],
+            "original_layer": task.get("layer"),
+            "suggested_layer": suggested_layer,
+            "reason": f"Task is not application layer - should be {suggested_layer}"
+        })
 
 queue = {
     "agent": "use-case-agent",
     "created_at": "2026-01-06T10:00:00Z",
     "total_tasks": len(my_tasks),
     "completed": 0,
+    "rejected_tasks": rejected_tasks,  # 🆕 Track rejections
     "queue": [
         {
             "position": i + 1,
@@ -141,12 +227,23 @@ queue = {
 Write: docs/state/agent-queues/application-queue.json
 ```
 
-### Step 5: Update tasks.json (Claim Ownership)
+### Step 5: Update tasks.json (Claim Ownership + Mark Rejections)
 
 ```python
 for task in my_tasks:
     task["owner"] = "use-case-agent"
     task["status"] = "queued"
+
+# 🆕 Update rejected tasks with suggested layer
+for rejected in rejected_tasks:
+    task = find_task_by_id(rejected["task_id"])
+    task["layer"] = rejected["suggested_layer"]  # Re-classify
+    task["rejection_history"] = task.get("rejection_history", [])
+    task["rejection_history"].append({
+        "rejected_by": "use-case-agent",
+        "reason": rejected["reason"],
+        "suggested_layer": rejected["suggested_layer"]
+    })
 
 Write: docs/state/tasks.json
 ```
@@ -156,14 +253,22 @@ Write: docs/state/tasks.json
 ```
 ✅ USE-CASE-AGENT SELECTION COMPLETE
 
-📋 Tasks identified: 12
+📋 Tasks accepted: 10
 📁 Queue saved to: docs/state/agent-queues/application-queue.json
 
 Tasks in queue:
   1. [TASK-CUST-APP-001] Define ICustomerRepository interface
   2. [TASK-CUST-APP-002] Create CustomerDTO
   3. [TASK-CUST-APP-003] Implement CreateCustomerUseCase
-  ... (9 more)
+  ... (7 more)
+
+⚠️ Tasks REJECTED (not application layer): 2
+  1. [TASK-045] "Implement CustomerRepositoryImpl with SQLAlchemy"
+     → Should be: infrastructure_backend (repository IMPLEMENTATION is infrastructure)
+  2. [TASK-067] "Create Customer domain entity"
+     → Should be: domain (entities are domain layer)
+
+📝 Rejected tasks re-classified in tasks.json
 
 🔜 Ready for PHASE B: Execute tasks one by one
 ```
