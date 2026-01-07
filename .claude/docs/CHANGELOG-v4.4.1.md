@@ -307,31 +307,65 @@ fi
 
 ---
 
-## ⏳ PENDIENTE (Requiere actualización adicional)
+## ✅ P0 COMPLETE (Implementado después de commit inicial)
 
-### P0 Restante:
+### 7. **Immediate Rejection Recovery** ✅
 
-#### 7. **Immediate Rejection Recovery** ⏳
-**Estado**: Documentado en análisis, NO implementado en migrate-start.md
+**Estado**: ✅ IMPLEMENTADO en migrate-start.md
 
-**Qué falta**:
-- Actualizar migrate-start.md STEP 6.1, 6.2, 6.3 para procesar rejections INMEDIATAMENTE después de cada PHASE A
-- Remover STEP 6.6 "REJECTION RECOVERY" (ya no es necesario si se procesa inmediatamente)
-- Actualizar agent instructions para re-leer tasks.json después de rejections procesadas
+**Cambios realizados**:
+- ✅ Actualizado migrate-start.md STEP 6.1 (Domain): Procesa rejections INMEDIATAMENTE después de PHASE A
+- ✅ Actualizado migrate-start.md STEP 6.2 (Application): Procesa rejections INMEDIATAMENTE
+- ✅ Actualizado migrate-start.md STEP 6.3 (Infrastructure Backend): Procesa rejections INMEDIATAMENTE
+- ✅ Actualizado migrate-start.md STEP 6.5 (Infrastructure Frontend): Procesa rejections INMEDIATAMENTE
+- ✅ Deprecated STEP 6.6 "REJECTION RECOVERY" (ya no necesario)
 
-**Riesgo si no se implementa**: Tasks rechazadas quedan en limbo hasta el final, requiere re-invocar agentes
+**Beneficio**:
+- ✅ Tasks re-clasificadas INMEDIATAMENTE están disponibles para siguiente layer
+- ✅ No requiere re-invocar agentes al final
+- ✅ Flujo más eficiente: re-classification → immediate pickup
+
+**Archivos modificados**:
+- `.claude/commands/migrate-start.md` (líneas 585-654, 839-900, 1029-1090, 1258-1319)
 
 ---
 
-#### 8. **Test Validation Guards in Agents** ⏳
-**Estado**: Documentado en análisis, NO implementado en agent .md files
+### 8. **Test Validation Guards in Agents** ✅
 
-**Qué falta**:
-- Actualizar domain-agent.md, use-case-agent.md, infrastructure-agent.md
-- Agregar instrucciones MANDATORY: "Run tests. If fail → mark blocked, NOT completed"
-- Pattern de validación con pytest exit code
+**Estado**: ✅ IMPLEMENTADO en agent .md files
 
-**Riesgo si no se implementa**: Agentes pueden marcar tasks como completed sin verificar tests → tests siguen en RED
+**Cambios realizados**:
+- ✅ domain-agent.md: Agregado Step 5 "MANDATORY VALIDATION" + Step 6-BLOCKED
+- ✅ use-case-agent.md: Agregado Step 6 "MANDATORY VALIDATION" + Step 7-BLOCKED
+- ✅ infrastructure-agent.md: Agregado Step 7 "MANDATORY VALIDATION" + Step 8-BLOCKED
+
+**Patrón implementado**:
+```bash
+# Run tests
+pytest tests/... -v
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -eq 0 ]; then
+    # Mark as completed (with optimistic locking + timestamp)
+else
+    # Mark as BLOCKED (with blocker_info + exit 1)
+fi
+```
+
+**Beneficio**:
+- ✅ Agentes NO pueden marcar completed sin tests passing
+- ✅ Tasks con tests fallando → marcadas como BLOCKED (no completed)
+- ✅ Orchestrator detecta failures (exit 1)
+- ✅ Recovery automático de blocked tasks
+
+**Archivos modificados**:
+- `.claude/agents/domain-agent.md` (Step 5-6)
+- `.claude/agents/use-case-agent.md` (Step 6-7)
+- `.claude/agents/infrastructure-agent.md` (Step 7-8)
+
+---
+
+## ⏳ PENDIENTE (P1 - Importantes pero no críticas)
 
 ---
 
@@ -384,20 +418,22 @@ is_complete = is_complete_strict  # Solo avanza si 100% completed
 
 **Calificación**:
 - v4.4: **5.5/10** (Buen diseño, implementación incompleta)
-- v4.4.1 (P0 parcial): **7.5/10** (Confiable para migraciones pequeñas)
-- v4.4.1 (P0 completo): **8.5/10** (Production-ready)
-- v4.4.1 (P0 + P1): **9/10** (Robusto, escalable)
+- v4.4.1 (commit inicial - P0 6/8): **7.5/10** (Confiable para migraciones pequeñas)
+- v4.4.1 (commit final - P0 8/8): **8.5/10** ✅ (Production-ready)
+- v4.4.1 (P0 + P1): **9/10** (Robusto, escalable a 200+ tasks)
 
 ---
 
 ## 🚀 Próximos Pasos
 
-### Para completar v4.4.1:
+### ✅ v4.4.1 COMPLETO (P0 8/8)
 
-1. **CRITICAL**: Implementar #7 (Immediate Rejection Recovery) en migrate-start.md
-2. **CRITICAL**: Implementar #8 (Test Validation Guards) en agent .md files
-3. **Importante**: Implementar #9 (Layer Completeness STRICT) en migrate-start.md
-4. **Útil**: Implementar #10 (Orphan Detection Per-Layer)
+Todos los items P0 críticos están implementados. El framework está **production-ready** con score **8.5/10**.
+
+### Para v4.4.2 (P1 - Mejoras importantes):
+
+1. **Importante**: Implementar Layer Completeness STRICT por defecto en migrate-start.md
+2. **Útil**: Implementar Orphan Detection Per-Layer (solo buscar en layer actual)
 
 ### Para v4.5 (futuro):
 

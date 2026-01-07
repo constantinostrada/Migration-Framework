@@ -16,6 +16,325 @@ You are starting a **task-driven migration** using the Universal Migration Frame
 - `qa-test-generator` writes REAL pytest files (not just specs)
 - Implementation agents just make tests GREEN (don't write tests)
 - Queue files track progress: `docs/state/agent-queues/`
+- **File locking** prevents race conditions on shared state files
+- **Schema validation** ensures state file integrity
+- **Transaction logging** enables rollback on failures
+
+---
+
+## 🔒 STATE MANAGEMENT (v4.4 - Critical)
+
+**Read**: `.claude/docs/state-management.md` for complete state management protocol.
+
+### File Locking Functions
+
+```python
+def acquire_lock(file_path: str, timeout_seconds: int = 30) -> bool:
+    """Acquire exclusive lock on a state file."""
+    lock_path = f"{file_path}.lock"
+    start_time = current_timestamp()
+
+    while True:
+        if not file_exists(lock_path):
+            # Create lock file
+            Write(lock_path, {
+                "locked_by": get_agent_id(),
+                "locked_at": current_timestamp()
+            })
+            return True
+
+        # Check for stale lock (> 60 seconds)
+        lock_info = Read(lock_path)
+        if current_timestamp() - lock_info["locked_at"] > 60:
+            delete_file(lock_path)
+            continue
+
+        # Timeout check
+        if current_timestamp() - start_time > timeout_seconds:
+            return False
+
+        sleep(0.5)
+
+def release_lock(file_path: str):
+    """Release exclusive lock."""
+    lock_path = f"{file_path}.lock"
+    if file_exists(lock_path):
+        delete_file(lock_path)
+
+def safe_update_tasks(update_fn: callable):
+    """Safely update tasks.json with locking."""
+    file_path = "docs/state/tasks.json"
+
+    if not acquire_lock(file_path):
+        raise Exception("Could not acquire lock on tasks.json")
+
+    try:
+        current = Read(file_path)
+        updated = update_fn(current)
+        validate_tasks_schema(updated)
+
+        # Atomic write: temp file + rename
+        Write(f"{file_path}.tmp", updated)
+        rename_file(f"{file_path}.tmp", file_path)
+
+        # Log transaction
+        log_transaction("update_tasks", updated)
+    finally:
+        release_lock(file_path)
+```
+
+### Validation on Startup
+
+```python
+def validate_state_on_startup():
+    """Run at the start of every migration session."""
+    print("🔍 Validating state files...")
+
+    all_errors = []
+    all_warnings = []
+    all_auto_fixed = []
+
+    # 1. Remove stale locks
+    for lock_file in glob("docs/state/**/*.lock"):
+        try:
+            lock_info = Read(lock_file)
+            if current_timestamp() - lock_info.get("locked_at", 0) > 60:
+                print(f"   ⚠️ Removing stale lock: {lock_file}")
+                delete_file(lock_file)
+        except:
+            # Corrupted lock file - remove it
+            delete_file(lock_file)
+
+    # 2. Validate tasks.json
+    print("\n   📄 Validating tasks.json...")
+    try:
+        tasks_state = Read("docs/state/tasks.json")
+        tasks_result = validate_state_schema("tasks.json", tasks_state)
+
+        if tasks_result["errors"]:
+            print(f"      🔴 Errors: {len(tasks_result['errors'])}")
+            all_errors.extend(tasks_result["errors"])
+        if tasks_result["warnings"]:
+            print(f"      ⚠️ Warnings: {len(tasks_result['warnings'])}")
+            all_warnings.extend(tasks_result["warnings"])
+        if tasks_result["auto_fixed"]:
+            print(f"      🔧 Auto-fixed: {len(tasks_result['auto_fixed'])}")
+            all_auto_fixed.extend(tasks_result["auto_fixed"])
+            # Write back auto-fixed state
+            Write("docs/state/tasks.json", tasks_state)
+
+        if tasks_result["valid"]:
+            print(f"      ✅ tasks.json is valid")
+    except Exception as e:
+        all_errors.append(f"tasks.json: Failed to read - {e}")
+        print(f"      🔴 Failed to read tasks.json: {e}")
+
+    # 3. Validate all queue files
+    queue_files = glob("docs/state/agent-queues/*.json")
+    for queue_file in queue_files:
+        print(f"\n   📄 Validating {queue_file}...")
+        try:
+            queue_state = Read(queue_file)
+            queue_result = validate_state_schema(queue_file, queue_state)
+
+            if queue_result["errors"]:
+                print(f"      🔴 Errors: {len(queue_result['errors'])}")
+                for err in queue_result["errors"]:
+                    print(f"         - {err}")
+                all_errors.extend(queue_result["errors"])
+
+            if queue_result["warnings"]:
+                all_warnings.extend(queue_result["warnings"])
+
+            if queue_result["auto_fixed"]:
+                print(f"      🔧 Auto-fixed: {queue_result['auto_fixed']}")
+                all_auto_fixed.extend(queue_result["auto_fixed"])
+                # Write back auto-fixed state
+                Write(queue_file, queue_state)
+
+            if queue_result["valid"]:
+                print(f"      ✅ {queue_file} is valid")
+
+        except Exception as e:
+            all_errors.append(f"{queue_file}: Failed to read - {e}")
+            print(f"      🔴 Failed to read: {e}")
+
+    # 4. Validate rejection-tracker.json if exists
+    try:
+        tracker = Read("docs/state/rejection-tracker.json")
+        print(f"\n   📄 Validating rejection-tracker.json...")
+        tracker_result = validate_state_schema("rejection-tracker.json", tracker)
+        if tracker_result["errors"]:
+            all_errors.extend(tracker_result["errors"])
+        if tracker_result["valid"]:
+            print(f"      ✅ rejection-tracker.json is valid")
+    except:
+        pass  # File may not exist yet
+
+    # 5. Check cross-file consistency
+    print("\n   🔗 Checking cross-file consistency...")
+    consistency_errors = verify_state_consistency()
+    if consistency_errors:
+        print(f"      🔴 Consistency errors: {len(consistency_errors)}")
+        for err in consistency_errors:
+            print(f"         - {err}")
+        all_errors.extend(consistency_errors)
+    else:
+        print(f"      ✅ State consistency verified")
+
+    # Summary
+    print("\n" + "="*50)
+    print("📊 VALIDATION SUMMARY")
+    print("="*50)
+    print(f"   Errors: {len(all_errors)}")
+    print(f"   Warnings: {len(all_warnings)}")
+    print(f"   Auto-fixed: {len(all_auto_fixed)}")
+
+    if all_errors:
+        print(f"\n🔴 State validation FAILED - {len(all_errors)} blocking errors")
+        return False
+
+    if all_auto_fixed:
+        print(f"\n🔧 State auto-repairs applied - re-validate recommended")
+
+    print(f"\n✅ State validation PASSED")
+    return True
+```
+
+### Layer Completeness Verification (v4.4 - Critical)
+
+```python
+def verify_layer_completeness(layer: str) -> dict:
+    """
+    Verify that ALL tasks in a layer are completed before proceeding to next layer.
+
+    Args:
+        layer: One of "domain", "application", "infrastructure_backend", "infrastructure_frontend"
+
+    Returns:
+        {
+            "is_complete": bool,
+            "is_complete_strict": bool,  # True only if ALL tasks completed (no escalated)
+            "has_escalated": bool,  # Warning: some tasks were skipped
+            "total": int,
+            "completed": int,
+            "blocked": int,
+            "in_progress": int,
+            "pending": int,
+            "escalated": int,
+            "blocked_tasks": list,
+            "escalated_tasks": list,  # Tasks that were skipped (not implemented!)
+            "incomplete_tasks": list
+        }
+    """
+    tasks_data = Read("docs/state/tasks.json")
+    all_tasks = tasks_data.get("tasks", [])
+
+    # Filter tasks for this layer
+    layer_tasks = [t for t in all_tasks if t.get("layer") == layer]
+
+    # Count by status
+    completed = [t for t in layer_tasks if t.get("status") == "completed"]
+    blocked = [t for t in layer_tasks if t.get("status") == "blocked"]
+    in_progress = [t for t in layer_tasks if t.get("status") == "in_progress"]
+    pending = [t for t in layer_tasks if t.get("status") in ["pending", "queued", None]]
+    escalated = [t for t in layer_tasks if t.get("status") == "escalated"]
+
+    # STRICT: Layer is complete ONLY if ALL tasks are completed (no escalated)
+    is_complete_strict = len(completed) == len(layer_tasks) and len(layer_tasks) > 0
+
+    # LENIENT: Layer is "complete" if all tasks are either completed or escalated
+    # But this is RISKY - escalated tasks were NOT implemented!
+    non_terminal = len(layer_tasks) - len(completed) - len(escalated)
+    is_complete_lenient = non_terminal == 0 and len(layer_tasks) > 0
+
+    # Use STRICT by default - safer for Clean Architecture
+    is_complete = is_complete_strict
+
+    # If no tasks for this layer, it's considered complete (nothing to do)
+    if len(layer_tasks) == 0:
+        is_complete = True
+        is_complete_strict = True
+
+    # Warning flag if there are escalated tasks
+    has_escalated = len(escalated) > 0
+
+    return {
+        "is_complete": is_complete,
+        "is_complete_strict": is_complete_strict,
+        "is_complete_lenient": is_complete_lenient,  # For user to choose PROCEED
+        "has_escalated": has_escalated,
+        "total": len(layer_tasks),
+        "completed": len(completed),
+        "blocked": len(blocked),
+        "in_progress": len(in_progress),
+        "pending": len(pending),
+        "escalated": len(escalated),
+        "blocked_tasks": [
+            {
+                "id": t["id"],
+                "title": t.get("title", "Unknown"),
+                "blocker_info": t.get("blocker_info", {"reason": "Unknown"})
+            }
+            for t in blocked
+        ],
+        "escalated_tasks": [
+            {
+                "id": t["id"],
+                "title": t.get("title", "Unknown"),
+                "escalation_info": t.get("escalation_info", {"reason": "Unknown"})
+            }
+            for t in escalated
+        ],
+        "incomplete_tasks": [
+            {
+                "id": t["id"],
+                "title": t.get("title", "Unknown"),
+                "status": t.get("status", "unknown")
+            }
+            for t in layer_tasks if t.get("status") != "completed"
+        ]
+    }
+
+
+def verify_all_prerequisites(target_layer: str) -> dict:
+    """
+    Verify all prerequisite layers are complete before starting a layer.
+
+    Args:
+        target_layer: The layer we want to start
+
+    Returns:
+        {
+            "can_proceed": bool,
+            "blocking_layers": list,  # Layers that are not complete
+            "details": dict  # Status of each prerequisite layer
+        }
+    """
+    # Define layer dependencies
+    prerequisites = {
+        "domain": [],  # Domain has no prerequisites
+        "application": ["domain"],
+        "infrastructure_backend": ["domain", "application"],
+        "infrastructure_frontend": ["domain", "application", "infrastructure_backend"]
+    }
+
+    required = prerequisites.get(target_layer, [])
+    blocking = []
+    details = {}
+
+    for layer in required:
+        status = verify_layer_completeness(layer)
+        details[layer] = status
+
+        if not status["is_complete"]:
+            blocking.append(layer)
+
+    return {
+        "can_proceed": len(blocking) == 0,
+        "blocking_layers": blocking,
+        "details": details
+    }
 
 ## Your Mission
 
@@ -262,8 +581,83 @@ domain_tasks = queue["queue"]
 rejected = queue.get("rejected_tasks", [])
 
 print(f"📋 Domain agent aceptó {len(domain_tasks)} tareas")
+
+# 🆕 v4.4.1: IMMEDIATE REJECTION PROCESSING
 if rejected:
-    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
+    print(f"⚠️ Rechazó {len(rejected)} tareas - procesando INMEDIATAMENTE")
+
+    # Process each rejection RIGHT NOW (not at the end)
+    for rejection in rejected:
+        task_id = rejection["task_id"]
+        new_layer = rejection["suggested_layer"]
+        reason = rejection.get("reason", "No reason provided")
+
+        print(f"   🔄 Re-clasificando {task_id}: domain → {new_layer}")
+
+        # Update tasks.json with new layer
+        Bash: python3 << PYEOF
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "$task_id"
+NEW_LAYER = "$new_layer"
+REASON = "$reason"
+
+# Read current state
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+# Find and update task
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        old_layer = task.get('layer')
+
+        # Update layer
+        task['layer'] = NEW_LAYER
+        task['owner'] = None
+        task['status'] = 'pending'
+        task['updated_at'] = timestamp
+
+        # Add to rejection history
+        if 'rejection_history' not in task:
+            task['rejection_history'] = []
+
+        task['rejection_history'].append({
+            'rejected_by': 'domain-agent',
+            'original_layer': old_layer,
+            'suggested_layer': NEW_LAYER,
+            'reason': REASON,
+            'timestamp': timestamp
+        })
+
+        print(f'   ✅ Updated {TASK_ID}: {old_layer} → {NEW_LAYER}')
+
+# Increment version
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'domain-agent'
+
+# Write atomically
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+PYEOF
+
+        # Log rejection to transaction log
+        Bash: echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"domain-agent","operation":"reject_task","task_id":"'$task_id'","before":{"layer":"domain"},"after":{"layer":"'$new_layer'"},"reason":"'$reason'"}' >> docs/state/transaction-log.jsonl
+
+    print(f"✅ Todas las rejections procesadas - tasks.json actualizado")
+
+# 🆕 Handle escalated tasks (exceeded max rejections or circular)
+escalated = queue.get("escalated_tasks", [])
+if escalated:
+    print(f"🔴 {len(escalated)} tareas ESCALADAS requieren clasificación manual")
+    handle_escalated_tasks("domain-agent", escalated)
 
 # PHASE B: Execute each task one-by-one
 for task in domain_tasks:
@@ -302,9 +696,107 @@ for task in domain_tasks:
     print(f"✅ Completado: {task_id}")
 
 print(f"✅ DOMAIN LAYER COMPLETE - {len(domain_tasks)} tasks")
+
+# Check for blocked tasks and handle them
+handle_blocked_tasks("domain-agent", "domain-queue.json")
+
+# 🆕 Check for orphaned tasks in domain layer
+check_layer_orphans("domain")
 ```
 
 #### STEP 6.2: APPLICATION LAYER (Hybrid)
+
+**PRE-CHECK: Verify Domain Layer Completeness (MANDATORY)**
+
+```python
+print("🔍 PRE-CHECK: Verifying domain layer completeness...")
+
+# Real validation of domain layer completion
+domain_status = verify_layer_completeness("domain")
+
+if not domain_status["is_complete"]:
+    print(f"🔴 BLOCKED: Domain layer is NOT complete")
+    print(f"   - Total domain tasks: {domain_status['total']}")
+    print(f"   - Completed: {domain_status['completed']}")
+    print(f"   - Blocked: {domain_status['blocked']}")
+    print(f"   - Escalated (skipped): {domain_status['escalated']}")
+    print(f"   - In Progress: {domain_status['in_progress']}")
+
+    if domain_status["blocked"] > 0:
+        print(f"\n   ⚠️ Blocked tasks preventing completion:")
+        for task in domain_status["blocked_tasks"]:
+            print(f"      - {task['id']}: {task['blocker_info']['reason']}")
+
+    if domain_status["has_escalated"]:
+        print(f"\n   🔴 ESCALATED (NOT IMPLEMENTED) tasks:")
+        for task in domain_status["escalated_tasks"]:
+            print(f"      - {task['id']}: {task['title']}")
+        print(f"   ⚠️ WARNING: Escalated tasks were SKIPPED - dependent code may fail!")
+
+    # Ask user how to proceed
+    response = AskUserQuestion(questions=[{
+        "question": f"Domain layer incomplete ({domain_status['completed']}/{domain_status['total']}). ¿Cómo proceder?",
+        "header": "Layer Dependency",
+        "options": [
+            {"label": "WAIT", "description": "Resolver tareas bloqueadas primero"},
+            {"label": "PROCEED", "description": "Continuar de todos modos (riesgo)"},
+            {"label": "ABORT", "description": "Detener migración"}
+        ],
+        "multiSelect": False
+    }])
+
+    user_choice = response.get("answer", "ABORT")
+
+    if user_choice == "WAIT":
+        print("🔄 Intentando resolver tareas bloqueadas del domain layer...")
+
+        # Retry blocked tasks
+        handle_blocked_tasks("domain-agent", "domain-queue.json")
+
+        # Re-check completeness
+        domain_status = verify_layer_completeness("domain")
+
+        if not domain_status["is_complete"]:
+            print(f"❌ Domain layer aún incompleto después de recovery")
+            print(f"   Completadas: {domain_status['completed']}/{domain_status['total']}")
+
+            # Offer to proceed anyway or abort
+            retry_response = AskUserQuestion(questions=[{
+                "question": "Recovery no resolvió todos los bloqueos. ¿Continuar de todos modos?",
+                "header": "Recovery Failed",
+                "options": [
+                    {"label": "PROCEED", "description": "Continuar con riesgo"},
+                    {"label": "ABORT", "description": "Detener migración"}
+                ],
+                "multiSelect": False
+            }])
+
+            if retry_response.get("answer") == "ABORT":
+                abort_migration("Domain layer incomplete after recovery attempt")
+            else:
+                print("⚠️ WARNING: Continuando con domain layer incompleto")
+        else:
+            print(f"✅ Domain layer ahora completo después de recovery")
+
+    elif user_choice == "PROCEED":
+        print("⚠️ WARNING: Continuando con domain layer incompleto - pueden ocurrir errores")
+
+        # Log warning for traceability
+        log_warning_to_state({
+            "type": "incomplete_layer_proceed",
+            "layer": "domain",
+            "completed": domain_status["completed"],
+            "total": domain_status["total"],
+            "blocked": domain_status["blocked"],
+            "timestamp": current_timestamp()
+        })
+
+    elif user_choice == "ABORT":
+        abort_migration(f"User aborted: domain layer incomplete ({domain_status['completed']}/{domain_status['total']})")
+
+else:
+    print(f"✅ Domain layer complete: {domain_status['completed']}/{domain_status['total']} tasks")
+```
 
 **PHASE A: Task Selection + Validation**
 
@@ -343,13 +835,158 @@ application_tasks = queue["queue"]
 rejected = queue.get("rejected_tasks", [])
 
 print(f"📋 Use-case agent aceptó {len(application_tasks)} tareas")
+
+# 🆕 v4.4.1: IMMEDIATE REJECTION PROCESSING
 if rejected:
-    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
+    print(f"⚠️ Rechazó {len(rejected)} tareas - procesando INMEDIATAMENTE")
+
+    for rejection in rejected:
+        task_id = rejection["task_id"]
+        new_layer = rejection["suggested_layer"]
+        reason = rejection.get("reason", "No reason provided")
+
+        print(f"   🔄 Re-clasificando {task_id}: application → {new_layer}")
+
+        # Update tasks.json with new layer
+        Bash: python3 << PYEOF
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "$task_id"
+NEW_LAYER = "$new_layer"
+REASON = "$reason"
+
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        old_layer = task.get('layer')
+        task['layer'] = NEW_LAYER
+        task['owner'] = None
+        task['status'] = 'pending'
+        task['updated_at'] = timestamp
+
+        if 'rejection_history' not in task:
+            task['rejection_history'] = []
+
+        task['rejection_history'].append({
+            'rejected_by': 'use-case-agent',
+            'original_layer': old_layer,
+            'suggested_layer': NEW_LAYER,
+            'reason': REASON,
+            'timestamp': timestamp
+        })
+
+        print(f'   ✅ Updated {TASK_ID}: {old_layer} → {NEW_LAYER}')
+
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'use-case-agent'
+
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+PYEOF
+
+        # Log rejection to transaction log
+        Bash: echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"use-case-agent","operation":"reject_task","task_id":"'$task_id'","before":{"layer":"application"},"after":{"layer":"'$new_layer'"},"reason":"'$reason'"}' >> docs/state/transaction-log.jsonl
+
+    print(f"✅ Todas las rejections procesadas - tasks.json actualizado")
+
+# 🆕 Handle escalated tasks
+escalated = queue.get("escalated_tasks", [])
+if escalated:
+    print(f"🔴 {len(escalated)} tareas ESCALADAS requieren clasificación manual")
+    handle_escalated_tasks("use-case-agent", escalated)
 ```
 
 **PHASE B: Execute each task** (same pattern as domain layer)
 
+```python
+# After completing PHASE B
+print(f"✅ APPLICATION LAYER COMPLETE")
+
+# Check for blocked tasks and handle them
+handle_blocked_tasks("use-case-agent", "application-queue.json")
+
+# 🆕 Check for orphaned tasks in application layer
+check_layer_orphans("application")
+```
+
 #### STEP 6.3: INFRASTRUCTURE BACKEND (Hybrid)
+
+**PRE-CHECK: Verify Domain + Application Layer Completeness (MANDATORY)**
+
+```python
+print("🔍 PRE-CHECK: Verifying domain + application layer completeness...")
+
+# Verify both prerequisite layers
+all_prereqs_complete = True
+
+for layer in ["domain", "application"]:
+    status = verify_layer_completeness(layer)
+
+    if not status["is_complete"]:
+        all_prereqs_complete = False
+        print(f"🔴 BLOCKED: {layer.upper()} layer is NOT complete")
+        print(f"   - Total: {status['total']} | Completed: {status['completed']} | Blocked: {status['blocked']}")
+
+        if status["blocked_tasks"]:
+            print(f"   ⚠️ Blocked tasks:")
+            for task in status["blocked_tasks"][:3]:  # Show max 3
+                print(f"      - {task['id']}: {task.get('blocker_info', {}).get('reason', 'Unknown')}")
+
+        response = AskUserQuestion(questions=[{
+            "question": f"{layer.capitalize()} layer incomplete. ¿Cómo proceder?",
+            "header": "Layer Dependency",
+            "options": [
+                {"label": "WAIT", "description": "Resolver tareas bloqueadas primero"},
+                {"label": "PROCEED", "description": "Continuar (riesgo de errores)"},
+                {"label": "ABORT", "description": "Detener migración"}
+            ],
+            "multiSelect": False
+        }])
+
+        user_choice = response.get("answer", "ABORT")
+
+        if user_choice == "WAIT":
+            print(f"🔄 Intentando resolver tareas bloqueadas del {layer} layer...")
+            queue_file = "domain-queue.json" if layer == "domain" else "application-queue.json"
+            agent_name = "domain-agent" if layer == "domain" else "use-case-agent"
+            handle_blocked_tasks(agent_name, queue_file)
+
+            # Re-check
+            status = verify_layer_completeness(layer)
+            if status["is_complete"]:
+                print(f"✅ {layer.capitalize()} layer ahora completo")
+            else:
+                print(f"⚠️ {layer.capitalize()} layer aún incompleto - continuando con riesgo")
+
+        elif user_choice == "PROCEED":
+            print(f"⚠️ WARNING: Continuando con {layer} layer incompleto")
+            log_warning_to_state({
+                "type": "incomplete_layer_proceed",
+                "layer": layer,
+                "completed": status["completed"],
+                "total": status["total"],
+                "timestamp": current_timestamp()
+            })
+
+        elif user_choice == "ABORT":
+            abort_migration(f"User aborted: {layer} layer incomplete")
+
+    else:
+        print(f"✅ {layer.capitalize()} layer complete: {status['completed']}/{status['total']} tasks")
+
+if all_prereqs_complete:
+    print("✅ All prerequisite layers complete - proceeding to infrastructure backend")
+```
 
 **PHASE A: Task Selection + Validation**
 
@@ -388,11 +1025,89 @@ backend_tasks = queue["queue"]
 rejected = queue.get("rejected_tasks", [])
 
 print(f"📋 Infrastructure agent (backend) aceptó {len(backend_tasks)} tareas")
+
+# 🆕 v4.4.1: IMMEDIATE REJECTION PROCESSING
 if rejected:
-    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
+    print(f"⚠️ Rechazó {len(rejected)} tareas - procesando INMEDIATAMENTE")
+
+    for rejection in rejected:
+        task_id = rejection["task_id"]
+        new_layer = rejection["suggested_layer"]
+        reason = rejection.get("reason", "No reason provided")
+
+        print(f"   🔄 Re-clasificando {task_id}: infrastructure_backend → {new_layer}")
+
+        # Update tasks.json with new layer
+        Bash: python3 << PYEOF
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "$task_id"
+NEW_LAYER = "$new_layer"
+REASON = "$reason"
+
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        old_layer = task.get('layer')
+        task['layer'] = NEW_LAYER
+        task['owner'] = None
+        task['status'] = 'pending'
+        task['updated_at'] = timestamp
+
+        if 'rejection_history' not in task:
+            task['rejection_history'] = []
+
+        task['rejection_history'].append({
+            'rejected_by': 'infrastructure-agent-backend',
+            'original_layer': old_layer,
+            'suggested_layer': NEW_LAYER,
+            'reason': REASON,
+            'timestamp': timestamp
+        })
+
+        print(f'   ✅ Updated {TASK_ID}: {old_layer} → {NEW_LAYER}')
+
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'infrastructure-agent-backend'
+
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+PYEOF
+
+        # Log rejection to transaction log
+        Bash: echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"infrastructure-agent-backend","operation":"reject_task","task_id":"'$task_id'","before":{"layer":"infrastructure_backend"},"after":{"layer":"'$new_layer'"},"reason":"'$reason'"}' >> docs/state/transaction-log.jsonl
+
+    print(f"✅ Todas las rejections procesadas - tasks.json actualizado")
+
+# 🆕 Handle escalated tasks
+escalated = queue.get("escalated_tasks", [])
+if escalated:
+    print(f"🔴 {len(escalated)} tareas ESCALADAS requieren clasificación manual")
+    handle_escalated_tasks("infrastructure-agent-backend", escalated)
 ```
 
 **PHASE B: Execute each task** (same pattern)
+
+```python
+# After completing PHASE B
+print(f"✅ INFRASTRUCTURE BACKEND COMPLETE")
+
+# Check for blocked tasks and handle them
+handle_blocked_tasks("infrastructure-agent-backend", "infrastructure-backend-queue.json")
+
+# 🆕 Check for orphaned tasks in infrastructure_backend layer
+check_layer_orphans("infrastructure_backend")
+```
 
 #### STEP 6.4: UI Design & Approval
 
@@ -426,6 +1141,81 @@ AskUserQuestion(questions=[{
 ```
 
 #### STEP 6.5: INFRASTRUCTURE FRONTEND (Hybrid)
+
+**PRE-CHECK: Verify All Backend Layers Complete (MANDATORY)**
+
+```python
+print("🔍 PRE-CHECK: Verifying all backend layers completeness...")
+
+# Use the comprehensive prerequisite check
+prereq_status = verify_all_prerequisites("infrastructure_frontend")
+
+if not prereq_status["can_proceed"]:
+    print(f"🔴 BLOCKED: Cannot start frontend - prerequisite layers incomplete")
+
+    for blocking_layer in prereq_status["blocking_layers"]:
+        status = prereq_status["details"][blocking_layer]
+        print(f"\n   ❌ {blocking_layer.upper()} layer:")
+        print(f"      - Total: {status['total']} | Completed: {status['completed']}")
+        print(f"      - Blocked: {status['blocked']} | In Progress: {status['in_progress']}")
+
+        if status["blocked_tasks"]:
+            print(f"      ⚠️ Blocked tasks:")
+            for task in status["blocked_tasks"][:3]:
+                reason = task.get("blocker_info", {}).get("reason", "Unknown")
+                print(f"         - {task['id']}: {reason}")
+
+    response = AskUserQuestion(questions=[{
+        "question": f"Frontend blocked by {len(prereq_status['blocking_layers'])} incomplete layer(s). ¿Cómo proceder?",
+        "header": "Layer Dependency",
+        "options": [
+            {"label": "WAIT", "description": "Resolver tareas bloqueadas primero"},
+            {"label": "PROCEED", "description": "Continuar de todos modos (riesgo alto)"},
+            {"label": "ABORT", "description": "Detener migración"}
+        ],
+        "multiSelect": False
+    }])
+
+    user_choice = response.get("answer", "ABORT")
+
+    if user_choice == "WAIT":
+        print("🔄 Intentando resolver tareas bloqueadas de layers prerequisitos...")
+
+        # Try to recover each blocking layer
+        for blocking_layer in prereq_status["blocking_layers"]:
+            queue_map = {
+                "domain": ("domain-agent", "domain-queue.json"),
+                "application": ("use-case-agent", "application-queue.json"),
+                "infrastructure_backend": ("infrastructure-agent", "infrastructure-backend-queue.json")
+            }
+            if blocking_layer in queue_map:
+                agent, queue_file = queue_map[blocking_layer]
+                handle_blocked_tasks(agent, queue_file)
+
+        # Re-check prerequisites
+        prereq_status = verify_all_prerequisites("infrastructure_frontend")
+        if prereq_status["can_proceed"]:
+            print("✅ Todos los prerequisitos ahora completos")
+        else:
+            print(f"⚠️ Aún hay {len(prereq_status['blocking_layers'])} layers incompletos - continuando con riesgo")
+
+    elif user_choice == "PROCEED":
+        print("⚠️ WARNING: Continuando con prerequisitos incompletos - ALTO RIESGO de errores")
+        log_warning_to_state({
+            "type": "incomplete_prereqs_proceed",
+            "target_layer": "infrastructure_frontend",
+            "blocking_layers": prereq_status["blocking_layers"],
+            "timestamp": current_timestamp()
+        })
+
+    elif user_choice == "ABORT":
+        abort_migration(f"User aborted: frontend prerequisites incomplete ({prereq_status['blocking_layers']})")
+
+else:
+    print(f"✅ All prerequisite layers complete:")
+    for layer, status in prereq_status["details"].items():
+        print(f"   - {layer}: {status['completed']}/{status['total']} tasks")
+```
 
 **PHASE A: Task Selection + Validation**
 
@@ -464,11 +1254,1373 @@ frontend_tasks = queue["queue"]
 rejected = queue.get("rejected_tasks", [])
 
 print(f"📋 Infrastructure agent (frontend) aceptó {len(frontend_tasks)} tareas")
+
+# 🆕 v4.4.1: IMMEDIATE REJECTION PROCESSING
 if rejected:
-    print(f"⚠️ Rechazó {len(rejected)} tareas (re-clasificadas en tasks.json)")
+    print(f"⚠️ Rechazó {len(rejected)} tareas - procesando INMEDIATAMENTE")
+
+    for rejection in rejected:
+        task_id = rejection["task_id"]
+        new_layer = rejection["suggested_layer"]
+        reason = rejection.get("reason", "No reason provided")
+
+        print(f"   🔄 Re-clasificando {task_id}: infrastructure_frontend → {new_layer}")
+
+        # Update tasks.json with new layer
+        Bash: python3 << PYEOF
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "$task_id"
+NEW_LAYER = "$new_layer"
+REASON = "$reason"
+
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        old_layer = task.get('layer')
+        task['layer'] = NEW_LAYER
+        task['owner'] = None
+        task['status'] = 'pending'
+        task['updated_at'] = timestamp
+
+        if 'rejection_history' not in task:
+            task['rejection_history'] = []
+
+        task['rejection_history'].append({
+            'rejected_by': 'infrastructure-agent-frontend',
+            'original_layer': old_layer,
+            'suggested_layer': NEW_LAYER,
+            'reason': REASON,
+            'timestamp': timestamp
+        })
+
+        print(f'   ✅ Updated {TASK_ID}: {old_layer} → {NEW_LAYER}')
+
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'infrastructure-agent-frontend'
+
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+PYEOF
+
+        # Log rejection to transaction log
+        Bash: echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"infrastructure-agent-frontend","operation":"reject_task","task_id":"'$task_id'","before":{"layer":"infrastructure_frontend"},"after":{"layer":"'$new_layer'"},"reason":"'$reason'"}' >> docs/state/transaction-log.jsonl
+
+    print(f"✅ Todas las rejections procesadas - tasks.json actualizado")
+
+# 🆕 Handle escalated tasks
+escalated = queue.get("escalated_tasks", [])
+if escalated:
+    print(f"🔴 {len(escalated)} tareas ESCALADAS requieren clasificación manual")
+    handle_escalated_tasks("infrastructure-agent-frontend", escalated)
 ```
 
 **PHASE B: Execute each task** (same pattern)
+
+```python
+# After completing PHASE B
+print(f"✅ INFRASTRUCTURE FRONTEND COMPLETE")
+
+# Check for blocked tasks and handle them
+handle_blocked_tasks("infrastructure-agent-frontend", "infrastructure-frontend-queue.json")
+
+# 🆕 Check for orphaned tasks in infrastructure_frontend layer
+check_layer_orphans("infrastructure_frontend")
+```
+
+---
+
+### STEP 6.6: REJECTION RECOVERY ~~(DEPRECATED in v4.4.1)~~
+
+**⚠️ DEPRECATED**: This step is NO LONGER NEEDED in v4.4.1.
+
+**Why**: Rejections are now processed IMMEDIATELY after each PHASE A (see v4.4.1 sections in STEPs 6.1-6.5).
+
+**Old behavior (v4.4)**: Rejected tasks were tracked and re-classified at the END (this step).
+
+**New behavior (v4.4.1)**: Rejected tasks are re-classified IMMEDIATELY after each PHASE A completes.
+
+**If you're using v4.4.1, SKIP this entire step.**
+
+---
+
+~~**After all 4 layers complete their PHASE A + B, process any rejected tasks that were re-classified.**~~
+
+```python
+print("🔄 REJECTION RECOVERY: Processing re-classified tasks")
+
+# Read rejection tracking file
+Read: docs/state/rejection-tracker.json
+
+# Group rejected tasks by their NEW suggested_layer
+rejections_by_layer = group_rejections_by_suggested_layer(rejection_tracker)
+
+# For each layer that has pending re-classified tasks
+for layer, rejected_tasks in rejections_by_layer.items():
+    if not rejected_tasks:
+        continue
+
+    print(f"📋 Processing {len(rejected_tasks)} tasks re-classified to {layer}")
+
+    # Check if these tasks are still unprocessed (owner = null or status != completed)
+    unprocessed = filter_unprocessed_tasks(rejected_tasks)
+
+    if not unprocessed:
+        print(f"   ✅ All {layer} re-classified tasks already processed")
+        continue
+
+    print(f"   ⚠️ {len(unprocessed)} tasks need processing")
+
+    # Re-invoke the appropriate agent's PHASE A to pick up these tasks
+    if layer == "domain":
+        # Domain agent should have processed these - check why not
+        print(f"   🔴 ERROR: Domain tasks found after domain phase complete!")
+        # These might be late arrivals from infrastructure rejection - flag for manual review
+
+    elif layer == "application":
+        print(f"   🔄 Re-invoking use-case-agent PHASE A for {len(unprocessed)} tasks")
+        Task(
+            description="Use-case agent - Phase A: Pick up re-classified tasks",
+            prompt=f"""
+            You are the use-case-agent. Read .claude/agents/use-case-agent.md.
+
+            **PHASE A: PICK UP RE-CLASSIFIED TASKS**
+
+            {len(unprocessed)} tasks were re-classified to application layer by other agents.
+            Task IDs: {[t['task_id'] for t in unprocessed]}
+
+            YOUR MISSION:
+            1. Read docs/state/tasks.json
+            2. Find these specific tasks (they should now have layer="application")
+            3. Add them to your existing queue file
+            4. Return for PHASE B execution
+
+            **DO NOT IMPLEMENT. Just add to queue.**
+            """,
+            subagent_type="use-case-agent",
+            model="sonnet"
+        )
+        # Then execute PHASE B for new tasks
+        execute_phase_b_for_tasks("use-case-agent", unprocessed)
+
+    elif layer == "infrastructure_backend":
+        print(f"   🔄 Re-invoking infrastructure-agent (backend) PHASE A for {len(unprocessed)} tasks")
+        Task(
+            description="Infrastructure agent (backend) - Pick up re-classified tasks",
+            prompt=f"""
+            You are the infrastructure-agent. Read .claude/agents/infrastructure-agent.md.
+
+            **PHASE A: PICK UP RE-CLASSIFIED TASKS (Backend)**
+
+            {len(unprocessed)} tasks were re-classified to infrastructure_backend by other agents.
+            Task IDs: {[t['task_id'] for t in unprocessed]}
+
+            YOUR MISSION:
+            1. Read docs/state/tasks.json
+            2. Find these specific tasks
+            3. Add them to infrastructure-backend-queue.json
+            4. Return for PHASE B execution
+
+            **DO NOT IMPLEMENT. Just add to queue.**
+            """,
+            subagent_type="infrastructure-agent",
+            model="sonnet"
+        )
+        execute_phase_b_for_tasks("infrastructure-agent-backend", unprocessed)
+
+    elif layer == "infrastructure_frontend":
+        print(f"   🔄 Re-invoking infrastructure-agent (frontend) PHASE A for {len(unprocessed)} tasks")
+        Task(
+            description="Infrastructure agent (frontend) - Pick up re-classified tasks",
+            prompt=f"""
+            You are the infrastructure-agent. Read .claude/agents/infrastructure-agent.md.
+
+            **PHASE A: PICK UP RE-CLASSIFIED TASKS (Frontend)**
+
+            {len(unprocessed)} tasks were re-classified to infrastructure_frontend by other agents.
+            Task IDs: {[t['task_id'] for t in unprocessed]}
+
+            YOUR MISSION:
+            1. Read docs/state/tasks.json
+            2. Find these specific tasks
+            3. Add them to infrastructure-frontend-queue.json
+            4. Return for PHASE B execution
+
+            **DO NOT IMPLEMENT. Just add to queue.**
+            """,
+            subagent_type="infrastructure-agent",
+            model="sonnet"
+        )
+        execute_phase_b_for_tasks("infrastructure-agent-frontend", unprocessed)
+
+print("✅ REJECTION RECOVERY COMPLETE")
+
+# Final validation: Check no tasks are orphaned
+orphaned = find_orphaned_tasks()  # Tasks with owner=null and status!=completed
+if orphaned:
+    print(f"🔴 Found {len(orphaned)} orphaned tasks - initiating recovery")
+    recover_orphaned_tasks(orphaned)
+else:
+    print("✅ All tasks have been processed or assigned")
+```
+
+**Helper Function: find_orphaned_tasks**
+
+```python
+def find_orphaned_tasks() -> list:
+    """
+    Find tasks that are orphaned (no owner, not completed, not in any queue).
+
+    Returns:
+        List of orphaned task dicts
+    """
+    tasks_data = Read("docs/state/tasks.json")
+    all_tasks = tasks_data.get("tasks", [])
+
+    # Build set of task IDs that are in queue files
+    queued_task_ids = set()
+    queue_files = [
+        "domain-queue.json",
+        "application-queue.json",
+        "infrastructure-backend-queue.json",
+        "infrastructure-frontend-queue.json"
+    ]
+
+    for queue_file in queue_files:
+        try:
+            queue = Read(f"docs/state/agent-queues/{queue_file}")
+            for item in queue.get("queue", []):
+                queued_task_ids.add(item.get("task_id"))
+        except:
+            pass  # Queue file doesn't exist yet
+
+    # Find orphaned tasks
+    orphaned = []
+    terminal_statuses = ["completed", "escalated"]
+
+    for task in all_tasks:
+        task_id = task.get("id")
+        status = task.get("status")
+        owner = task.get("owner")
+
+        # Skip terminal tasks
+        if status in terminal_statuses:
+            continue
+
+        # Orphaned if: no owner AND not in any queue
+        if owner is None and task_id not in queued_task_ids:
+            orphaned.append(task)
+
+    return orphaned
+
+
+def recover_orphaned_tasks(orphaned_tasks: list):
+    """
+    Recover orphaned tasks by:
+    1. Analyzing why they're orphaned
+    2. Offering recovery options to user
+    3. Re-assigning to appropriate queues
+    """
+    print(f"\n{'='*60}")
+    print(f"🔄 ORPHANED TASK RECOVERY")
+    print(f"{'='*60}")
+    print(f"Found {len(orphaned_tasks)} orphaned tasks")
+
+    # Categorize orphans by their layer
+    by_layer = {
+        "domain": [],
+        "application": [],
+        "infrastructure_backend": [],
+        "infrastructure_frontend": [],
+        "unknown": []
+    }
+
+    for task in orphaned_tasks:
+        layer = task.get("layer")
+        if layer in by_layer:
+            by_layer[layer].append(task)
+        else:
+            by_layer["unknown"].append(task)
+
+    # Report
+    print(f"\n📊 Orphans by layer:")
+    for layer, tasks in by_layer.items():
+        if tasks:
+            print(f"   {layer}: {len(tasks)} tasks")
+
+    # Ask user how to proceed
+    response = AskUserQuestion(questions=[{
+        "question": f"¿Cómo quieres manejar los {len(orphaned_tasks)} huérfanos?",
+        "header": "Orphan Recovery",
+        "options": [
+            {"label": "AUTO_RECOVER", "description": "Asignar automáticamente a sus layers"},
+            {"label": "CLASSIFY", "description": "Clasificar manualmente los 'unknown'"},
+            {"label": "SKIP", "description": "Marcar como escalated y continuar"},
+            {"label": "ABORT", "description": "Detener para revisión manual"}
+        ],
+        "multiSelect": False
+    }])
+
+    choice = response.get("answer", "SKIP")
+
+    if choice == "AUTO_RECOVER":
+        auto_recover_orphans(by_layer)
+    elif choice == "CLASSIFY":
+        # Only classify unknowns, auto-recover the rest
+        if by_layer["unknown"]:
+            classified = classify_unknown_orphans(by_layer["unknown"])
+            # Merge classified into by_layer
+            for layer, tasks in classified.items():
+                by_layer[layer].extend(tasks)
+            by_layer["unknown"] = []
+        auto_recover_orphans(by_layer)
+    elif choice == "SKIP":
+        skip_orphaned_tasks(orphaned_tasks)
+    elif choice == "ABORT":
+        abort_migration("User aborted due to orphaned tasks")
+
+
+def auto_recover_orphans(by_layer: dict):
+    """
+    Automatically recover orphaned tasks by adding them to appropriate queues.
+    """
+    print(f"\n🔄 Auto-recovering orphans...")
+
+    queue_map = {
+        "domain": "domain-queue.json",
+        "application": "application-queue.json",
+        "infrastructure_backend": "infrastructure-backend-queue.json",
+        "infrastructure_frontend": "infrastructure-frontend-queue.json"
+    }
+
+    recovered = 0
+    failed = []
+
+    for layer, tasks in by_layer.items():
+        if not tasks or layer == "unknown":
+            continue
+
+        queue_file = queue_map.get(layer)
+        if not queue_file:
+            failed.extend(tasks)
+            continue
+
+        queue_path = f"docs/state/agent-queues/{queue_file}"
+
+        # Read or create queue
+        try:
+            queue = Read(queue_path)
+        except:
+            queue = {
+                "agent": layer.replace("_", "-") + "-agent",
+                "created_at": current_timestamp(),
+                "total_tasks": 0,
+                "completed": 0,
+                "queue": [],
+                "rejected_tasks": [],
+                "escalated_tasks": [],
+                "blocked_tasks": []
+            }
+
+        # Add orphans to queue
+        next_position = len(queue["queue"]) + 1
+        for task in tasks:
+            # Check if already in queue (avoid duplicates)
+            if any(q.get("task_id") == task["id"] for q in queue["queue"]):
+                print(f"   ⏭️ {task['id']} already in queue - skipping")
+                continue
+
+            queue["queue"].append({
+                "position": next_position,
+                "task_id": task["id"],
+                "title": task.get("title", "Unknown"),
+                "status": "pending",
+                "test_files": task.get("test_files", []),
+                "recovered_from": "orphan_recovery"
+            })
+            next_position += 1
+            recovered += 1
+
+            # Update task in tasks.json
+            update_task_for_recovery(task["id"], layer)
+
+        queue["total_tasks"] = len(queue["queue"])
+        Write(queue_path, queue)
+        print(f"   ✅ Added {len(tasks)} tasks to {queue_file}")
+
+    # Handle unknown layer tasks
+    if by_layer.get("unknown"):
+        print(f"\n   ⚠️ {len(by_layer['unknown'])} tasks with unknown layer - marking as escalated")
+        for task in by_layer["unknown"]:
+            mark_task_as_skipped(task["id"])
+            failed.append(task)
+
+    # Summary
+    print(f"\n📊 Recovery Summary:")
+    print(f"   Recovered: {recovered}")
+    print(f"   Failed/Unknown: {len(failed)}")
+
+    if failed:
+        print(f"\n   Failed tasks:")
+        for task in failed[:5]:  # Show max 5
+            print(f"      - {task['id']}: {task.get('title', 'Unknown')}")
+        if len(failed) > 5:
+            print(f"      ... and {len(failed) - 5} more")
+
+
+def update_task_for_recovery(task_id: str, layer: str):
+    """Update a task's status after recovery."""
+    def update(tasks_data):
+        for task in tasks_data["tasks"]:
+            if task["id"] == task_id:
+                task["status"] = "queued"
+                task["layer"] = layer
+
+                # Add recovery note
+                if "recovery_history" not in task:
+                    task["recovery_history"] = []
+
+                task["recovery_history"].append({
+                    "recovered_from": "orphan",
+                    "recovered_to": layer,
+                    "timestamp": current_timestamp()
+                })
+
+        return tasks_data
+
+    safe_update_state_file("docs/state/tasks.json", update)
+
+
+def classify_unknown_orphans(unknown_tasks: list) -> dict:
+    """
+    Interactively classify orphaned tasks with unknown layer.
+    """
+    classified = {
+        "domain": [],
+        "application": [],
+        "infrastructure_backend": [],
+        "infrastructure_frontend": []
+    }
+
+    print(f"\n📋 Classifying {len(unknown_tasks)} orphans with unknown layer...")
+
+    for task in unknown_tasks:
+        task_id = task["id"]
+        title = task.get("title", "Unknown")
+
+        print(f"\n   Task: {task_id}")
+        print(f"   Title: {title}")
+
+        response = AskUserQuestion(questions=[{
+            "question": f"¿A qué layer pertenece '{title}'?",
+            "header": "Classify Orphan",
+            "options": [
+                {"label": "domain", "description": "Entities, value objects, business rules"},
+                {"label": "application", "description": "Use cases, DTOs, interfaces"},
+                {"label": "infrastructure_backend", "description": "ORM, API, database"},
+                {"label": "infrastructure_frontend", "description": "React, pages, UI"},
+                {"label": "SKIP", "description": "Mark as escalated"}
+            ],
+            "multiSelect": False
+        }])
+
+        choice = response.get("answer", "SKIP")
+
+        if choice == "SKIP":
+            mark_task_as_skipped(task_id)
+        elif choice in classified:
+            classified[choice].append(task)
+            # Update task layer in tasks.json
+            update_task_classification(task_id, choice)
+
+    return classified
+
+
+def skip_orphaned_tasks(orphaned_tasks: list):
+    """Mark all orphaned tasks as escalated/skipped."""
+    print(f"\n⏭️ Marking {len(orphaned_tasks)} orphans as skipped...")
+
+    for task in orphaned_tasks:
+        def update(tasks_data):
+            for t in tasks_data["tasks"]:
+                if t["id"] == task["id"]:
+                    t["status"] = "escalated"
+                    t["escalation_info"] = {
+                        "reason": "orphan_skipped",
+                        "timestamp": current_timestamp(),
+                        "note": "Task was orphaned and user chose to skip"
+                    }
+            return tasks_data
+
+        safe_update_state_file("docs/state/tasks.json", update)
+        print(f"   - {task['id']}: marked as skipped")
+
+    print(f"✅ All orphans marked as skipped")
+```
+
+**Helper Function: handle_escalated_tasks**
+
+```python
+def handle_escalated_tasks(agent: str, escalated_tasks: list):
+    """
+    Handle tasks that have exceeded max rejections or have circular rejection patterns.
+    These tasks require manual classification by the user.
+    """
+    if not escalated_tasks:
+        return
+
+    print(f"\n🔴 ESCALATED TASKS from {agent}:")
+    print(f"   These tasks could not be automatically classified.\n")
+
+    for task in escalated_tasks:
+        task_id = task["task_id"]
+        title = task["title"]
+        reason = task["reason"]
+        circular = task.get("circular_detected", False)
+
+        print(f"   📋 {task_id}: {title}")
+        print(f"      Reason: {reason}")
+
+        if circular:
+            print(f"      ⚠️ CIRCULAR REJECTION DETECTED")
+            history = task.get("rejection_history", [])
+            if history:
+                path = " → ".join([h.get("suggested_layer", "?") for h in history])
+                print(f"      Path: {path}")
+
+    # Ask user how to handle escalated tasks
+    response = AskUserQuestion(questions=[{
+        "question": f"Hay {len(escalated_tasks)} tareas que no pudieron clasificarse automáticamente. ¿Cómo proceder?",
+        "header": "Escalated Tasks",
+        "options": [
+            {"label": "CLASSIFY", "description": "Déjame clasificarlas manualmente"},
+            {"label": "SKIP", "description": "Omitir estas tareas y continuar"},
+            {"label": "ABORT", "description": "Detener migración para revisión"}
+        ],
+        "multiSelect": False
+    }])
+
+    # Handle user response
+    user_choice = response.get("answer", "SKIP")
+
+    if user_choice == "CLASSIFY":
+        process_manual_classification(escalated_tasks)
+    elif user_choice == "SKIP":
+        mark_tasks_as_skipped(escalated_tasks)
+    elif user_choice == "ABORT":
+        abort_migration("User aborted due to escalated tasks")
+```
+
+**Helper Function: process_manual_classification**
+
+```python
+def process_manual_classification(escalated_tasks: list):
+    """
+    Interactively classify escalated tasks with user input.
+    """
+    print(f"\n📋 MANUAL CLASSIFICATION - {len(escalated_tasks)} tasks")
+
+    classified_tasks = {
+        "domain": [],
+        "application": [],
+        "infrastructure_backend": [],
+        "infrastructure_frontend": []
+    }
+
+    for task in escalated_tasks:
+        task_id = task["task_id"]
+        title = task["title"]
+        reason = task.get("reason", "No reason provided")
+
+        print(f"\n{'='*60}")
+        print(f"📋 Task: {task_id}")
+        print(f"   Title: {title}")
+        print(f"   Escalation reason: {reason}")
+
+        # Show rejection history if available
+        history = task.get("rejection_history", [])
+        if history:
+            print(f"\n   📜 Rejection history:")
+            for i, h in enumerate(history, 1):
+                print(f"      {i}. {h.get('rejected_by', '?')} → suggested: {h.get('suggested_layer', '?')}")
+                print(f"         Reason: {h.get('reason', 'No reason')}")
+
+        # Ask user for classification
+        response = AskUserQuestion(questions=[{
+            "question": f"¿A qué layer pertenece '{title}'?",
+            "header": "Classification",
+            "options": [
+                {"label": "domain", "description": "Entities, value objects, business rules (pure logic)"},
+                {"label": "application", "description": "Use cases, DTOs, repository interfaces"},
+                {"label": "infrastructure_backend", "description": "ORM, API endpoints, database"},
+                {"label": "infrastructure_frontend", "description": "React components, pages, UI"},
+                {"label": "SKIP", "description": "Skip this task (mark as escalated)"}
+            ],
+            "multiSelect": False
+        }])
+
+        chosen_layer = response.get("answer", "SKIP")
+
+        if chosen_layer == "SKIP":
+            print(f"   ⏭️ Skipping {task_id}")
+            mark_task_as_skipped(task_id)
+        else:
+            print(f"   ✅ Classified as: {chosen_layer}")
+            classified_tasks[chosen_layer].append(task_id)
+
+            # Update tasks.json
+            update_task_classification(task_id, chosen_layer)
+
+    # Summary
+    print(f"\n{'='*60}")
+    print(f"📊 CLASSIFICATION SUMMARY")
+    print(f"{'='*60}")
+    for layer, task_ids in classified_tasks.items():
+        if task_ids:
+            print(f"   {layer}: {len(task_ids)} tasks")
+            for tid in task_ids:
+                print(f"      - {tid}")
+
+    # Re-queue classified tasks for appropriate agents
+    requeue_classified_tasks(classified_tasks)
+
+
+def update_task_classification(task_id: str, new_layer: str):
+    """
+    Update a task's layer classification in tasks.json.
+    Uses safe locking pattern.
+    """
+    def update(tasks_data):
+        for task in tasks_data["tasks"]:
+            if task["id"] == task_id:
+                old_layer = task.get("layer")
+
+                # Update task
+                task["layer"] = new_layer
+                task["owner"] = None  # Clear owner so new agent can pick it up
+                task["status"] = "pending"
+
+                # Add manual classification to history
+                if "classification_history" not in task:
+                    task["classification_history"] = []
+
+                task["classification_history"].append({
+                    "classified_by": "user_manual",
+                    "from_layer": old_layer,
+                    "to_layer": new_layer,
+                    "timestamp": current_timestamp(),
+                    "was_escalated": True
+                })
+
+                # Clear escalation status
+                if "escalation_info" in task:
+                    del task["escalation_info"]
+
+        return tasks_data
+
+    safe_update_state_file("docs/state/tasks.json", update)
+    print(f"   📝 Updated {task_id} → layer={new_layer}")
+
+
+def mark_task_as_skipped(task_id: str):
+    """Mark a task as skipped/escalated in tasks.json."""
+    def update(tasks_data):
+        for task in tasks_data["tasks"]:
+            if task["id"] == task_id:
+                task["status"] = "escalated"
+                task["escalation_info"] = {
+                    "reason": "user_skipped",
+                    "timestamp": current_timestamp(),
+                    "note": "User chose to skip this task during manual classification"
+                }
+        return tasks_data
+
+    safe_update_state_file("docs/state/tasks.json", update)
+
+
+def log_warning_to_state(warning: dict):
+    """Log a warning to global state for traceability."""
+    try:
+        global_state = Read("docs/state/global-state.json")
+    except:
+        global_state = {"warnings": [], "errors": []}
+
+    if "warnings" not in global_state:
+        global_state["warnings"] = []
+
+    global_state["warnings"].append(warning)
+    Write("docs/state/global-state.json", global_state)
+    print(f"   📝 Warning logged: {warning.get('type', 'unknown')}")
+
+
+def check_layer_orphans(layer: str):
+    """
+    Check for orphaned tasks in a specific layer after Phase B completes.
+    Orphans = tasks with layer=X, owner=null, status not terminal.
+    """
+    print(f"\n🔍 Checking for orphans in {layer} layer...")
+
+    tasks_data = Read("docs/state/tasks.json")
+    all_tasks = tasks_data.get("tasks", [])
+
+    # Find orphans in this layer
+    terminal_statuses = ["completed", "escalated"]
+    layer_orphans = [
+        t for t in all_tasks
+        if t.get("layer") == layer
+        and t.get("owner") is None
+        and t.get("status") not in terminal_statuses
+    ]
+
+    if not layer_orphans:
+        print(f"   ✅ No orphans in {layer} layer")
+        return
+
+    print(f"   ⚠️ Found {len(layer_orphans)} orphans in {layer} layer:")
+    for task in layer_orphans:
+        print(f"      - {task['id']}: {task.get('title', 'Unknown')} (status={task.get('status')})")
+
+    # Auto-recover: add to appropriate queue
+    queue_map = {
+        "domain": "domain-queue.json",
+        "application": "application-queue.json",
+        "infrastructure_backend": "infrastructure-backend-queue.json",
+        "infrastructure_frontend": "infrastructure-frontend-queue.json"
+    }
+
+    queue_file = queue_map.get(layer)
+    if not queue_file:
+        print(f"   🔴 Unknown layer: {layer}")
+        return
+
+    queue_path = f"docs/state/agent-queues/{queue_file}"
+
+    # Read existing queue
+    try:
+        queue = Read(queue_path)
+    except:
+        print(f"   🔴 Queue file not found: {queue_path}")
+        return
+
+    # Add orphans to queue
+    added = 0
+    for task in layer_orphans:
+        # Check not already in queue
+        if any(q.get("task_id") == task["id"] for q in queue.get("queue", [])):
+            continue
+
+        queue["queue"].append({
+            "position": len(queue["queue"]) + 1,
+            "task_id": task["id"],
+            "title": task.get("title", "Unknown"),
+            "status": "pending",
+            "test_files": task.get("test_files", []),
+            "recovered_from": "layer_orphan_check"
+        })
+        added += 1
+
+    if added > 0:
+        queue["total_tasks"] = len(queue["queue"])
+        Write(queue_path, queue)
+        print(f"   🔄 Added {added} orphans to {queue_file} for re-processing")
+
+        # Log for traceability
+        log_warning_to_state({
+            "type": "layer_orphans_recovered",
+            "layer": layer,
+            "count": added,
+            "task_ids": [t["id"] for t in layer_orphans],
+            "timestamp": current_timestamp()
+        })
+
+
+def group_rejections_by_suggested_layer(rejection_tracker: dict) -> dict:
+    """
+    Group rejected tasks by their suggested_layer.
+    Returns dict: {layer: [tasks]}
+    """
+    result = {
+        "domain": [],
+        "application": [],
+        "infrastructure_backend": [],
+        "infrastructure_frontend": []
+    }
+
+    for rejection in rejection_tracker.get("rejections", []):
+        if rejection.get("processed"):
+            continue  # Skip already processed
+
+        suggested = rejection.get("suggested_layer")
+        if suggested in result:
+            result[suggested].append(rejection)
+
+    return result
+
+
+def mark_tasks_as_skipped(escalated_tasks: list):
+    """Mark multiple tasks as skipped."""
+    print(f"\n⏭️ Marking {len(escalated_tasks)} tasks as skipped...")
+
+    for task in escalated_tasks:
+        mark_task_as_skipped(task["task_id"])
+        print(f"   - {task['task_id']}: marked as skipped")
+
+    print(f"✅ All escalated tasks marked as skipped")
+
+
+def requeue_classified_tasks(classified_tasks: dict):
+    """
+    Add classified tasks to the appropriate agent queues.
+    These will be processed in the next layer execution.
+    """
+    for layer, task_ids in classified_tasks.items():
+        if not task_ids:
+            continue
+
+        # Determine queue file based on layer
+        queue_map = {
+            "domain": "domain-queue.json",
+            "application": "application-queue.json",
+            "infrastructure_backend": "infrastructure-backend-queue.json",
+            "infrastructure_frontend": "infrastructure-frontend-queue.json"
+        }
+
+        queue_file = queue_map.get(layer)
+        if not queue_file:
+            continue
+
+        queue_path = f"docs/state/agent-queues/{queue_file}"
+
+        # Read existing queue or create new
+        try:
+            queue = Read(queue_path)
+        except:
+            queue = {
+                "agent": layer.replace("_", "-"),
+                "created_at": current_timestamp(),
+                "total_tasks": 0,
+                "completed": 0,
+                "queue": [],
+                "rejected_tasks": [],
+                "escalated_tasks": [],
+                "blocked_tasks": []
+            }
+
+        # Get task details from tasks.json
+        tasks_data = Read("docs/state/tasks.json")
+        all_tasks = {t["id"]: t for t in tasks_data.get("tasks", [])}
+
+        # Add tasks to queue
+        next_position = len(queue["queue"]) + 1
+        for task_id in task_ids:
+            task = all_tasks.get(task_id)
+            if task:
+                queue["queue"].append({
+                    "position": next_position,
+                    "task_id": task_id,
+                    "title": task.get("title", "Unknown"),
+                    "status": "pending",
+                    "test_files": task.get("test_files", []),
+                    "from_manual_classification": True
+                })
+                next_position += 1
+
+        queue["total_tasks"] = len(queue["queue"])
+
+        # Write queue
+        Write(queue_path, queue)
+        print(f"   📝 Added {len(task_ids)} tasks to {queue_file}")
+
+
+def abort_migration(reason: str):
+    """
+    Abort the migration process cleanly.
+    Saves current state and reports reason.
+    """
+    print(f"\n🛑 MIGRATION ABORTED")
+    print(f"   Reason: {reason}")
+
+    # Update global state
+    try:
+        global_state = Read("docs/state/global-state.json")
+        global_state["status"] = "aborted"
+        global_state["abort_reason"] = reason
+        global_state["abort_timestamp"] = current_timestamp()
+        Write("docs/state/global-state.json", global_state)
+    except:
+        pass
+
+    # Log the abort
+    log_transaction("migration_abort", "global-state.json", {
+        "reason": reason,
+        "timestamp": current_timestamp()
+    })
+
+    print(f"\n   State saved. You can review and resume later.")
+    print(f"   To resume: run /migrate-start and follow recovery prompts")
+
+    raise MigrationAbortedException(reason)
+
+---
+
+**Helper Function: track_rejected_tasks**
+
+```python
+def track_rejected_tasks(rejecting_agent: str, rejected_tasks: list):
+    """
+    Track rejected tasks in a central file for later processing.
+    Called after each agent's PHASE A completes.
+    """
+    tracker_path = "docs/state/rejection-tracker.json"
+
+    # Read existing tracker or create new
+    try:
+        tracker = Read(tracker_path)
+    except:
+        tracker = {"rejections": [], "processed": []}
+
+    # Add new rejections
+    for task in rejected_tasks:
+        tracker["rejections"].append({
+            "task_id": task["task_id"],
+            "title": task["title"],
+            "rejected_by": rejecting_agent,
+            "original_layer": task["original_layer"],
+            "suggested_layer": task["suggested_layer"],
+            "reason": task["reason"],
+            "timestamp": current_timestamp(),
+            "processed": False
+        })
+
+    Write(tracker_path, tracker)
+    print(f"   📝 Tracked {len(rejected_tasks)} rejections in rejection-tracker.json")
+```
+
+---
+
+### STEP 6.7: BLOCKED TASK RECOVERY (v4.4 - Critical)
+
+**After all layers complete, process any blocked tasks that may now be unblocked.**
+
+```python
+print("🔄 BLOCKED TASK RECOVERY: Processing blocked tasks")
+
+# Collect all blocked tasks from all queues
+all_blocked = []
+queue_files = [
+    "domain-queue.json",
+    "application-queue.json",
+    "infrastructure-backend-queue.json",
+    "infrastructure-frontend-queue.json"
+]
+
+for queue_file in queue_files:
+    try:
+        queue = Read(f"docs/state/agent-queues/{queue_file}")
+        blocked = queue.get("blocked_tasks", [])
+        if blocked:
+            all_blocked.extend([{**b, "queue_file": queue_file} for b in blocked])
+    except:
+        pass
+
+if not all_blocked:
+    print("✅ No blocked tasks to process")
+else:
+    print(f"⚠️ Found {len(all_blocked)} blocked tasks")
+
+    # Analyze each blocked task
+    for blocked_task in all_blocked:
+        task_id = blocked_task["task_id"]
+        reason = blocked_task["reason"]
+
+        print(f"\n📋 Analyzing blocked task: {task_id}")
+        print(f"   Reason: {reason}")
+
+        # Check if the blocker has been resolved
+        analysis = analyze_if_blocker_resolved(blocked_task)
+
+        print(f"   Analysis: {analysis['reason']}")
+        print(f"   Confidence: {analysis['confidence']*100:.0f}%")
+
+        if analysis["can_retry"] and analysis["confidence"] >= 0.5:
+            print(f"   ✅ Blocker appears resolved - scheduling retry")
+
+            # Determine which agent should retry
+            agent = determine_agent_from_queue(blocked_task["queue_file"])
+
+            Task(
+                description=f"{agent} - Retry blocked task {task_id}",
+                prompt=f"""
+                You are {agent}. Read .claude/agents/{agent}.md for instructions.
+
+                **RETRY BLOCKED TASK**
+
+                Task {task_id} was previously blocked with reason: {reason}
+                The blocker appears to be resolved now.
+
+                YOUR MISSION:
+                1. Re-attempt implementing this task
+                2. Run tests
+                3. If successful: mark as completed
+                4. If still blocked: mark as blocked with updated reason
+
+                Context from previous attempt:
+                {blocked_task.get("details", "No details available")}
+                """,
+                subagent_type=get_subagent_type(agent),
+                model="sonnet"
+            )
+        else:
+            print(f"   🔴 Blocker NOT resolved - escalating to user")
+
+            # Add to escalation list
+            escalations.append({
+                "task_id": task_id,
+                "reason": reason,
+                "details": blocked_task.get("details", "")
+            })
+
+# If there are escalations, ask user
+if escalations:
+    print(f"\n🔴 {len(escalations)} tasks require user attention:")
+    for esc in escalations:
+        print(f"   - {esc['task_id']}: {esc['reason']}")
+
+    AskUserQuestion(questions=[{
+        "question": f"Hay {len(escalations)} tareas bloqueadas que requieren tu atención. ¿Qué hacer?",
+        "header": "Blocked Tasks",
+        "options": [
+            {"label": "SKIP", "description": "Continuar sin estas tareas"},
+            {"label": "INVESTIGATE", "description": "Dame más detalles para investigar"},
+            {"label": "ABORT", "description": "Detener migración para revisión manual"}
+        ],
+        "multiSelect": False
+    }])
+```
+
+**Helper Function: handle_blocked_tasks**
+
+```python
+def handle_blocked_tasks(agent: str, queue_file: str):
+    """
+    Handle blocked tasks after an agent completes its queue.
+    Called after each layer's PHASE B completes.
+    """
+    queue = Read(f"docs/state/agent-queues/{queue_file}")
+    blocked = queue.get("blocked_tasks", [])
+
+    if not blocked:
+        print(f"   ✅ No blocked tasks in {queue_file}")
+        return
+
+    print(f"   ⚠️ {len(blocked)} blocked tasks in {queue_file}")
+
+    for task in blocked:
+        print(f"      - {task['task_id']}: {task['reason']}")
+
+    # These will be processed in STEP 6.7 (BLOCKED TASK RECOVERY)
+    # For now, just report them
+```
+
+**Helper Function: analyze_if_blocker_resolved**
+
+```python
+def analyze_if_blocker_resolved(blocked_task: dict) -> dict:
+    """
+    Analyze if the blocker for a task has been resolved.
+
+    Returns:
+        {
+            "can_retry": bool,
+            "reason": str,
+            "confidence": float,  # 0.0 - 1.0
+            "details": str
+        }
+    """
+    reason = blocked_task.get("reason", "unknown")
+    task_id = blocked_task["task_id"]
+    blocker_info = blocked_task.get("blocker_info", {})
+    details = blocked_task.get("details", "")
+
+    result = {
+        "can_retry": False,
+        "reason": "Unable to determine",
+        "confidence": 0.0,
+        "details": ""
+    }
+
+    # Read current tasks.json to check dependencies
+    tasks_data = Read("docs/state/tasks.json")
+    tasks = tasks_data.get("tasks", [])
+    task = next((t for t in tasks if t["id"] == task_id), None)
+
+    if not task:
+        result["reason"] = f"Task {task_id} not found in tasks.json"
+        return result
+
+    # ===============================
+    # REASON: missing_dependency
+    # ===============================
+    if reason == "missing_dependency":
+        # Extract dependency info
+        # Expected format in details: "Requires TASK-XXX to be completed" or "depends_on: [TASK-001, TASK-002]"
+        dependency_ids = extract_dependency_ids(details, blocker_info)
+
+        if not dependency_ids:
+            result["reason"] = "Could not identify dependency from blocker details"
+            result["details"] = f"Raw details: {details}"
+            return result
+
+        # Check status of each dependency
+        all_resolved = True
+        unresolved = []
+        for dep_id in dependency_ids:
+            dep_task = next((t for t in tasks if t["id"] == dep_id), None)
+            if not dep_task:
+                unresolved.append(f"{dep_id} (not found)")
+                all_resolved = False
+            elif dep_task.get("status") != "completed":
+                unresolved.append(f"{dep_id} (status: {dep_task.get('status')})")
+                all_resolved = False
+
+        if all_resolved:
+            result["can_retry"] = True
+            result["reason"] = f"All dependencies resolved: {dependency_ids}"
+            result["confidence"] = 0.9
+        else:
+            result["reason"] = f"Dependencies still unresolved: {unresolved}"
+            result["details"] = f"Required: {dependency_ids}"
+
+        return result
+
+    # ===============================
+    # REASON: domain_entity_missing
+    # ===============================
+    elif reason == "domain_entity_missing":
+        # Check if ALL domain tasks are completed (not just most)
+        domain_tasks = [t for t in tasks if t.get("layer") == "domain"]
+
+        if not domain_tasks:
+            result["reason"] = "No domain tasks found"
+            return result
+
+        completed = [t for t in domain_tasks if t.get("status") == "completed"]
+        blocked = [t for t in domain_tasks if t.get("status") == "blocked"]
+
+        completion_rate = len(completed) / len(domain_tasks)
+
+        # Extract specific entity name if mentioned
+        entity_name = extract_entity_name(details, blocker_info)
+
+        if entity_name:
+            # Check if specific entity task is completed
+            entity_task = next((t for t in domain_tasks if entity_name.lower() in t.get("title", "").lower()), None)
+            if entity_task and entity_task.get("status") == "completed":
+                result["can_retry"] = True
+                result["reason"] = f"Entity '{entity_name}' task is now completed"
+                result["confidence"] = 0.95
+                return result
+            elif entity_task:
+                result["reason"] = f"Entity '{entity_name}' task status: {entity_task.get('status')}"
+                return result
+
+        # Fallback: check if domain layer is sufficiently complete
+        if completion_rate >= 0.9 and len(blocked) == 0:
+            result["can_retry"] = True
+            result["reason"] = f"Domain layer {completion_rate*100:.0f}% complete"
+            result["confidence"] = 0.7
+        else:
+            result["reason"] = f"Domain layer only {completion_rate*100:.0f}% complete, {len(blocked)} blocked"
+
+        return result
+
+    # ===============================
+    # REASON: use_case_missing
+    # ===============================
+    elif reason == "use_case_missing":
+        app_tasks = [t for t in tasks if t.get("layer") == "application"]
+
+        if not app_tasks:
+            result["reason"] = "No application tasks found"
+            return result
+
+        completed = [t for t in app_tasks if t.get("status") == "completed"]
+        blocked = [t for t in app_tasks if t.get("status") == "blocked"]
+
+        completion_rate = len(completed) / len(app_tasks)
+
+        # Extract specific use case name if mentioned
+        use_case_name = extract_use_case_name(details, blocker_info)
+
+        if use_case_name:
+            use_case_task = next((t for t in app_tasks if use_case_name.lower() in t.get("title", "").lower()), None)
+            if use_case_task and use_case_task.get("status") == "completed":
+                result["can_retry"] = True
+                result["reason"] = f"Use case '{use_case_name}' is now completed"
+                result["confidence"] = 0.95
+                return result
+            elif use_case_task:
+                result["reason"] = f"Use case '{use_case_name}' status: {use_case_task.get('status')}"
+                return result
+
+        if completion_rate >= 0.9 and len(blocked) == 0:
+            result["can_retry"] = True
+            result["reason"] = f"Application layer {completion_rate*100:.0f}% complete"
+            result["confidence"] = 0.7
+        else:
+            result["reason"] = f"Application layer only {completion_rate*100:.0f}% complete"
+
+        return result
+
+    # ===============================
+    # REASON: repository_interface_mismatch
+    # ===============================
+    elif reason == "repository_interface_mismatch":
+        # This typically requires the interface to be regenerated
+        # Check if there's been any update to the relevant interface file
+        interface_file = blocker_info.get("file", "")
+        if interface_file:
+            # Check if file was modified recently (would need file timestamps)
+            # For now, recommend retry if domain is complete
+            domain_status = verify_layer_completeness("domain")
+            if domain_status["is_complete"]:
+                result["can_retry"] = True
+                result["reason"] = "Domain layer complete - interface should be stable"
+                result["confidence"] = 0.6
+            else:
+                result["reason"] = "Domain layer incomplete - interface may change"
+        return result
+
+    # ===============================
+    # REASON: import_error / type_error / syntax_error
+    # ===============================
+    elif reason in ["import_error", "type_error", "syntax_error"]:
+        # These errors might be resolved if dependent files were fixed
+        # Check if the dependent layer is now complete
+        task_layer = task.get("layer", "")
+
+        if task_layer == "application":
+            prereq = verify_layer_completeness("domain")
+        elif task_layer in ["infrastructure_backend", "infrastructure_frontend"]:
+            prereq = verify_all_prerequisites(task_layer)
+        else:
+            prereq = {"is_complete": True}  # Domain has no prereqs
+
+        # For import/type errors, we should retry once dependencies are met
+        if prereq.get("is_complete") or prereq.get("can_proceed", False):
+            result["can_retry"] = True
+            result["reason"] = f"Prerequisites met - worth retrying {reason}"
+            result["confidence"] = 0.5  # Medium confidence, might fail again
+        else:
+            result["reason"] = f"Prerequisites not met for {task_layer}"
+
+        return result
+
+    # ===============================
+    # REASON: circular_dependency
+    # ===============================
+    elif reason == "circular_dependency":
+        # Circular dependencies require manual intervention
+        result["can_retry"] = False
+        result["reason"] = "Circular dependencies require manual task restructuring"
+        result["confidence"] = 0.0
+        return result
+
+    # ===============================
+    # REASON: business_rule_unclear
+    # ===============================
+    elif reason == "business_rule_unclear":
+        # Check if there's been a clarification added to the task
+        clarification = task.get("clarification", task.get("notes", ""))
+        if clarification:
+            result["can_retry"] = True
+            result["reason"] = "Clarification was added to task"
+            result["confidence"] = 0.8
+        else:
+            result["reason"] = "No clarification found - requires user input"
+        return result
+
+    # ===============================
+    # REASON: test_setup_error
+    # ===============================
+    elif reason == "test_setup_error":
+        # Check if conftest.py exists and pytest is available
+        result["can_retry"] = True
+        result["reason"] = "Test setup errors may be transient - worth retrying"
+        result["confidence"] = 0.4
+        return result
+
+    # ===============================
+    # REASON: unknown / other
+    # ===============================
+    else:
+        # For unknown reasons, check if enough time/tasks have passed
+        result["can_retry"] = True
+        result["reason"] = f"Unknown reason '{reason}' - attempting retry"
+        result["confidence"] = 0.3
+        return result
+
+
+def extract_dependency_ids(details: str, blocker_info: dict) -> list:
+    """Extract task IDs from dependency info."""
+    import re
+
+    task_ids = []
+
+    # Check blocker_info first
+    if blocker_info.get("depends_on"):
+        return blocker_info["depends_on"]
+
+    if blocker_info.get("dependency_id"):
+        return [blocker_info["dependency_id"]]
+
+    # Parse from details string
+    # Pattern: TASK-XXX
+    matches = re.findall(r'TASK-\d+', str(details))
+    if matches:
+        return list(set(matches))
+
+    return task_ids
+
+
+def extract_entity_name(details: str, blocker_info: dict) -> str:
+    """Extract entity name from blocker details."""
+    if blocker_info.get("entity"):
+        return blocker_info["entity"]
+
+    # Try to parse from details
+    # Pattern: "Entity 'CustomerEntity' not found" or "Missing Customer entity"
+    import re
+    match = re.search(r"[Ee]ntity\s+['\"]?(\w+)['\"]?", str(details))
+    if match:
+        return match.group(1)
+
+    return ""
+
+
+def extract_use_case_name(details: str, blocker_info: dict) -> str:
+    """Extract use case name from blocker details."""
+    if blocker_info.get("use_case"):
+        return blocker_info["use_case"]
+
+    # Try to parse from details
+    import re
+    match = re.search(r"[Uu]se\s*[Cc]ase\s+['\"]?(\w+)['\"]?", str(details))
+    if match:
+        return match.group(1)
+
+    return ""
+```
 
 ---
 

@@ -1,0 +1,3 @@
+okey ahora antes de que lo pruebe quiero que Actúa como Ingeniero de Software Senior especializado en Sistemas Autónomos y Confiabilidad (SRE) Analiza nuestro 
+framework considerando el obejtico de poder implementar de forma con trazabilidad y sin perdida de contexto e informacion importante hasta poder entregarle la 
+nueva app al usuario,que cosas se podrian mejorar o aun tienen inconsistencia o errores? 

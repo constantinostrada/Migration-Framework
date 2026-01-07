@@ -307,29 +307,63 @@ if not backend_complete:
     return
 ```
 
-### Step 5: Save Queue File + Rejected Tasks
+### Step 5: Save Queue File + Rejected Tasks (with Loop Protection)
 
 ```python
+MAX_REJECTIONS = 2  # Maximum times a task can be re-classified
+
 my_tasks = []
 rejected_tasks = []
+escalated_tasks = []  # Tasks that exceeded max rejections
 invocation_type = "backend"  # or "frontend"
 
 # Use appropriate validation function based on invocation type
 validate_fn = is_valid_infrastructure_backend_task if invocation_type == "backend" else is_valid_infrastructure_frontend_task
 
 for task in candidate_tasks:
+    # 🆕 CHECK REJECTION COUNT BEFORE VALIDATING
+    rejection_count = len(task.get("rejection_history", []))
+
+    if rejection_count >= MAX_REJECTIONS:
+        # Task has been rejected too many times - ESCALATE, don't reject again
+        escalated_tasks.append({
+            "task_id": task["id"],
+            "title": task["title"],
+            "rejection_count": rejection_count,
+            "rejection_history": task.get("rejection_history", []),
+            "reason": "Exceeded max rejections - requires manual classification"
+        })
+        continue  # Skip this task
+
     is_valid, suggested_layer = validate_fn(task)
 
     if is_valid:
         my_tasks.append(task)
     else:
-        rejected_tasks.append({
-            "task_id": task["id"],
-            "title": task["title"],
-            "original_layer": task.get("layer"),
-            "suggested_layer": suggested_layer,
-            "reason": f"Task is not infrastructure_{invocation_type} - should be {suggested_layer}"
-        })
+        # 🆕 Check if we already rejected to this suggested_layer (circular)
+        previous_rejections = task.get("rejection_history", [])
+        already_suggested = any(
+            r.get("suggested_layer") == suggested_layer
+            for r in previous_rejections
+        )
+
+        if already_suggested:
+            # Circular rejection detected - ESCALATE
+            escalated_tasks.append({
+                "task_id": task["id"],
+                "title": task["title"],
+                "rejection_count": rejection_count,
+                "circular_detected": True,
+                "reason": f"Circular rejection: already suggested {suggested_layer} before"
+            })
+        else:
+            rejected_tasks.append({
+                "task_id": task["id"],
+                "title": task["title"],
+                "original_layer": task.get("layer"),
+                "suggested_layer": suggested_layer,
+                "reason": f"Task is not infrastructure_{invocation_type} - should be {suggested_layer}"
+            })
 
 queue = {
     "agent": "infrastructure-agent",
@@ -337,7 +371,8 @@ queue = {
     "created_at": "2026-01-06T10:00:00Z",
     "total_tasks": len(my_tasks),
     "completed": 0,
-    "rejected_tasks": rejected_tasks,  # 🆕 Track rejections
+    "rejected_tasks": rejected_tasks,
+    "escalated_tasks": escalated_tasks,  # 🆕 Tasks requiring manual intervention
     "queue": [
         {
             "position": i + 1,
@@ -354,14 +389,14 @@ queue = {
 Write: docs/state/agent-queues/infrastructure-{invocation_type}-queue.json
 ```
 
-### Step 6: Update tasks.json (Claim Ownership + Mark Rejections)
+### Step 6: Update tasks.json (Claim Ownership + Mark Rejections + Escalations)
 
 ```python
 for task in my_tasks:
     task["owner"] = "infrastructure-agent"
     task["status"] = "queued"
 
-# 🆕 Update rejected tasks with suggested layer
+# Update rejected tasks with suggested layer
 for rejected in rejected_tasks:
     task = find_task_by_id(rejected["task_id"])
     task["layer"] = rejected["suggested_layer"]  # Re-classify
@@ -371,6 +406,17 @@ for rejected in rejected_tasks:
         "reason": rejected["reason"],
         "suggested_layer": rejected["suggested_layer"]
     })
+
+# 🆕 Mark escalated tasks for manual intervention
+for escalated in escalated_tasks:
+    task = find_task_by_id(escalated["task_id"])
+    task["status"] = "escalated"
+    task["escalation_info"] = {
+        "escalated_by": "infrastructure-agent",
+        "reason": escalated["reason"],
+        "rejection_count": escalated["rejection_count"],
+        "circular_detected": escalated.get("circular_detected", False)
+    }
 
 Write: docs/state/tasks.json
 ```
@@ -394,6 +440,8 @@ Tasks in queue:
      → Should be: application (repository INTERFACE is application layer)
   2. [TASK-091] "Create AccountDTO Pydantic model"
      → Should be: application (DTO is application layer)
+
+🔴 Tasks ESCALATED (require manual classification): 0
 
 📝 Rejected tasks re-classified in tasks.json
 
@@ -615,30 +663,153 @@ async def create_customer(
         )
 ```
 
-### Step 7: Run Tests
+### Step 7: Run Tests (MANDATORY VALIDATION)
+
+**🚨 CRITICAL**: You MUST verify tests pass BEFORE marking task as completed.
 
 ```bash
-pytest tests/integration/repositories/test_customer_repository.py -v
+# Run tests for THIS task (backend or frontend)
+# Backend example:
+pytest tests/integration/repositories/test_customer_repository.py -v --tb=short
+
+# OR Frontend example:
+# npm test -- CustomerForm.test.tsx
+
+# Capture exit code
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -eq 0 ]; then
+    echo "✅ All tests PASSED - safe to mark as completed"
+    # Proceed to Step 8
+else
+    echo "🔴 Tests FAILED - task is BLOCKED"
+    # Mark as BLOCKED instead (see Step 8-BLOCKED)
+fi
 ```
 
 **Expected:**
-- First run: Some tests may fail (normal)
+- First run: Some tests may fail (normal - this is TDD)
 - Fix code until ALL tests pass
 - Do NOT modify tests - fix your implementation
+- Exit code MUST be 0 (all tests passed)
 
-### Step 8: Update Task Status
+**IF TESTS PASS** → Proceed to Step 8 (mark completed)
 
-```python
-Read: docs/state/tasks.json
+**IF TESTS FAIL** → Proceed to Step 8-BLOCKED (mark as blocked)
 
-task["status"] = "completed"
-task["completed_at"] = current_timestamp
-task["files_created"] = [
-    "backend/app/infrastructure/repositories/customer_repository.py"
-]
+---
 
-Write: docs/state/tasks.json
+### Step 8: Update Task Status (ONLY IF TESTS PASSED)
+
+**✅ Path: Tests Passed** (Exit code 0)
+
+```bash
+# Update tasks.json with optimistic locking + timestamp
+python3 << 'PYEOF'
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "TASK-CUST-INF-002"  # Replace with actual task_id
+
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        task['status'] = 'completed'
+        task['completed_at'] = timestamp
+        task['updated_at'] = timestamp
+        task['files_created'] = [
+            'backend/app/infrastructure/repositories/customer_repository.py'
+        ]
+
+        if 'status_history' not in task:
+            task['status_history'] = []
+        task['status_history'].append({
+            'status': 'completed',
+            'timestamp': timestamp,
+            'agent': 'infrastructure-agent'
+        })
+
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'infrastructure-agent'
+
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+print(f"✅ Task {TASK_ID} marked as COMPLETED")
+PYEOF
+
+# Log to transaction log
+echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"infrastructure-agent","operation":"complete_task","task_id":"TASK-CUST-INF-002","after":{"status":"completed"}}' >> docs/state/transaction-log.jsonl
 ```
+
+---
+
+### Step 8-BLOCKED: Update Task Status (IF TESTS FAILED)
+
+**🔴 Path: Tests Failed** (Exit code != 0)
+
+```bash
+# Update tasks.json - mark as BLOCKED
+python3 << 'PYEOF'
+import json
+from datetime import datetime, timezone
+import os
+
+TASK_ID = "TASK-CUST-INF-002"  # Replace with actual task_id
+FAILED_TESTS = "test_save_customer, test_find_by_id"  # Parse from pytest output
+
+with open('docs/state/tasks.json', 'r') as f:
+    data = json.load(f)
+
+original_version = data.get('_version', 0)
+timestamp = datetime.now(timezone.utc).isoformat()
+
+for task in data['tasks']:
+    if task['id'] == TASK_ID:
+        task['status'] = 'blocked'
+        task['updated_at'] = timestamp
+        task['blocker_info'] = {
+            'reason': 'tests_failing',
+            'failed_tests': FAILED_TESTS,
+            'timestamp': timestamp,
+            'agent': 'infrastructure-agent'
+        }
+
+        if 'status_history' not in task:
+            task['status_history'] = []
+        task['status_history'].append({
+            'status': 'blocked',
+            'timestamp': timestamp,
+            'reason': 'tests_failing'
+        })
+
+data['_version'] = original_version + 1
+data['_last_modified'] = timestamp
+data['_last_modified_by'] = 'infrastructure-agent'
+
+with open('docs/state/tasks.json.tmp', 'w') as f:
+    json.dump(data, f, indent=2)
+
+os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
+print(f"🔴 Task {TASK_ID} marked as BLOCKED")
+PYEOF
+
+# Log to transaction log
+echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"infrastructure-agent","operation":"block_task","task_id":"TASK-CUST-INF-002","reason":"tests_failing"}' >> docs/state/transaction-log.jsonl
+
+echo "🔴 TASK BLOCKED - Tests failing. Orchestrator will handle recovery."
+exit 1
+```
+
+---
 
 ### Step 9: Update Queue
 
@@ -841,6 +1012,153 @@ frontend/src/
 - [ ] API errors displayed correctly
 - [ ] E2E tests pass
 - [ ] TypeScript compiles
+
+---
+
+## 🚨 ERROR HANDLING PROTOCOL (v4.4)
+
+**When tests fail after multiple attempts, follow this protocol:**
+
+### Scenario: Tests Fail After 3 Attempts
+
+```python
+MAX_ATTEMPTS = 3
+attempt = 0
+
+while attempt < MAX_ATTEMPTS:
+    attempt += 1
+    print(f"🔄 Attempt {attempt}/{MAX_ATTEMPTS}")
+
+    # Run tests (backend or frontend)
+    if is_backend_task:
+        result = Bash("pytest tests/integration/... -v")
+    else:
+        result = Bash("npm run test && npm run build")
+
+    if result.exit_code == 0:
+        # SUCCESS - All tests pass
+        break
+
+    if attempt < MAX_ATTEMPTS:
+        # Analyze failure and fix
+        analyze_test_failure(result.output)
+        fix_implementation()
+```
+
+### If Tests Still Fail After 3 Attempts
+
+**DO NOT continue indefinitely. Follow this protocol:**
+
+```python
+if attempt >= MAX_ATTEMPTS and tests_still_failing:
+
+    # 1. Mark task as BLOCKED (not completed, not failed)
+    task["status"] = "blocked"
+    task["blocker_info"] = {
+        "blocked_at": current_timestamp(),
+        "attempts": MAX_ATTEMPTS,
+        "failing_tests": extract_failing_tests(result.output),
+        "last_error": extract_last_error(result.output),
+        "files_modified": [...],
+        "suspected_cause": analyze_suspected_cause(result.output),
+        "layer": "infrastructure_backend"  # or "infrastructure_frontend"
+    }
+
+    # 2. Update tasks.json
+    Write: docs/state/tasks.json
+
+    # 3. Update queue file
+    queue_file = "infrastructure-backend-queue.json"  # or frontend
+    queue["blocked_tasks"].append({
+        "task_id": task_id,
+        "blocked_at": current_timestamp(),
+        "reason": task["blocker_info"]["suspected_cause"]
+    })
+    Write: docs/state/agent-queues/{queue_file}
+
+    # 4. Report to Orchestrator and CONTINUE with next task
+    print(f"""
+    ⚠️ TASK BLOCKED: {task_id}
+
+    📝 Task: {task_title}
+    🔴 Status: BLOCKED (tests failing after {MAX_ATTEMPTS} attempts)
+
+    📊 Failure Details:
+       - Failing tests: {len(failing_tests)}
+       - Last error: {last_error[:200]}...
+       - Suspected cause: {suspected_cause}
+
+    📁 Files modified:
+       {files_modified}
+
+    🔜 CONTINUING with next task in queue.
+    ⚠️ Orchestrator will handle blocked tasks after queue completion.
+    """)
+
+    # 5. DO NOT STOP - Continue with next task
+    continue_with_next_task()
+```
+
+### Suspected Cause Categories
+
+When analyzing failures, categorize the suspected cause:
+
+**Backend Categories:**
+
+| Category | Description | Example |
+|----------|-------------|---------|
+| `use_case_missing` | Required use case not implemented | `from application.use_cases.create_customer import CreateCustomerUseCase` fails |
+| `interface_mismatch` | Implementation doesn't match interface | `ICustomerRepository.find_by_email()` signature differs |
+| `orm_mapping_error` | SQLAlchemy model mapping issue | Relationship configuration error |
+| `api_contract_mismatch` | Endpoint doesn't match OpenAPI spec | Wrong status code or response schema |
+| `database_error` | Database connection or migration issue | `asyncpg.exceptions.UndefinedTableError` |
+| `dependency_injection_error` | FastAPI DI setup issue | Missing dependency provider |
+| `import_error` | Module path or import issue | `ModuleNotFoundError` |
+
+**Frontend Categories:**
+
+| Category | Description | Example |
+|----------|-------------|---------|
+| `api_client_error` | API client configuration issue | Wrong base URL or missing auth header |
+| `component_error` | React component rendering issue | Hook order error, missing props |
+| `typescript_error` | Type mismatch | Type '...' is not assignable to type '...' |
+| `shadcn_setup_error` | shadcn/ui component not properly configured | Missing CSS variables or theme |
+| `form_validation_error` | Zod schema or react-hook-form issue | Validation not triggering |
+| `build_error` | Next.js build failure | Module resolution or SSR issue |
+| `ui_design_mismatch` | Implementation doesn't match UI design doc | Wrong component or layout |
+
+### Queue File with Blocked Tasks
+
+```json
+{
+  "agent": "infrastructure-agent",
+  "layer": "infrastructure_backend",
+  "created_at": "2026-01-06T10:00:00Z",
+  "total_tasks": 20,
+  "completed": 17,
+  "blocked_tasks": [
+    {
+      "task_id": "TASK-CUST-INF-012",
+      "blocked_at": "2026-01-06T16:30:00Z",
+      "reason": "use_case_missing",
+      "details": "Requires UpdateCustomerUseCase not yet implemented by use-case-agent"
+    }
+  ],
+  "queue": [...]
+}
+```
+
+### What Orchestrator Does with Blocked Tasks
+
+After your queue is complete, Orchestrator will:
+
+1. **Analyze blocked tasks** - Check if application layer dependencies are available
+2. **Re-order if needed** - Ensure use-case tasks complete first
+3. **Re-invoke you** - Send blocked task again with updated context
+4. **Check contracts** - Verify OpenAPI spec matches implementation
+5. **Escalate if persistent** - Ask user for clarification
+
+**CRITICAL**: Do NOT stop your entire queue because one task is blocked. Mark it, report it, and continue.
 
 ---
 
