@@ -258,12 +258,36 @@ def is_valid_domain_task(task):
     combined_text = f"{title} {description}"
 
     # STEP 1: Check for AUTO-REJECT keywords (hard reject)
+    # 🎯 REFINED: More specific to avoid false positives
     reject_keywords = [
-        "sqlalchemy", "fastapi", "pydantic", "orm model", "api endpoint",
-        "repository implementation", "repository impl", "migration", "alembic",
-        "react", "next.js", "component", "dto", "use case",
-        "jwt", "authentication", "middleware", "docker", "kubernetes",
-        "router", "endpoint", "get /", "post /", "database schema"
+        # ORM & Database Infrastructure (SPECIFIC)
+        "sqlalchemy", "orm model", "alembic", "database migration",
+        "create table", "database schema", "foreign key constraint",
+
+        # API & Framework (SPECIFIC)
+        "fastapi", "flask", "django", "api endpoint", "rest endpoint",
+        "http endpoint", "router", "middleware", "cors",
+        "get /", "post /", "put /", "delete /",
+
+        # Application Layer (SPECIFIC)
+        "pydantic schema", "pydantic model", "dto", "data transfer object",
+        "use case", "application service", "repository interface",
+
+        # Repository Implementation (SPECIFIC)
+        "repository implementation", "repositoryimpl", "concrete repository",
+        "sqlalchemy repository",
+
+        # Frontend (SPECIFIC)
+        "react", "next.js", "component", "tsx", "jsx", "ui component",
+
+        # DevOps (SPECIFIC)
+        "docker", "kubernetes", "deployment", "container",
+
+        # Auth Infrastructure (SPECIFIC)
+        "jwt token", "oauth", "authentication middleware",
+
+        # NOTE: Generic words like "validation", "service", "database" are NOT rejected
+        # They're valid in domain context (e.g., "business validation", "domain service")
     ]
 
     for keyword in reject_keywords:
@@ -282,23 +306,35 @@ def is_valid_domain_task(task):
 
     # STEP 2: Check for DOMAIN INDICATORS (positive signals)
     domain_indicators = [
-        # Tier 1: Strong domain signals
-        "business rule", "domain rule", "BR-", "policy", "invariant",
-        "eligibility", "constraint", "business constraint",
+        # Tier 1: Strong domain signals (business rules)
+        "business rule", "domain rule", "BR-", "policy", "business policy",
+        "invariant", "eligibility", "constraint", "business constraint",
+        "business logic", "domain logic",
 
         # Tier 2: Entity/Model signals
         "domain entity", "value object", "aggregate", "domain model",
-        "domain service",
+        "domain service", "business entity",
 
         # Tier 3: Calculation signals (with business context)
         "business calculation", "domain calculation", "calculate",
         "interest calculation", "balance calculation", "risk calculation",
+        "compute", "derive", "calculation logic",
 
         # Tier 4: State signals
         "state machine", "lifecycle", "state transition", "consistency",
+        "consistency check", "dual balance",
 
         # Tier 5: Validation signals (with business context)
-        "validation rule", "business validation", "enforce rule"
+        "validation rule", "business validation", "enforce rule",
+        "validation utilities for business", "business rules validation",
+        "credit score validation", "overdraft validation",
+
+        # Tier 6: Service layer with business logic (NOT infrastructure service)
+        "service layer with business logic", "business logic layer",
+        "service with business validations",
+
+        # Tier 7: Pure utility functions (if domain-related)
+        "date utility", "time utility", "calculation utility"
     ]
 
     found_indicators = [kw for kw in domain_indicators if kw in combined_text]
