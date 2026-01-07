@@ -97,24 +97,33 @@ for task in queue["queue"]:
 
 ---
 
-### Example: Domain Agent
+### Example: Domain Agent (v5.0 - DOMAIN EXTRACTOR)
 
-**PHASE A:**
+**🆕 v5.0**: Domain agent is a **DOMAIN EXTRACTOR**, not a task validator.
+It reads ALL tasks and EXTRACTS implicit domain concepts to CREATE its own tasks.
+
+**PHASE A (EXTRACTION):**
 ```python
 Task(
-    description="Domain agent - Phase A: Task Selection",
+    description="Domain agent - Phase A: Domain Extraction",
     prompt="""
     You are domain-agent. Read .claude/agents/domain-agent.md for instructions.
 
-    **PHASE A: TASK SELECTION**
+    **PHASE A: DOMAIN EXTRACTION (v5.0)**
 
     YOUR MISSION:
-    1. Read ALL tasks from docs/state/tasks.json
-    2. Identify YOUR tasks (layer = "domain", owner = null)
-    3. VALIDATE each task - Is it REALLY a domain task?
-    4. REJECT non-domain tasks
+    1. Read ALL tasks from docs/state/tasks.json (not just layer="domain")
+    2. For EACH task, extract domain concepts:
+       - Entities (Customer, Account, Transaction)
+       - Value Objects (Money, Email, CreditScore)
+       - Business Rules (BR-XXX)
+       - Domain Services
+    3. CREATE your own domain tasks (DOMAIN-001, DOMAIN-002, etc.)
+    4. Save to: docs/state/domain-extracted-tasks.json
     5. Save queue to: docs/state/agent-queues/domain-queue.json
 
+    **YOU ARE A DOMAIN EXTRACTOR, NOT A TASK VALIDATOR.**
+    **DO NOT REJECT TASKS. EXTRACT DOMAIN FROM THEM.**
     **DO NOT IMPLEMENT ANYTHING.**
     """,
     subagent_type="domain-agent",
@@ -125,24 +134,25 @@ Task(
 **PHASE B:**
 ```python
 Task(
-    description="Domain agent - Execute TASK-001",
+    description="Domain agent - Execute DOMAIN-001",
     prompt="""
     You are domain-agent. Read .claude/agents/domain-agent.md for instructions.
 
     **PHASE B: SINGLE TASK EXECUTION**
 
-    Implement THIS task: TASK-001 - Implement Customer Entity
+    Implement THIS domain task: DOMAIN-001 - Customer Domain Model
 
     YOUR MISSION:
-    1. Read test files: tests/unit/domain/entities/test_customer.py
-    2. Implement domain code to make tests GREEN
-    3. Run: pytest tests/unit/domain/entities/test_customer.py -v
-    4. Update tasks.json (status = "completed")
-    5. Update queue file
+    1. Read your task from docs/state/domain-extracted-tasks.json
+    2. Check if tests exist (tests/unit/domain/)
+    3. Implement PURE domain code (entities, value objects, services)
+    4. Run tests if they exist
+    5. Update domain-extracted-tasks.json (status = "completed")
+    6. Update queue file
 
     **CRITICAL**:
-    - Tests already exist
     - NO framework dependencies (pure Python only)
+    - Use dataclasses, typing, enum, abc
     """,
     subagent_type="domain-agent",
     model="sonnet"

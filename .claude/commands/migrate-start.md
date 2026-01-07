@@ -536,132 +536,112 @@ Task(
 └─────────────────────────────────────────────────────────┘
 ```
 
-#### STEP 6.1: DOMAIN LAYER (Hybrid)
+#### STEP 6.1: DOMAIN LAYER (Hybrid) - v5.0 DOMAIN EXTRACTOR
 
-**PHASE A: Task Selection + Validation**
+**🆕 v5.0 PARADIGM**: Domain agent is a **DOMAIN EXTRACTOR**, not a task validator.
+It reads ALL tasks (even infrastructure) and EXTRACTS implicit domain concepts to CREATE its own domain tasks.
+
+**PHASE A: Domain Extraction**
 
 ```python
-print("🔄 DOMAIN LAYER - PHASE A: Task Selection")
+print("🔄 DOMAIN LAYER - PHASE A: Domain Extraction (v5.0)")
 
 Task(
-    description="Domain agent - Phase A: Task Selection",
+    description="Domain agent - Phase A: Domain Extraction",
     prompt="""
-    You are the domain-agent. Read .claude/agents/domain-agent.md for complete instructions.
+    # DOMAIN AGENT v5.0 - DOMAIN EXTRACTOR MODE
 
-    **PHASE A: TASK SELECTION**
+    ⚠️ CRITICAL PARADIGM: You are a DOMAIN EXTRACTOR, NOT a task validator.
+    ⚠️ DO NOT filter tasks by layer. DO NOT reject tasks. DO NOT return 0 tasks.
+    ⚠️ Your job is to EXTRACT domain concepts from ALL tasks and CREATE new domain tasks.
 
-    YOUR MISSION:
-    1. Read ALL tasks from docs/state/tasks.json
-    2. Identify YOUR tasks (layer = "domain", owner = null)
-    3. VALIDATE each task - Is it REALLY a domain task? (Step 2.5 in your instructions)
-    4. REJECT tasks that are NOT domain layer and re-classify them
-    5. Save queue to: docs/state/agent-queues/domain-queue.json (includes rejected_tasks)
-    6. Update tasks.json (set owner, status, rejection_history for rejected tasks)
-    7. Return list of accepted + rejected tasks
+    ## YOUR MISSION (PHASE A - EXTRACTION ONLY)
 
-    **DO NOT IMPLEMENT ANYTHING.**
-    **ONLY select tasks, validate, and save queue.**
+    1. **Read ALL 110 tasks** from docs/state/tasks.json (infrastructure, frontend, backend - ALL of them)
 
-    OUTPUT:
-    - docs/state/agent-queues/domain-queue.json (with rejected_tasks array)
-    - docs/state/tasks.json (updated with ownership + rejections)
-    - Report: accepted tasks + rejected tasks with suggested layers
+    2. **For EACH task, extract these domain concepts:**
+       - ENTITIES: Customer, Account, Transaction, User, etc.
+       - VALUE OBJECTS: Money, Email, CreditScore, AccountNumber, etc.
+       - BUSINESS RULES: "MORTGAGE cannot use PAYMENT", "daily limit $10,000", "age >= 18"
+       - DOMAIN SERVICES: Validation services, calculation services
+       - ENUMS: AccountType, TransactionType, Status enums
+
+    3. **CREATE YOUR OWN domain tasks** (DOMAIN-001, DOMAIN-002, etc.):
+       Example:
+       {
+         "task_id": "DOMAIN-001",
+         "title": "Create Customer Entity with Business Rules",
+         "description": "Implement Customer entity with age validation (>=18), email VO, credit score VO",
+         "derived_from": ["TASK-016", "TASK-057"],
+         "deliverables": ["backend/app/domain/entities/customer.py"]
+       }
+
+    4. **Save to docs/state/domain-extracted-tasks.json:**
+       {
+         "agent": "domain-agent",
+         "approach": "domain-extraction-v5",
+         "extraction_summary": {
+           "entities_found": ["Customer", "Account", "Transaction"],
+           "value_objects_found": ["Money", "Email", "CreditScore"],
+           "business_rules_found": ["BR-CUST-001: Age >= 18", "BR-ACC-001: Balance >= 0"]
+         },
+         "extracted_domain_tasks": [...]
+       }
+
+    5. **Save queue to docs/state/agent-queues/domain-queue.json** with your DOMAIN-XXX tasks
+
+    ## WHAT TO LOOK FOR IN TASKS (extract these patterns):
+    - "cannot", "must not", "restricted" → Business rules
+    - "valid", "invalid", "required" → Validations
+    - "$X,XXX", "limit", "maximum" → Constraints
+    - Entity names: Customer, Account, Transaction, User
+    - Value patterns: email, phone, amount, score, date
+
+    ## EXPECTED OUTPUT:
+    - AT LEAST 5-15 domain tasks (DOMAIN-001 through DOMAIN-015)
+    - entities: ~5-8 (Customer, Account, Transaction, etc.)
+    - value_objects: ~10-15 (Money, Email, CreditScore, etc.)
+    - business_rules: ~10-20 (BR-XXX codes)
+
+    ## FORBIDDEN ACTIONS:
+    ❌ DO NOT reject tasks
+    ❌ DO NOT return "0 domain tasks"
+    ❌ DO NOT filter by layer field
+    ❌ DO NOT use the old validation approach
+    ❌ DO NOT implement code yet
+
+    **DO NOT IMPLEMENT ANYTHING. ONLY EXTRACT AND CREATE DOMAIN TASKS.**
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Read queue, handle rejections, and execute PHASE B:**
+**Read extraction results and execute PHASE B:**
 
 ```python
-# Read domain-agent's queue
+# 🆕 v5.0: Read domain-agent's EXTRACTION results (not rejections)
+Read: docs/state/domain-extracted-tasks.json
+extraction_summary = data.get("extraction_summary", {})
+domain_tasks = data.get("extracted_domain_tasks", [])
+
+print(f"📦 Domain Extraction Complete:")
+print(f"   📦 Entities found: {len(extraction_summary.get('entities_found', []))}")
+print(f"   💎 Value Objects: {len(extraction_summary.get('value_objects_found', []))}")
+print(f"   📜 Business Rules: {len(extraction_summary.get('business_rules_found', []))}")
+print(f"   📋 Domain Tasks Created: {len(domain_tasks)}")
+
+# Also read queue for compatibility
 Read: docs/state/agent-queues/domain-queue.json
-domain_tasks = queue["queue"]
-rejected = queue.get("rejected_tasks", [])
+queue_tasks = queue.get("queue", [])
 
-print(f"📋 Domain agent aceptó {len(domain_tasks)} tareas")
+if not domain_tasks and not queue_tasks:
+    print("⚠️ No domain tasks extracted - domain-agent may not have understood v5.0 mode")
+    print("   Check if domain-extracted-tasks.json was created correctly")
 
-# 🆕 v4.4.1: IMMEDIATE REJECTION PROCESSING
-if rejected:
-    print(f"⚠️ Rechazó {len(rejected)} tareas - procesando INMEDIATAMENTE")
-
-    # Process each rejection RIGHT NOW (not at the end)
-    for rejection in rejected:
-        task_id = rejection["task_id"]
-        new_layer = rejection["suggested_layer"]
-        reason = rejection.get("reason", "No reason provided")
-
-        print(f"   🔄 Re-clasificando {task_id}: domain → {new_layer}")
-
-        # Update tasks.json with new layer
-        Bash: python3 << PYEOF
-import json
-from datetime import datetime, timezone
-import os
-
-TASK_ID = "$task_id"
-NEW_LAYER = "$new_layer"
-REASON = "$reason"
-
-# Read current state
-with open('docs/state/tasks.json', 'r') as f:
-    data = json.load(f)
-
-original_version = data.get('_version', 0)
-timestamp = datetime.now(timezone.utc).isoformat()
-
-# Find and update task
-for task in data['tasks']:
-    if task['id'] == TASK_ID:
-        old_layer = task.get('layer')
-
-        # Update layer
-        task['layer'] = NEW_LAYER
-        task['owner'] = None
-        task['status'] = 'pending'
-        task['updated_at'] = timestamp
-
-        # Add to rejection history
-        if 'rejection_history' not in task:
-            task['rejection_history'] = []
-
-        task['rejection_history'].append({
-            'rejected_by': 'domain-agent',
-            'original_layer': old_layer,
-            'suggested_layer': NEW_LAYER,
-            'reason': REASON,
-            'timestamp': timestamp
-        })
-
-        print(f'   ✅ Updated {TASK_ID}: {old_layer} → {NEW_LAYER}')
-
-# Increment version
-data['_version'] = original_version + 1
-data['_last_modified'] = timestamp
-data['_last_modified_by'] = 'domain-agent'
-
-# Write atomically
-with open('docs/state/tasks.json.tmp', 'w') as f:
-    json.dump(data, f, indent=2)
-
-os.rename('docs/state/tasks.json.tmp', 'docs/state/tasks.json')
-PYEOF
-
-        # Log rejection to transaction log
-        Bash: echo '{"tx_id":"TX-'$(date +%s)'","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","agent":"domain-agent","operation":"reject_task","task_id":"'$task_id'","before":{"layer":"domain"},"after":{"layer":"'$new_layer'"},"reason":"'$reason'"}' >> docs/state/transaction-log.jsonl
-
-    print(f"✅ Todas las rejections procesadas - tasks.json actualizado")
-
-# 🆕 Handle escalated tasks (exceeded max rejections or circular)
-escalated = queue.get("escalated_tasks", [])
-if escalated:
-    print(f"🔴 {len(escalated)} tareas ESCALADAS requieren clasificación manual")
-    handle_escalated_tasks("domain-agent", escalated)
-
-# PHASE B: Execute each task one-by-one
+# PHASE B: Execute each DOMAIN task one-by-one (DOMAIN-001, DOMAIN-002, etc.)
 for task in domain_tasks:
-    task_id = task["task_id"]
+    task_id = task["task_id"]  # DOMAIN-001, DOMAIN-002, etc.
     task_title = task["title"]
 
     print(f"🔄 Ejecutando: {task_id} - {task_title}")
@@ -673,21 +653,20 @@ for task in domain_tasks:
 
         **PHASE B: SINGLE TASK EXECUTION**
 
-        Implement THIS task: {task_id} - {task_title}
+        Implement THIS domain task: {task_id} - {task_title}
 
         YOUR MISSION:
-        1. Read test files for this task (from tasks.json → test_files)
-        2. Understand what tests expect
-        3. Implement domain code to make tests GREEN
-        4. Run tests until ALL pass
-        5. Update tasks.json (status = "completed")
+        1. Read your task from docs/state/domain-extracted-tasks.json
+        2. Check if tests exist in tests/unit/domain/
+        3. Implement PURE domain code (entities, value objects, domain services)
+        4. Run tests if they exist
+        5. Update domain-extracted-tasks.json (status = "completed")
         6. Update queue file (task status = "completed")
 
         **CRITICAL**:
-        - Tests already exist (qa-test-generator wrote them)
-        - You write CODE, not tests
-        - Make tests GREEN
         - NO framework dependencies (pure Python only)
+        - Use dataclasses, typing, enum, abc
+        - Implement business rules from task description
         """,
         subagent_type="domain-agent",
         model="sonnet"

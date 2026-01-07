@@ -194,51 +194,60 @@ Read: docs/state/tasks.json
 
 ---
 
-### **PHASE 3: Domain Layer (Hybrid)**
+### **PHASE 3: Domain Layer (Hybrid) - v5.0 DOMAIN EXTRACTOR**
 
 **Agent**: domain-agent
 
-**PHASE A: Task Selection + Validation**
+**🆕 v5.0 PARADIGM**: Domain agent is now a **DOMAIN EXTRACTOR**, not a task validator.
+It reads ALL tasks (even infrastructure) and EXTRACTS implicit domain concepts to CREATE its own domain tasks.
+
+**PHASE A: Domain Extraction**
 
 ```python
 Task(
-    description="Domain agent - Phase A: Task Selection",
+    description="Domain agent - Phase A: Domain Extraction",
     prompt="""
     You are domain-agent. Read .claude/agents/domain-agent.md for instructions.
 
-    **PHASE A: TASK SELECTION**
+    **PHASE A: DOMAIN EXTRACTION (v5.0)**
 
     YOUR MISSION:
-    1. Read ALL tasks from docs/state/tasks.json
-    2. Identify YOUR tasks (layer = "domain", owner = null)
-    3. VALIDATE each task - Is it REALLY a domain task?
-    4. REJECT tasks that are NOT domain layer (re-classify them)
+    1. Read ALL tasks from docs/state/tasks.json (not just layer="domain")
+    2. For EACH task, extract domain concepts:
+       - What entities are mentioned? (Customer, Account, Transaction)
+       - What business rules are implied? (MORTGAGE cannot use PAYMENT)
+       - What value objects are needed? (Money, Email, CreditScore)
+       - What domain services are required?
+    3. CREATE your own domain tasks (DOMAIN-001, DOMAIN-002, etc.)
+    4. Save to: docs/state/domain-extracted-tasks.json
     5. Save queue to: docs/state/agent-queues/domain-queue.json
-    6. Update tasks.json (set owner, status, rejection_history)
 
-    **DO NOT IMPLEMENT ANYTHING.**
+    **YOU ARE A DOMAIN EXTRACTOR, NOT A TASK VALIDATOR.**
+    **DO NOT REJECT TASKS. EXTRACT DOMAIN FROM THEM.**
+    **DO NOT IMPLEMENT ANYTHING YET.**
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Read queue and handle rejections:**
+**Read extraction results:**
 ```python
-Read: docs/state/agent-queues/domain-queue.json
-domain_tasks = queue["queue"]
-rejected = queue.get("rejected_tasks", [])
+Read: docs/state/domain-extracted-tasks.json
+domain_tasks = data["extracted_domain_tasks"]
+extraction_summary = data["extraction_summary"]
 
-print(f"📋 Domain agent accepted {len(domain_tasks)} tasks")
-if rejected:
-    print(f"⚠️ Rejected {len(rejected)} tasks")
+print(f"📦 Entities extracted: {len(extraction_summary['entities_found'])}")
+print(f"💎 Value Objects: {len(extraction_summary['value_objects_found'])}")
+print(f"📜 Business Rules: {len(extraction_summary['business_rules_found'])}")
+print(f"📋 Domain Tasks Created: {len(domain_tasks)}")
 ```
 
-**PHASE B: Execute Each Task**
+**PHASE B: Execute Each Domain Task**
 
 ```python
 for task in domain_tasks:
-    task_id = task["task_id"]
+    task_id = task["task_id"]  # DOMAIN-001, DOMAIN-002, etc.
     task_title = task["title"]
 
     Task(
@@ -248,19 +257,20 @@ for task in domain_tasks:
 
         **PHASE B: SINGLE TASK EXECUTION**
 
-        Implement THIS task: {task_id} - {task_title}
+        Implement THIS domain task: {task_id} - {task_title}
 
         YOUR MISSION:
-        1. Read test files for this task
-        2. Implement domain code to make tests GREEN
-        3. Run tests until ALL pass
-        4. Update tasks.json (status = "completed")
-        5. Update queue file
+        1. Read your extracted task from docs/state/domain-extracted-tasks.json
+        2. Check if tests exist (tests/unit/domain/)
+        3. Implement PURE domain code (entities, value objects, domain services)
+        4. Run tests if they exist
+        5. Update domain-extracted-tasks.json (status = "completed")
+        6. Update queue file
 
         **CRITICAL**:
-        - Tests already exist
-        - Make tests GREEN
-        - NO framework dependencies (pure Python)
+        - NO framework dependencies (pure Python only)
+        - Use dataclasses, typing, enum, abc
+        - Implement business rules from task description
         """,
         subagent_type="domain-agent",
         model="sonnet"
