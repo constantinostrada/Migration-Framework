@@ -104,58 +104,292 @@ t.get("layer") == "domain" or t.get("implementation_layer") == "domain"
 t.get("owner") is None or t.get("owner") == "domain-agent"
 ```
 
-### Step 2.5: 🆕 VALIDATE - Is This REALLY a Domain Task?
+### Step 2.5: 🆕 VALIDATE - Is This REALLY a Domain Task? (SEMANTIC ANALYSIS)
 
-**CRITICAL**: For each candidate task, verify it's ACTUALLY a domain layer task.
+**CRITICAL**: For each candidate task, verify it's ACTUALLY a domain layer task by analyzing **CONTENT, not just path**.
 
-**✅ IS Domain Layer (Accept):**
-- Pure business entities with identity (Customer, Account, Transaction)
-- Value objects (Email, Money, AccountNumber, CreditScore)
-- Domain services with pure business logic
-- Business rule implementations (BR-XXX-001)
-- Validation logic that is business-specific
-- **NO framework dependencies** (no SQLAlchemy, FastAPI, Pydantic)
+---
 
-**❌ NOT Domain Layer (Reject):**
-- ORM models (SQLAlchemy) → `infrastructure_backend`
-- API endpoints (FastAPI) → `infrastructure_backend`
-- DTOs/Schemas (Pydantic) → `application`
-- Repository implementations → `infrastructure_backend`
-- Use cases / Application services → `application`
-- React components → `infrastructure_frontend`
-- Database migrations → `infrastructure_backend`
-- Authentication/JWT → `infrastructure_backend`
+## ✅ **Domain Layer Indicators (HIGH CONFIDENCE)**
 
-**Validation Logic:**
+**ACCEPT task if title/description contains these domain-specific keywords:**
+
+### **1. Business Rules & Policies**
+```python
+domain_keywords_tier1 = [
+    "business rule", "business logic", "domain rule", "domain logic",
+    "policy", "business policy", "domain policy",
+    "BR-", "business requirement",  # Business rule codes
+    "invariant", "domain invariant", "business invariant",
+    "constraint", "business constraint", "domain constraint",
+    "eligibility", "eligibility rule", "eligibility check",
+    "validation rule", "business validation",
+    "decision logic", "decision rule", "business decision"
+]
+```
+
+**Examples**:
+- ✅ "Validate credit score business rule (BR-001)"
+- ✅ "Implement overdraft eligibility policy"
+- ✅ "Enforce account balance invariant"
+
+---
+
+### **2. Domain Entities & Models**
+```python
+domain_keywords_tier2 = [
+    "domain entity", "entity", "business entity",
+    "aggregate", "aggregate root",
+    "value object", "immutable object",
+    "domain model", "business model",
+    "domain service", "business calculation service"
+]
+```
+
+**Examples**:
+- ✅ "Create Customer domain entity with age validation"
+- ✅ "Implement Money value object"
+- ✅ "Create CreditScore aggregate with rules"
+
+---
+
+### **3. Pure Business Calculations**
+```python
+domain_keywords_tier3 = [
+    "calculate", "calculation", "compute", "computation",
+    "derive", "derivation",
+    "business calculation", "domain calculation",
+    "interest calculation", "balance calculation",
+    "risk calculation", "score calculation"
+]
+```
+
+**Examples**:
+- ✅ "Calculate customer age from date of birth"
+- ✅ "Compute account interest rate based on balance"
+- ✅ "Calculate transaction fees"
+
+---
+
+### **4. State & Lifecycle Management**
+```python
+domain_keywords_tier4 = [
+    "state", "state machine", "lifecycle",
+    "status transition", "state validation",
+    "business state", "domain state",
+    "consistency check", "consistency validation"
+]
+```
+
+**Examples**:
+- ✅ "Validate account state transitions"
+- ✅ "Check dual balance consistency"
+- ✅ "Enforce transaction state lifecycle"
+
+---
+
+### **5. Domain-Specific Validations**
+```python
+domain_keywords_tier5 = [
+    "validate", "validation", "verify", "verification",
+    "check constraint", "enforce rule",
+    "ensure invariant", "guard",
+    # But ONLY if combined with business context
+    "credit score validation", "balance validation",
+    "transaction type validation", "account type validation"
+]
+```
+
+**Examples**:
+- ✅ "Validate credit score range (0-999)" - domain rule
+- ❌ "Validate email format" - could be infrastructure (depends on context)
+- ✅ "Validate overdraft limit against account type" - business rule
+
+---
+
+## ❌ **NOT Domain Layer (AUTO-REJECT)**
+
+**REJECT immediately if title/description contains:**
+
+```python
+reject_keywords_hard = [
+    # ORM & Database
+    "sqlalchemy", "orm model", "database model", "alembic", "migration",
+    "create table", "database schema", "sql",
+
+    # API & Web Framework
+    "fastapi", "api endpoint", "rest api", "endpoint",
+    "router", "controller", "middleware", "request", "response",
+    "http", "get /", "post /", "put /", "delete /",
+
+    # Application Layer
+    "pydantic schema", "dto", "data transfer object",
+    "use case", "application service", "repository interface",
+
+    # Infrastructure
+    "repository implementation", "repository impl",
+    "database connection", "session management",
+    "configuration", "environment variable", ".env",
+    "docker", "kubernetes", "deployment",
+    "authentication", "authorization", "jwt", "token",
+    "logging", "monitoring", "metrics",
+
+    # Frontend
+    "react", "next.js", "component", "tsx", "jsx",
+    "ui", "frontend", "form", "button", "input",
+    "tailwind", "css", "html"
+]
+```
+
+---
+
+## 🧠 **Intelligent Semantic Analysis**
+
+**Validation Logic (execute for each candidate task):**
+
 ```python
 def is_valid_domain_task(task):
+    """
+    Determine if task is ACTUALLY domain layer using semantic analysis.
+    Returns: (is_valid: bool, suggested_layer: str, reason: str)
+    """
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
-    deliverables = " ".join(task.get("deliverables", [])).lower()
+    combined_text = f"{title} {description}"
 
-    # REJECT if has framework keywords
+    # STEP 1: Check for AUTO-REJECT keywords (hard reject)
     reject_keywords = [
-        "sqlalchemy", "fastapi", "pydantic", "orm", "api endpoint",
-        "repository implementation", "migration", "alembic",
-        "react", "next.js", "component", "dto schema", "use case",
-        "jwt", "authentication", "middleware", "crud endpoint"
+        "sqlalchemy", "fastapi", "pydantic", "orm model", "api endpoint",
+        "repository implementation", "repository impl", "migration", "alembic",
+        "react", "next.js", "component", "dto", "use case",
+        "jwt", "authentication", "middleware", "docker", "kubernetes",
+        "router", "endpoint", "get /", "post /", "database schema"
     ]
 
     for keyword in reject_keywords:
-        if keyword in title or keyword in description:
-            return False, suggest_correct_layer(keyword)
+        if keyword in combined_text:
+            # Determine correct layer based on keyword
+            if keyword in ["sqlalchemy", "orm model", "migration", "alembic", "repository impl"]:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - ORM/Database is infrastructure"
+            elif keyword in ["fastapi", "api endpoint", "router", "middleware", "get /", "post /"]:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - API is infrastructure"
+            elif keyword in ["pydantic", "dto", "use case", "application service"]:
+                return False, "application", f"Contains '{keyword}' - DTOs/Use Cases are application layer"
+            elif keyword in ["react", "next.js", "component", "tsx", "jsx"]:
+                return False, "infrastructure_frontend", f"Contains '{keyword}' - UI is frontend"
+            else:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - Infrastructure concern"
 
-    # REJECT if deliverables are NOT in domain/
-    if deliverables and "domain/" not in deliverables:
-        if "infrastructure/" in deliverables or "api/" in deliverables:
-            return False, "infrastructure_backend"
-        if "application/" in deliverables or "use_cases/" in deliverables:
-            return False, "application"
-        if "frontend/" in deliverables or "components/" in deliverables:
-            return False, "infrastructure_frontend"
+    # STEP 2: Check for DOMAIN INDICATORS (positive signals)
+    domain_indicators = [
+        # Tier 1: Strong domain signals
+        "business rule", "domain rule", "BR-", "policy", "invariant",
+        "eligibility", "constraint", "business constraint",
 
-    return True, None
+        # Tier 2: Entity/Model signals
+        "domain entity", "value object", "aggregate", "domain model",
+        "domain service",
+
+        # Tier 3: Calculation signals (with business context)
+        "business calculation", "domain calculation", "calculate",
+        "interest calculation", "balance calculation", "risk calculation",
+
+        # Tier 4: State signals
+        "state machine", "lifecycle", "state transition", "consistency",
+
+        # Tier 5: Validation signals (with business context)
+        "validation rule", "business validation", "enforce rule"
+    ]
+
+    found_indicators = [kw for kw in domain_indicators if kw in combined_text]
+
+    if found_indicators:
+        # Has domain indicators - likely domain layer
+        # But verify deliverables don't contradict
+        deliverables = " ".join(task.get("deliverables", [])).lower()
+
+        # Even with domain keywords, reject if deliverables are clearly NOT domain
+        if deliverables:
+            if "api/" in deliverables or "routers/" in deliverables:
+                return False, "infrastructure_backend", f"Has domain keywords but deliverables are API endpoints"
+            if "schemas/" in deliverables and "pydantic" in description:
+                return False, "application", f"Has validation but is Pydantic schema (DTO)"
+            if "components/" in deliverables or "tsx" in deliverables:
+                return False, "infrastructure_frontend", f"Has validation but is UI component"
+
+        # All good - accept as domain
+        return True, None, f"Contains domain indicators: {', '.join(found_indicators[:3])}"
+
+    # STEP 3: Ambiguous case - check deliverables path
+    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    if "domain/" in deliverables or "domain\\" in deliverables:
+        # Deliverable explicitly in domain/ → probably domain
+        return True, None, "Deliverable path contains 'domain/'"
+
+    # STEP 4: No clear indicators - REJECT with best guess
+    if "services/" in deliverables and "repository" not in combined_text:
+        return False, "application", "Service without domain indicators - likely use case"
+
+    if "core/" in deliverables or "utils/" in deliverables:
+        # Ambiguous utilities - check for business logic
+        if any(word in combined_text for word in ["validation", "validate", "check"]):
+            # Could be domain validation utils
+            if any(word in combined_text for word in ["business", "rule", "constraint"]):
+                return True, None, "Utility with business rule validation"
+            else:
+                return False, "infrastructure_backend", "Generic utility - infrastructure concern"
+        return False, "infrastructure_backend", "Core/utils without domain indicators"
+
+    # Default: reject to infrastructure_backend
+    return False, "infrastructure_backend", "No clear domain indicators - likely infrastructure"
+
+
+# USAGE IN VALIDATION LOOP:
+for task in candidate_tasks:
+    is_valid, suggested_layer, reason = is_valid_domain_task(task)
+
+    if not is_valid:
+        # REJECT - add to rejected_tasks
+        rejected_tasks.append({
+            "task_id": task["id"],
+            "title": task["title"],
+            "original_layer": "domain",
+            "suggested_layer": suggested_layer,
+            "reason": reason
+        })
+    else:
+        # ACCEPT - add to my_tasks
+        my_tasks.append(task)
 ```
+
+---
+
+## 📋 **Quick Reference: Accept vs Reject**
+
+| Scenario | Decision | Layer | Example |
+|----------|----------|-------|---------|
+| "Validate **business rule** BR-001" | ✅ ACCEPT | domain | Credit score validation |
+| "Validate email format" | ✅ ACCEPT (if pure) | domain | Value object validation |
+| "Create **Pydantic** validation schema" | ❌ REJECT | application | DTOs are application |
+| "Implement **SQLAlchemy** Customer model" | ❌ REJECT | infrastructure | ORM is infrastructure |
+| "Calculate **interest** based on balance" | ✅ ACCEPT | domain | Business calculation |
+| "Create **FastAPI endpoint** for customers" | ❌ REJECT | infrastructure | API is infrastructure |
+| "Enforce **account balance invariant**" | ✅ ACCEPT | domain | Domain invariant |
+| "Create **React** form component" | ❌ REJECT | frontend | UI is frontend |
+| "Implement **repository** interface" | ❌ REJECT | application | Interface is application |
+| "Implement repository **implementation**" | ❌ REJECT | infrastructure | Implementation is infrastructure |
+| "Check **overdraft eligibility**" | ✅ ACCEPT | domain | Business policy |
+| "Create **database migration**" | ❌ REJECT | infrastructure | Database is infrastructure |
+
+---
+
+## 🎯 **Key Principle**
+
+**Judge by CONTENT (what it does), not PATH (where it lives)!**
+
+- ✅ "Create validation utilities for business rules" → **DOMAIN** (even if path is `app/core/validators.py`)
+- ❌ "Create FastAPI validation middleware" → **INFRASTRUCTURE** (even if it validates)
 
 ### Step 3: Save Queue File + Rejected Tasks (with Loop Protection)
 
