@@ -281,6 +281,23 @@ def is_valid_domain_task(task):
 
     # STEP 1: Check for AUTO-REJECT keywords (hard reject)
     # 🎯 REFINED: More specific to avoid false positives
+    # 🔥 IMPORTANT: Check for DOMAIN EXCEPTIONS first before rejecting
+
+    # DOMAIN EXCEPTIONS: Even if anti-keywords present, accept if strong domain signals
+    domain_exception_phrases = [
+        "validation utilities for business",
+        "business rules validation",
+        "service with business rules",
+        "service with business logic",
+        "domain service",
+        "business constraint",
+        "domain constraint",
+        "business rule enforcement",
+        "policy enforcement"
+    ]
+
+    has_domain_exception = any(phrase in combined_text for phrase in domain_exception_phrases)
+
     reject_keywords = [
         # ORM & Database Infrastructure (SPECIFIC)
         "sqlalchemy", "orm model", "alembic", "database migration",
@@ -314,6 +331,12 @@ def is_valid_domain_task(task):
 
     for keyword in reject_keywords:
         if keyword in combined_text:
+            # 🔥 DOMAIN EXCEPTION: Skip rejection if strong domain signal present
+            if has_domain_exception:
+                # Has anti-keyword BUT also has domain exception phrase
+                # Continue to STEP 2 to check domain indicators instead of rejecting
+                break
+
             # 🚨 CRITICAL: Only return valid layers (domain, application, infrastructure_backend, infrastructure_frontend)
             # Determine correct layer based on keyword
             if keyword in ["sqlalchemy", "orm model", "alembic", "database migration", "create table", "database schema", "foreign key constraint"]:
@@ -358,12 +381,19 @@ def is_valid_domain_task(task):
         "validation rule", "business validation", "enforce rule",
         "validation utilities for business", "business rules validation",
         "credit score validation", "overdraft validation",
+        "validate_credit_score", "validate_overdraft", "validate_account_type",
 
         # Tier 6: Service layer with business logic (NOT infrastructure service)
         "service layer with business logic", "business logic layer",
-        "service with business validations",
+        "service with business validations", "service with business rules",
+        "service with specialized business rules",
 
-        # Tier 7: Pure utility functions (if domain-related)
+        # Tier 7: Business constraints and restrictions
+        "account restrictions", "transaction restrictions",
+        "mortgage and loan", "account cannot be accessed",
+        "facility restrictions", "account type restrictions",
+
+        # Tier 8: Pure utility functions (if domain-related)
         "date utility", "time utility", "calculation utility"
     ]
 
