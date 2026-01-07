@@ -171,7 +171,9 @@ def is_valid_infrastructure_backend_task(task):
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
     combined_text = f"{title} {description}"
-    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # 🔥 PATH-AGNOSTIC: Ignore deliverables paths - judge by CONTENT only
+    # Agent creates own paths following Clean Architecture (backend/app/infrastructure/)
 
     # ═══════════════════════════════════════════════════════════
     # STEP 1: AUTO-REJECT - Domain Layer Keywords
@@ -250,30 +252,15 @@ def is_valid_infrastructure_backend_task(task):
     found_indicators = [kw for kw in backend_indicators if kw in combined_text]
 
     if found_indicators:
-        # Verify deliverables don't contradict
-        if "frontend/" in deliverables or "components/" in deliverables:
-            return False, "infrastructure_frontend", "Has backend keywords but deliverables are frontend"
-
+        # 🔥 PATH-AGNOSTIC: Has backend infrastructure indicators → ACCEPT as backend
+        # Agent will create correct path (backend/app/infrastructure/ or backend/app/api/)
         return True, None, f"Contains backend infrastructure indicators: {', '.join(found_indicators[:3])}"
 
     # ═══════════════════════════════════════════════════════════
-    # STEP 5: Check Deliverables Path
+    # STEP 5: Default Rejection - Not Clear Backend Infrastructure
     # ═══════════════════════════════════════════════════════════
 
-    backend_paths = ["infrastructure/", "api/", "models/", "database/",
-                     "repositories/", "routers/", "backend/"]
-
-    if any(path in deliverables for path in backend_paths):
-        # Verify content doesn't contradict
-        if "react" in combined_text or "component" in combined_text:
-            return False, "infrastructure_frontend", "Path is backend but content mentions React/components"
-
-        return True, None, "Deliverable path is backend infrastructure"
-
-    # ═══════════════════════════════════════════════════════════
-    # STEP 6: Default Rejection - Not Clear Backend Infrastructure
-    # ═══════════════════════════════════════════════════════════
-
+    # No backend indicators found → reject to application (next most common)
     return False, "application", "No clear backend infrastructure indicators"
 ```
 
@@ -290,7 +277,9 @@ def is_valid_infrastructure_frontend_task(task):
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
     combined_text = f"{title} {description}"
-    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # 🔥 PATH-AGNOSTIC: Ignore deliverables paths - judge by CONTENT only
+    # Agent creates own paths following Clean Architecture (frontend/src/)
 
     # ═══════════════════════════════════════════════════════════
     # STEP 1: AUTO-REJECT - Domain Layer Keywords
@@ -361,29 +350,15 @@ def is_valid_infrastructure_frontend_task(task):
     found_indicators = [kw for kw in frontend_indicators if kw in combined_text]
 
     if found_indicators:
-        # Verify deliverables don't contradict
-        if "backend/" in deliverables or "api/" in deliverables or "models/" in deliverables:
-            return False, "infrastructure_backend", "Has frontend keywords but deliverables are backend"
-
+        # 🔥 PATH-AGNOSTIC: Has frontend infrastructure indicators → ACCEPT as frontend
+        # Agent will create correct path (frontend/src/) ignoring input deliverables
         return True, None, f"Contains frontend infrastructure indicators: {', '.join(found_indicators[:3])}"
 
     # ═══════════════════════════════════════════════════════════
-    # STEP 5: Check Deliverables Path
+    # STEP 5: Default Rejection - Not Clear Frontend Infrastructure
     # ═══════════════════════════════════════════════════════════
 
-    frontend_paths = ["frontend/", "components/", "app/", "src/", "pages/", "ui/"]
-
-    if any(path in deliverables for path in frontend_paths):
-        # Verify content doesn't contradict
-        if "sqlalchemy" in combined_text or "fastapi" in combined_text:
-            return False, "infrastructure_backend", "Path is frontend but content mentions backend frameworks"
-
-        return True, None, "Deliverable path is frontend infrastructure"
-
-    # ═══════════════════════════════════════════════════════════
-    # STEP 6: Default Rejection - Not Clear Frontend Infrastructure
-    # ═══════════════════════════════════════════════════════════
-
+    # No frontend indicators found → reject to infrastructure_backend (default)
     return False, "infrastructure_backend", "No clear frontend infrastructure indicators"
 ```
 

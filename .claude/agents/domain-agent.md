@@ -304,44 +304,12 @@ def is_valid_domain_task(task):
     found_indicators = [kw for kw in domain_indicators if kw in combined_text]
 
     if found_indicators:
-        # Has domain indicators - likely domain layer
-        # But verify deliverables don't contradict
-        deliverables = " ".join(task.get("deliverables", [])).lower()
-
-        # Even with domain keywords, reject if deliverables are clearly NOT domain
-        if deliverables:
-            if "api/" in deliverables or "routers/" in deliverables:
-                return False, "infrastructure_backend", f"Has domain keywords but deliverables are API endpoints"
-            if "schemas/" in deliverables and "pydantic" in description:
-                return False, "application", f"Has validation but is Pydantic schema (DTO)"
-            if "components/" in deliverables or "tsx" in deliverables:
-                return False, "infrastructure_frontend", f"Has validation but is UI component"
-
-        # All good - accept as domain
+        # 🔥 PATH-AGNOSTIC: Has domain indicators → ACCEPT as domain
+        # Agent will create correct path (backend/app/domain/) ignoring input deliverables
         return True, None, f"Contains domain indicators: {', '.join(found_indicators[:3])}"
 
-    # STEP 3: Ambiguous case - check deliverables path
-    deliverables = " ".join(task.get("deliverables", [])).lower()
-
-    if "domain/" in deliverables or "domain\\" in deliverables:
-        # Deliverable explicitly in domain/ → probably domain
-        return True, None, "Deliverable path contains 'domain/'"
-
-    # STEP 4: No clear indicators - REJECT with best guess
-    if "services/" in deliverables and "repository" not in combined_text:
-        return False, "application", "Service without domain indicators - likely use case"
-
-    if "core/" in deliverables or "utils/" in deliverables:
-        # Ambiguous utilities - check for business logic
-        if any(word in combined_text for word in ["validation", "validate", "check"]):
-            # Could be domain validation utils
-            if any(word in combined_text for word in ["business", "rule", "constraint"]):
-                return True, None, "Utility with business rule validation"
-            else:
-                return False, "infrastructure_backend", "Generic utility - infrastructure concern"
-        return False, "infrastructure_backend", "Core/utils without domain indicators"
-
-    # Default: reject to infrastructure_backend
+    # STEP 3: No domain indicators found → REJECT
+    # Default: reject to infrastructure_backend (most tasks are infrastructure)
     return False, "infrastructure_backend", "No clear domain indicators - likely infrastructure"
 
 

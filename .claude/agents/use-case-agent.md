@@ -120,7 +120,9 @@ def is_valid_application_task(task):
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
     combined_text = f"{title} {description}"
-    deliverables = " ".join(task.get("deliverables", [])).lower()
+
+    # 🔥 PATH-AGNOSTIC: Ignore deliverables paths - judge by CONTENT only
+    # Agent creates own paths following Clean Architecture (backend/app/application/)
 
     # ═══════════════════════════════════════════════════════════
     # STEP 1: AUTO-REJECT - Framework/Infrastructure Keywords
@@ -218,43 +220,15 @@ def is_valid_application_task(task):
     found_indicators = [kw for kw in application_indicators if kw in combined_text]
 
     if found_indicators:
-        # Verify deliverables don't contradict
-        contradiction_paths = ["domain/entities/", "domain/value_objects/",
-                               "infrastructure/orm/", "infrastructure/api/",
-                               "frontend/components/", "frontend/pages/"]
-
-        if any(path in deliverables for path in contradiction_paths):
-            # Has application keywords but deliverables contradict
-            if "domain/" in deliverables:
-                return False, "domain", "Has application keywords but deliverables are in domain/"
-            if "infrastructure/api/" in deliverables or "routers/" in deliverables:
-                return False, "infrastructure_backend", "Has application keywords but deliverables are API endpoints"
-            if "frontend/" in deliverables or "components/" in deliverables:
-                return False, "infrastructure_frontend", "Has application keywords but deliverables are frontend"
-
+        # 🔥 PATH-AGNOSTIC: Has application indicators → ACCEPT as application
+        # Agent will create correct path (backend/app/application/) ignoring input deliverables
         return True, None, f"Contains application indicators: {', '.join(found_indicators[:3])}"
 
     # ═══════════════════════════════════════════════════════════
-    # STEP 4: Check Deliverables Path
+    # STEP 4: Default Rejection - Not Clear Application Layer
     # ═══════════════════════════════════════════════════════════
 
-    if "application/" in deliverables:
-        # Verify it's not actually infrastructure disguised in application path
-        if any(kw in combined_text for kw in ["sqlalchemy", "fastapi", "react", "component"]):
-            return False, "infrastructure_backend", "Path is application/ but content is infrastructure"
-        return True, None, "Deliverable path contains 'application/'"
-
-    # ═══════════════════════════════════════════════════════════
-    # STEP 5: Default Rejection - Not Clear Application Layer
-    # ═══════════════════════════════════════════════════════════
-
-    # If we reach here, it's unclear - likely infrastructure
-    if "api" in combined_text or "endpoint" in combined_text:
-        return False, "infrastructure_backend", "No clear application indicators, mentions API/endpoint"
-
-    if "ui" in combined_text or "interface" in combined_text:
-        return False, "infrastructure_frontend", "No clear application indicators, mentions UI"
-
+    # No application indicators found → reject to infrastructure_backend (most common)
     return False, "infrastructure_backend", "No clear application indicators"
 ```
 
