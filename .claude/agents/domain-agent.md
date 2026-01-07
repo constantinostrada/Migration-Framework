@@ -331,11 +331,29 @@ def is_valid_domain_task(task):
 
     for keyword in reject_keywords:
         if keyword in combined_text:
-            # 🔥 DOMAIN EXCEPTION: Skip rejection if strong domain signal present
+            # 🔥 DOMAIN EXCEPTION: Skip rejection ONLY if strong domain signal present
+            # BUT still reject if it's infrastructure/ORM usage (not just mention)
             if has_domain_exception:
-                # Has anti-keyword BUT also has domain exception phrase
-                # Continue to STEP 2 to check domain indicators instead of rejecting
-                break
+                # Check if it's ACTUAL infrastructure usage (imports, not just type hints)
+                # Type hints like "session: Session" are OK in domain if logic is pure
+                infra_usage_keywords = [
+                    "sqlalchemy.orm import",          # Actual ORM import
+                    "from sqlalchemy.orm import",     # Import statement
+                    "from app.models import",         # ORM model import
+                    "fastapi import",                 # API framework import
+                    "pydantic import basemodel",      # DTO framework
+                    "repository implementation",      # Concrete implementation
+                    ".save(", ".commit(", ".query(",  # ORM method calls
+                ]
+
+                has_infra_usage = any(usage in combined_text for usage in infra_usage_keywords)
+
+                if has_infra_usage:
+                    # Has domain signals BUT uses infrastructure → application layer
+                    return False, "application", f"Has business logic but uses {keyword} - application service"
+                else:
+                    # Domain exception valid - skip rejection, check domain indicators
+                    break
 
             # 🚨 CRITICAL: Only return valid layers (domain, application, infrastructure_backend, infrastructure_frontend)
             # Determine correct layer based on keyword
