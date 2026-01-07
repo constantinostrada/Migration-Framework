@@ -110,6 +110,28 @@ t.get("owner") is None or t.get("owner") == "domain-agent"
 
 ---
 
+## 🚨 VALID LAYERS - DO NOT INVENT NEW ONES
+
+**ONLY these 4 layers exist in Clean Architecture:**
+
+1. **`domain`** - Pure business logic, entities, value objects, domain services
+2. **`application`** - Use cases, DTOs, repository interfaces, application services
+3. **`infrastructure_backend`** - ORM, API endpoints, database, external integrations
+4. **`infrastructure_frontend`** - React, Next.js, UI components, styling
+
+**⚠️ FORBIDDEN**: NEVER suggest invented layers like:
+- ❌ `qa` (testing tasks go to `infrastructure_backend`)
+- ❌ `documentation` (docs tasks go to `infrastructure_backend`)
+- ❌ `devops` (deployment tasks go to `infrastructure_backend`)
+- ❌ `utilities` (utils go to layer based on their purpose)
+- ❌ Any other invented layer
+
+**If unsure**: Default to `infrastructure_backend` (most common for non-domain tasks)
+
+---
+
+---
+
 ## ✅ **Domain Layer Indicators (HIGH CONFIDENCE)**
 
 **ACCEPT task if title/description contains these domain-specific keywords:**
@@ -292,16 +314,24 @@ def is_valid_domain_task(task):
 
     for keyword in reject_keywords:
         if keyword in combined_text:
+            # 🚨 CRITICAL: Only return valid layers (domain, application, infrastructure_backend, infrastructure_frontend)
             # Determine correct layer based on keyword
-            if keyword in ["sqlalchemy", "orm model", "migration", "alembic", "repository impl"]:
+            if keyword in ["sqlalchemy", "orm model", "alembic", "database migration", "create table", "database schema", "foreign key constraint"]:
                 return False, "infrastructure_backend", f"Contains '{keyword}' - ORM/Database is infrastructure"
-            elif keyword in ["fastapi", "api endpoint", "router", "middleware", "get /", "post /"]:
+            elif keyword in ["fastapi", "flask", "django", "api endpoint", "rest endpoint", "http endpoint", "router", "middleware", "cors", "get /", "post /", "put /", "delete /"]:
                 return False, "infrastructure_backend", f"Contains '{keyword}' - API is infrastructure"
-            elif keyword in ["pydantic", "dto", "use case", "application service"]:
+            elif keyword in ["pydantic schema", "pydantic model", "dto", "data transfer object", "use case", "application service", "repository interface"]:
                 return False, "application", f"Contains '{keyword}' - DTOs/Use Cases are application layer"
-            elif keyword in ["react", "next.js", "component", "tsx", "jsx"]:
+            elif keyword in ["repository implementation", "repositoryimpl", "concrete repository", "sqlalchemy repository"]:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - Repository implementation is infrastructure"
+            elif keyword in ["react", "next.js", "component", "tsx", "jsx", "ui component"]:
                 return False, "infrastructure_frontend", f"Contains '{keyword}' - UI is frontend"
+            elif keyword in ["docker", "kubernetes", "deployment", "container"]:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - DevOps is infrastructure"
+            elif keyword in ["jwt token", "oauth", "authentication middleware"]:
+                return False, "infrastructure_backend", f"Contains '{keyword}' - Auth infrastructure"
             else:
+                # Default: infrastructure_backend (most common for non-domain)
                 return False, "infrastructure_backend", f"Contains '{keyword}' - Infrastructure concern"
 
     # STEP 2: Check for DOMAIN INDICATORS (positive signals)
@@ -441,6 +471,13 @@ for task in candidate_tasks:
                 "reason": f"Circular rejection: already suggested {suggested_layer} before"
             })
         else:
+            # 🚨 VALIDATE: suggested_layer must be one of the 4 valid layers
+            valid_layers = ["domain", "application", "infrastructure_backend", "infrastructure_frontend"]
+            if suggested_layer not in valid_layers:
+                # Safety check: if invalid layer, default to infrastructure_backend
+                print(f"⚠️ WARNING: Invalid suggested_layer '{suggested_layer}' for {task['id']}, defaulting to infrastructure_backend")
+                suggested_layer = "infrastructure_backend"
+
             rejected_tasks.append({
                 "task_id": task["id"],
                 "title": task["title"],
