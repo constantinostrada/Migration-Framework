@@ -105,71 +105,195 @@ t.get("owner") is None or t.get("owner") == "use-case-agent"
 
 **CRITICAL**: For each candidate task, verify it's ACTUALLY an application layer task in Clean Architecture.
 
-**✅ IS Application Layer (Accept):**
-- **Use Cases**: Application services that orchestrate business flows (CreateCustomerUseCase, GetAccountBalanceUseCase)
-- **DTOs**: Data Transfer Objects for API requests/responses (Pydantic models for input/output)
-- **Repository Interfaces**: Abstract classes defining data access contracts (ICustomerRepository, IAccountRepository)
-- **Application Exceptions**: Application-specific errors (CustomerNotFoundError, InsufficientBalanceError)
-- **Input/Output Ports**: Interfaces for external systems
+**Judge by CONTENT (what it does), not PATH (where it lives)!**
 
-**❌ NOT Application Layer (Reject):**
-- Domain entities (Customer, Account) → `domain`
-- Value objects (Email, Money) → `domain`
-- Business rules (BR-XXX) → `domain`
-- ORM models (SQLAlchemy) → `infrastructure_backend`
-- Repository implementations (concrete classes) → `infrastructure_backend`
-- API endpoints (FastAPI routes) → `infrastructure_backend`
-- React components → `infrastructure_frontend`
-- Database migrations → `infrastructure_backend`
-- Authentication/JWT implementation → `infrastructure_backend`
+---
 
-**Validation Logic:**
+**Validation Logic with Semantic Analysis:**
+
 ```python
 def is_valid_application_task(task):
+    """
+    Determine if task is ACTUALLY application layer using semantic analysis.
+    Returns: (is_valid: bool, suggested_layer: str, reason: str)
+    """
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
+    combined_text = f"{title} {description}"
     deliverables = " ".join(task.get("deliverables", [])).lower()
 
-    # REJECT if it's domain layer
-    domain_keywords = ["domain entity", "value object", "business rule", "br-"]
-    for keyword in domain_keywords:
-        if keyword in title or keyword in description:
-            return False, "domain"
+    # ═══════════════════════════════════════════════════════════
+    # STEP 1: AUTO-REJECT - Framework/Infrastructure Keywords
+    # ═══════════════════════════════════════════════════════════
 
-    # REJECT if it's infrastructure
-    infra_keywords = [
-        "sqlalchemy", "orm model", "fastapi", "api endpoint", "route",
-        "repository implementation", "concrete repository",
-        "migration", "alembic", "database connection",
-        "react", "next.js", "component", "page",
-        "jwt", "authentication implementation", "middleware"
+    # Backend Infrastructure Keywords
+    backend_infra_keywords = [
+        # ORM & Database
+        "sqlalchemy", "orm model", "alembic", "migration", "database schema",
+        "table definition", "foreign key", "index", "constraint",
+
+        # API Framework
+        "fastapi", "flask", "django", "api endpoint", "route", "router",
+        "get /", "post /", "put /", "delete /", "patch /",
+        "http method", "rest api", "graphql resolver",
+
+        # Repository Implementation
+        "repository implementation", "repositoryimpl", "concrete repository",
+        "sqlalchemy repository", "orm repository",
+
+        # Middleware & Auth
+        "jwt", "oauth", "middleware", "authentication middleware",
+        "cors", "rate limiting", "api gateway",
+
+        # Database Connection
+        "connection pool", "database connection", "session management",
+        "transaction manager",
+
+        # External Integrations
+        "http client", "api client", "external api", "third-party integration",
+        "redis", "celery", "rabbitmq", "kafka"
     ]
-    for keyword in infra_keywords:
-        if keyword in title or keyword in description:
-            if "frontend" in keyword or "react" in keyword or "next.js" in keyword:
-                return False, "infrastructure_frontend"
-            return False, "infrastructure_backend"
 
-    # REJECT if deliverables are NOT in application/
-    if deliverables and "application/" not in deliverables:
-        if "domain/" in deliverables:
-            return False, "domain"
-        if "infrastructure/" in deliverables or "api/" in deliverables or "models/" in deliverables:
-            return False, "infrastructure_backend"
-        if "frontend/" in deliverables or "components/" in deliverables:
-            return False, "infrastructure_frontend"
+    # Frontend Infrastructure Keywords
+    frontend_infra_keywords = [
+        "react", "next.js", "vue", "angular", "svelte",
+        "component", "view", "page", "screen", "layout",
+        "template", "jsx", "tsx", "css", "style", "theme",
+        "hook", "context provider", "store", "reducer",
+        "routing", "navigation", "ui library", "material-ui",
+        "chakra", "tailwind", "shadcn", "button", "form component"
+    ]
 
-    # ACCEPT if has use case / DTO / interface keywords
-    accept_keywords = ["use case", "usecase", "dto", "repository interface", "irepository"]
-    if any(kw in title or kw in description for kw in accept_keywords):
-        return True, None
+    # Check backend infrastructure rejection
+    for keyword in backend_infra_keywords:
+        if keyword in combined_text or keyword in deliverables:
+            return False, "infrastructure_backend", f"Contains backend infrastructure keyword: '{keyword}'"
 
-    # If deliverables are in application/, accept
+    # Check frontend infrastructure rejection
+    for keyword in frontend_infra_keywords:
+        if keyword in combined_text or keyword in deliverables:
+            return False, "infrastructure_frontend", f"Contains frontend infrastructure keyword: '{keyword}'"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 2: AUTO-REJECT - Domain Layer Keywords
+    # ═══════════════════════════════════════════════════════════
+
+    domain_keywords = [
+        "domain entity", "value object", "aggregate", "domain model",
+        "business rule", "domain rule", "br-", "invariant", "constraint",
+        "domain service", "domain logic", "pure business logic"
+    ]
+
+    for keyword in domain_keywords:
+        if keyword in combined_text:
+            return False, "domain", f"Contains domain keyword: '{keyword}'"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 3: POSITIVE SIGNALS - Application Layer Indicators
+    # ═══════════════════════════════════════════════════════════
+
+    application_indicators = [
+        # Tier 1: Use Case Keywords (STRONG signals)
+        "use case", "usecase", "application service", "interactor",
+        "command", "handler", "execute", "process", "workflow",
+        "orchestration", "orchestrate", "coordinate",
+
+        # Tier 2: DTO Keywords (STRONG signals)
+        "dto", "data transfer object", "request dto", "response dto",
+        "input dto", "output dto", "create dto", "update dto",
+
+        # Tier 3: Repository Interface Keywords (STRONG signals)
+        "repository interface", "irepository", "abstract repository",
+        "repository contract", "data access interface",
+
+        # Tier 4: Application Exception Keywords
+        "application exception", "application error", "use case exception",
+        "notfounderror", "validationerror", "unauthorizederror",
+
+        # Tier 5: Port/Adapter Keywords
+        "input port", "output port", "adapter interface",
+        "external service interface"
+    ]
+
+    found_indicators = [kw for kw in application_indicators if kw in combined_text]
+
+    if found_indicators:
+        # Verify deliverables don't contradict
+        contradiction_paths = ["domain/entities/", "domain/value_objects/",
+                               "infrastructure/orm/", "infrastructure/api/",
+                               "frontend/components/", "frontend/pages/"]
+
+        if any(path in deliverables for path in contradiction_paths):
+            # Has application keywords but deliverables contradict
+            if "domain/" in deliverables:
+                return False, "domain", "Has application keywords but deliverables are in domain/"
+            if "infrastructure/api/" in deliverables or "routers/" in deliverables:
+                return False, "infrastructure_backend", "Has application keywords but deliverables are API endpoints"
+            if "frontend/" in deliverables or "components/" in deliverables:
+                return False, "infrastructure_frontend", "Has application keywords but deliverables are frontend"
+
+        return True, None, f"Contains application indicators: {', '.join(found_indicators[:3])}"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 4: Check Deliverables Path
+    # ═══════════════════════════════════════════════════════════
+
     if "application/" in deliverables:
-        return True, None
+        # Verify it's not actually infrastructure disguised in application path
+        if any(kw in combined_text for kw in ["sqlalchemy", "fastapi", "react", "component"]):
+            return False, "infrastructure_backend", "Path is application/ but content is infrastructure"
+        return True, None, "Deliverable path contains 'application/'"
 
-    return True, None
+    # ═══════════════════════════════════════════════════════════
+    # STEP 5: Default Rejection - Not Clear Application Layer
+    # ═══════════════════════════════════════════════════════════
+
+    # If we reach here, it's unclear - likely infrastructure
+    if "api" in combined_text or "endpoint" in combined_text:
+        return False, "infrastructure_backend", "No clear application indicators, mentions API/endpoint"
+
+    if "ui" in combined_text or "interface" in combined_text:
+        return False, "infrastructure_frontend", "No clear application indicators, mentions UI"
+
+    return False, "infrastructure_backend", "No clear application indicators"
 ```
+
+---
+
+**Quick Reference: What Belongs in Application Layer**
+
+| ✅ ACCEPT | ❌ REJECT (Domain) | ❌ REJECT (Infrastructure Backend) | ❌ REJECT (Infrastructure Frontend) |
+|-----------|-------------------|-----------------------------------|-------------------------------------|
+| Use cases / Application services | Domain entities | ORM models (SQLAlchemy) | React components |
+| DTOs (Pydantic models) | Value objects | Repository implementations | Next.js pages |
+| Repository interfaces (abstract) | Business rules (BR-XXX) | API endpoints (FastAPI routes) | UI components |
+| Application exceptions | Domain services | Database migrations | Layouts/Templates |
+| Command handlers | Invariants | Middleware | CSS/Styles |
+| Workflow orchestration | Aggregates | External API clients | Hooks/Context |
+
+---
+
+**Examples:**
+
+| Task Title | Decision | Reason |
+|------------|----------|--------|
+| "Create CustomerDTO for API requests" | ✅ ACCEPT | Contains "DTO" keyword |
+| "Implement CreateCustomerUseCase" | ✅ ACCEPT | Contains "use case" keyword |
+| "Define ICustomerRepository interface" | ✅ ACCEPT | Contains "repository interface" |
+| "Implement CustomerRepositoryImpl with SQLAlchemy" | ❌ REJECT → infrastructure_backend | Contains "SQLAlchemy" + "implementation" |
+| "Create Customer domain entity" | ❌ REJECT → domain | Contains "domain entity" |
+| "Create FastAPI endpoint for /customers" | ❌ REJECT → infrastructure_backend | Contains "FastAPI" + "endpoint" |
+| "Build CustomerList React component" | ❌ REJECT → infrastructure_frontend | Contains "React" + "component" |
+| "Orchestrate account creation workflow" | ✅ ACCEPT | Contains "orchestrate" + "workflow" |
+| "Define business rule for credit score" | ❌ REJECT → domain | Contains "business rule" |
+
+---
+
+**Remember:**
+- **Application Layer** = Orchestrates business flows using domain entities
+- **Does NOT** = Implement business logic (that's domain) or frameworks (that's infrastructure)
+- **Key verbs**: Execute, Process, Coordinate, Handle, Orchestrate
+- **Key artifacts**: Use Cases, DTOs, Repository Interfaces
 
 ### Step 3: Verify Domain Layer Complete
 

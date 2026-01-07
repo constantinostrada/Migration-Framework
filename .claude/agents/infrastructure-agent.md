@@ -154,131 +154,275 @@ t.get("owner") is None or t.get("owner") == "infrastructure-agent"
 
 **CRITICAL**: For each candidate task, verify it's ACTUALLY an infrastructure layer task.
 
-**✅ IS Infrastructure Backend (Accept):**
-- ORM models (SQLAlchemy models)
-- Repository implementations (concrete classes, NOT interfaces)
-- FastAPI API endpoints and routes
-- Database migrations (Alembic)
-- Dependency injection setup
-- Database session/connection configuration
-- Authentication middleware (JWT implementation)
-- External service integrations
+**Judge by CONTENT (what it does), not PATH (where it lives)!**
 
-**✅ IS Infrastructure Frontend (Accept):**
-- React components
-- Next.js pages and layouts
-- UI state management (Context, Zustand)
-- API clients (fetch, axios)
-- Form implementations (react-hook-form)
-- Tailwind CSS/shadcn/ui implementations
+**Remember**: Frontend is Infrastructure, NOT Application. Frontend consumes use cases via API.
 
-**❌ NOT Infrastructure Layer (Reject):**
-- Domain entities (Customer, Account) → `domain`
-- Value objects (Email, Money) → `domain`
-- Business rules (BR-XXX) → `domain`
-- Use cases (CreateCustomerUseCase) → `application`
-- DTOs (Pydantic models for input/output) → `application`
-- Repository interfaces (abstract classes) → `application`
-- Application exceptions → `application`
+---
 
-**Validation Logic (Backend):**
+**Validation Logic (Backend) with Semantic Analysis:**
+
 ```python
 def is_valid_infrastructure_backend_task(task):
+    """
+    Determine if task is ACTUALLY infrastructure backend using semantic analysis.
+    Returns: (is_valid: bool, suggested_layer: str, reason: str)
+    """
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
+    combined_text = f"{title} {description}"
     deliverables = " ".join(task.get("deliverables", [])).lower()
 
-    # REJECT if it's domain layer
-    domain_keywords = ["domain entity", "value object", "business rule", "br-", "pure python", "no framework"]
+    # ═══════════════════════════════════════════════════════════
+    # STEP 1: AUTO-REJECT - Domain Layer Keywords
+    # ═══════════════════════════════════════════════════════════
+
+    domain_keywords = [
+        "domain entity", "value object", "aggregate", "domain model",
+        "business rule", "domain rule", "br-", "invariant", "constraint",
+        "pure python", "no framework", "framework-free", "domain service"
+    ]
+
     for keyword in domain_keywords:
-        if keyword in title or keyword in description:
-            return False, "domain"
+        if keyword in combined_text:
+            return False, "domain", f"Contains domain keyword: '{keyword}'"
 
-    # REJECT if it's application layer
+    # ═══════════════════════════════════════════════════════════
+    # STEP 2: AUTO-REJECT - Application Layer Keywords
+    # ═══════════════════════════════════════════════════════════
+
     application_keywords = [
-        "use case", "usecase", "application service",
-        "dto schema", "data transfer object", "pydantic model",
+        "use case", "usecase", "application service", "interactor",
+        "dto", "data transfer object", "request dto", "response dto",
         "repository interface", "irepository", "abstract repository",
-        "application exception"
+        "application exception", "command handler", "orchestrate workflow"
     ]
+
     for keyword in application_keywords:
-        if keyword in title or keyword in description:
-            return False, "application"
+        if keyword in combined_text:
+            return False, "application", f"Contains application keyword: '{keyword}'"
 
-    # REJECT if deliverables are NOT in infrastructure paths
-    if deliverables:
-        backend_paths = ["infrastructure/", "api/", "models/", "database/", "repositories/"]
-        if not any(path in deliverables for path in backend_paths):
-            if "domain/" in deliverables:
-                return False, "domain"
-            if "application/" in deliverables or "use_cases/" in deliverables:
-                return False, "application"
-            if "frontend/" in deliverables or "components/" in deliverables:
-                return False, "infrastructure_frontend"
+    # ═══════════════════════════════════════════════════════════
+    # STEP 3: AUTO-REJECT - Frontend Keywords
+    # ═══════════════════════════════════════════════════════════
 
-    # ACCEPT if has infrastructure backend keywords
-    accept_keywords = [
-        "sqlalchemy", "orm", "fastapi", "endpoint", "api route",
-        "repository implementation", "concrete repository", "repositoryimpl",
-        "migration", "alembic", "database", "session",
-        "jwt", "middleware", "dependency injection"
+    frontend_keywords = [
+        "react", "next.js", "vue", "angular", "svelte",
+        "component", "view", "page", "screen", "layout",
+        "jsx", "tsx", "css", "style", "theme", "ui",
+        "button", "form component", "modal", "dialog"
     ]
-    if any(kw in title or kw in description for kw in accept_keywords):
-        return True, None
 
-    return True, None
+    for keyword in frontend_keywords:
+        if keyword in combined_text:
+            return False, "infrastructure_frontend", f"Contains frontend keyword: '{keyword}'"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 4: POSITIVE SIGNALS - Backend Infrastructure Indicators
+    # ═══════════════════════════════════════════════════════════
+
+    backend_indicators = [
+        # Tier 1: ORM & Database (STRONG signals)
+        "sqlalchemy", "orm model", "orm", "alembic", "migration",
+        "database schema", "table", "column", "foreign key",
+        "index", "database", "sql",
+
+        # Tier 2: API Framework (STRONG signals)
+        "fastapi", "flask", "django", "api endpoint", "endpoint",
+        "rest", "graphql", "controller", "route", "router",
+        "get /", "post /", "put /", "delete /", "patch /",
+        "http", "api", "/api/",
+
+        # Tier 3: Repository Implementation (STRONG signals)
+        "repository implementation", "repositoryimpl", "concrete repository",
+        "implement repository", "sqlalchemy repository",
+
+        # Tier 4: Middleware & Auth (STRONG signals)
+        "middleware", "jwt", "oauth", "authentication", "authorization",
+        "cors", "rate limiting", "api gateway",
+
+        # Tier 5: Infrastructure Services
+        "database connection", "session", "connection pool",
+        "dependency injection", "external api", "http client",
+        "redis", "celery", "rabbitmq", "kafka", "s3"
+    ]
+
+    found_indicators = [kw for kw in backend_indicators if kw in combined_text]
+
+    if found_indicators:
+        # Verify deliverables don't contradict
+        if "frontend/" in deliverables or "components/" in deliverables:
+            return False, "infrastructure_frontend", "Has backend keywords but deliverables are frontend"
+
+        return True, None, f"Contains backend infrastructure indicators: {', '.join(found_indicators[:3])}"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 5: Check Deliverables Path
+    # ═══════════════════════════════════════════════════════════
+
+    backend_paths = ["infrastructure/", "api/", "models/", "database/",
+                     "repositories/", "routers/", "backend/"]
+
+    if any(path in deliverables for path in backend_paths):
+        # Verify content doesn't contradict
+        if "react" in combined_text or "component" in combined_text:
+            return False, "infrastructure_frontend", "Path is backend but content mentions React/components"
+
+        return True, None, "Deliverable path is backend infrastructure"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 6: Default Rejection - Not Clear Backend Infrastructure
+    # ═══════════════════════════════════════════════════════════
+
+    return False, "application", "No clear backend infrastructure indicators"
 ```
 
-**Validation Logic (Frontend):**
+---
+
+**Validation Logic (Frontend) with Semantic Analysis:**
+
 ```python
 def is_valid_infrastructure_frontend_task(task):
+    """
+    Determine if task is ACTUALLY infrastructure frontend using semantic analysis.
+    Returns: (is_valid: bool, suggested_layer: str, reason: str)
+    """
     title = task.get("title", "").lower()
     description = task.get("description", "").lower()
+    combined_text = f"{title} {description}"
     deliverables = " ".join(task.get("deliverables", [])).lower()
 
-    # REJECT if it's domain layer
-    domain_keywords = ["domain entity", "value object", "business rule", "br-"]
+    # ═══════════════════════════════════════════════════════════
+    # STEP 1: AUTO-REJECT - Domain Layer Keywords
+    # ═══════════════════════════════════════════════════════════
+
+    domain_keywords = [
+        "domain entity", "value object", "aggregate", "business rule",
+        "domain rule", "br-", "invariant", "pure python"
+    ]
+
     for keyword in domain_keywords:
-        if keyword in title or keyword in description:
-            return False, "domain"
+        if keyword in combined_text:
+            return False, "domain", f"Contains domain keyword: '{keyword}'"
 
-    # REJECT if it's application layer
-    application_keywords = ["use case", "usecase", "dto", "repository interface"]
+    # ═══════════════════════════════════════════════════════════
+    # STEP 2: AUTO-REJECT - Application Layer Keywords
+    # ═══════════════════════════════════════════════════════════
+
+    application_keywords = [
+        "use case", "usecase", "application service",
+        "dto", "repository interface", "irepository"
+    ]
+
     for keyword in application_keywords:
-        if keyword in title or keyword in description:
-            return False, "application"
+        if keyword in combined_text:
+            return False, "application", f"Contains application keyword: '{keyword}'"
 
-    # REJECT if it's backend infrastructure
+    # ═══════════════════════════════════════════════════════════
+    # STEP 3: AUTO-REJECT - Backend Infrastructure Keywords
+    # ═══════════════════════════════════════════════════════════
+
     backend_keywords = [
-        "sqlalchemy", "orm model", "fastapi", "api endpoint",
-        "repository implementation", "alembic", "database migration"
+        "sqlalchemy", "orm model", "alembic", "database migration",
+        "fastapi", "api endpoint", "/api/", "router",
+        "repository implementation", "middleware", "jwt"
     ]
+
     for keyword in backend_keywords:
-        if keyword in title or keyword in description:
-            return False, "infrastructure_backend"
+        if keyword in combined_text:
+            return False, "infrastructure_backend", f"Contains backend keyword: '{keyword}'"
 
-    # REJECT if deliverables are NOT in frontend paths
-    if deliverables:
-        frontend_paths = ["frontend/", "components/", "app/", "src/"]
-        if not any(path in deliverables for path in frontend_paths):
-            if "domain/" in deliverables:
-                return False, "domain"
-            if "application/" in deliverables:
-                return False, "application"
-            if "backend/" in deliverables or "api/" in deliverables:
-                return False, "infrastructure_backend"
+    # ═══════════════════════════════════════════════════════════
+    # STEP 4: POSITIVE SIGNALS - Frontend Infrastructure Indicators
+    # ═══════════════════════════════════════════════════════════
 
-    # ACCEPT if has frontend keywords
-    accept_keywords = [
-        "react", "next.js", "component", "page", "layout",
-        "ui", "frontend", "client", "form",
-        "shadcn", "tailwind", "typescript", "tsx"
+    frontend_indicators = [
+        # Tier 1: Framework (STRONG signals)
+        "react", "next.js", "vue", "angular", "svelte",
+
+        # Tier 2: UI Components (STRONG signals)
+        "component", "view", "page", "screen", "layout",
+        "template", "button", "form", "modal", "dialog",
+        "navbar", "sidebar", "header", "footer",
+
+        # Tier 3: Styling (STRONG signals)
+        "css", "style", "tailwind", "shadcn", "material-ui",
+        "chakra", "theme", "styled-components",
+
+        # Tier 4: Frontend Code
+        "jsx", "tsx", "typescript", "javascript",
+
+        # Tier 5: Frontend Patterns
+        "hook", "context", "provider", "store", "reducer",
+        "state management", "routing", "navigation",
+        "api client", "fetch", "axios", "form validation"
     ]
-    if any(kw in title or kw in description for kw in accept_keywords):
-        return True, None
 
-    return True, None
+    found_indicators = [kw for kw in frontend_indicators if kw in combined_text]
+
+    if found_indicators:
+        # Verify deliverables don't contradict
+        if "backend/" in deliverables or "api/" in deliverables or "models/" in deliverables:
+            return False, "infrastructure_backend", "Has frontend keywords but deliverables are backend"
+
+        return True, None, f"Contains frontend infrastructure indicators: {', '.join(found_indicators[:3])}"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 5: Check Deliverables Path
+    # ═══════════════════════════════════════════════════════════
+
+    frontend_paths = ["frontend/", "components/", "app/", "src/", "pages/", "ui/"]
+
+    if any(path in deliverables for path in frontend_paths):
+        # Verify content doesn't contradict
+        if "sqlalchemy" in combined_text or "fastapi" in combined_text:
+            return False, "infrastructure_backend", "Path is frontend but content mentions backend frameworks"
+
+        return True, None, "Deliverable path is frontend infrastructure"
+
+    # ═══════════════════════════════════════════════════════════
+    # STEP 6: Default Rejection - Not Clear Frontend Infrastructure
+    # ═══════════════════════════════════════════════════════════
+
+    return False, "infrastructure_backend", "No clear frontend infrastructure indicators"
 ```
+
+---
+
+**Quick Reference: What Belongs in Infrastructure Layer**
+
+| ✅ BACKEND INFRASTRUCTURE | ✅ FRONTEND INFRASTRUCTURE | ❌ REJECT (Domain) | ❌ REJECT (Application) |
+|---------------------------|----------------------------|-------------------|------------------------|
+| ORM models (SQLAlchemy) | React components | Domain entities | Use cases |
+| Repository implementations | Next.js pages | Value objects | DTOs |
+| API endpoints (FastAPI) | UI components | Business rules | Repository interfaces |
+| Database migrations | Layouts/Templates | Invariants | Application exceptions |
+| Middleware | CSS/Styles | Domain services | Command handlers |
+| External API clients | Hooks/Context | Aggregates | Workflow orchestration |
+
+---
+
+**Examples:**
+
+| Task Title | Decision | Reason |
+|------------|----------|--------|
+| "Implement CustomerRepositoryImpl with SQLAlchemy" | ✅ ACCEPT (backend) | Contains "SQLAlchemy" + "implementation" |
+| "Create FastAPI endpoint for /customers" | ✅ ACCEPT (backend) | Contains "FastAPI" + "endpoint" |
+| "Build CustomerList React component" | ✅ ACCEPT (frontend) | Contains "React" + "component" |
+| "Create database migration for customers table" | ✅ ACCEPT (backend) | Contains "database migration" |
+| "Implement JWT authentication middleware" | ✅ ACCEPT (backend) | Contains "JWT" + "middleware" |
+| "Create shadcn/ui button component" | ✅ ACCEPT (frontend) | Contains "shadcn" + "component" |
+| "Define ICustomerRepository interface" | ❌ REJECT → application | Contains "repository interface" |
+| "Implement CreateCustomerUseCase" | ❌ REJECT → application | Contains "use case" |
+| "Create Customer domain entity" | ❌ REJECT → domain | Contains "domain entity" |
+
+---
+
+**Remember:**
+- **Infrastructure** = All framework-specific code (backend OR frontend)
+- **Backend Infrastructure** = FastAPI, SQLAlchemy, ORM, API endpoints, middleware
+- **Frontend Infrastructure** = React, Next.js, UI components, styling
+- **NOT Infrastructure** = Business logic (domain) or orchestration (application)
 
 ### Step 4: Verify Dependencies Complete
 
