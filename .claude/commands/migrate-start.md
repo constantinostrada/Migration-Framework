@@ -12,6 +12,30 @@ You are starting a **task-driven migration** using the Universal Migration Frame
 | **PHASE A** | Agent selects tasks, saves queue. **NO IMPLEMENTATION** |
 | **PHASE B** | Orchestrator sends ONE task at a time. Agent implements, returns. **REPEAT** |
 
+## ⚠️ CRITICAL: SEQUENTIAL EXECUTION RULE (v4.4.1)
+
+**NEVER PARALLELIZE Phase B Task() calls.** Each agent invocation must complete before starting the next.
+
+```
+❌ WRONG (causes race conditions):
+   Task("domain-001")  ─┬─→ running
+   Task("domain-002")  ─┼─→ running  ← RACE CONDITION!
+   Task("domain-003")  ─┼─→ running  ← STATE CORRUPTION!
+   Task("domain-004")  ─┴─→ running
+
+✅ CORRECT (sequential):
+   Task("domain-001") → wait → complete
+   Task("domain-002") → wait → complete
+   Task("domain-003") → wait → complete
+   Task("domain-004") → wait → complete
+```
+
+**Why**: Multiple agents writing to `tasks.json` or queue files simultaneously causes:
+- Data loss (last writer wins)
+- Optimistic locking failures
+- Inconsistent state
+- Wasted tokens (~30-60k per agent)
+
 **Additional v4.4 Changes:**
 - `qa-test-generator` writes REAL pytest files (not just specs)
 - Implementation agents just make tests GREEN (don't write tests)
@@ -447,72 +471,39 @@ mkdir -p docs/state/agent-queues
    - docs/state/tasks.json (con campos layer, owner, test_files)
    - docs/state/agent-queues/ (directorio para colas)
 
-🔜 **Siguiente fase**: PHASE 0.8 - Generación de Tests REALES (TDD)
+🔜 **Siguiente fase**: Implementación por capas con TDD Per-Layer (v4.5)
 
 ¿Continuar? (yes/no)
 ```
 
 ---
 
-### STEP 5: PHASE 0.8 - Real Test Generation (v4.4 CHANGE)
+### STEP 5: TDD Per-Layer Execution (v4.5 CHANGE)
 
-**Invoke qa-test-generator agent**
+**🆕 v4.5 CAMBIO IMPORTANTE**: QA ya NO genera todos los tests upfront.
+Ahora genera tests DESPUÉS de cada Phase A, solo para las tareas aceptadas/creadas.
 
-```python
-Task(
-    description="Generate REAL pytest files for TDD",
-    prompt="""
-    You are the qa-test-generator. Read .claude/agents/qa-test-generator.md for complete instructions.
-
-    **v4.4 CRITICAL CHANGE**: You write REAL test files (.py), not just specs.
-
-    **INPUT**:
-    - docs/state/tasks.json ({total_tasks} tasks)
-
-    **YOUR MISSION**:
-    1. Read ALL tasks from tasks.json
-    2. For EACH implementation task, write ACTUAL pytest files:
-       - Domain tasks → tests/unit/domain/
-       - Application tasks → tests/unit/application/
-       - Infrastructure tasks → tests/integration/
-    3. Use @pytest.mark.skipif(not IMPORTS_AVAILABLE, ...) pattern
-    4. Update tasks.json with test_files array for each task
-    5. Generate conftest.py with shared fixtures
-    6. Write test-generation-report.json
-
-    **OUTPUT FILES**:
-    - tests/unit/domain/**/*.py (REAL pytest files)
-    - tests/unit/application/**/*.py (REAL pytest files)
-    - tests/integration/**/*.py (REAL pytest files)
-    - tests/conftest.py
-    - docs/state/test-generation-report.json
-
-    **CRITICAL**: Tests will be in RED state (expected). Implementation agents make them GREEN.
-    """,
-    subagent_type="qa-test-generator",
-    model="sonnet"
-)
+**Nuevo Flujo por Capa:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Para cada capa (Domain → Application → Infrastructure):        │
+│                                                                 │
+│  1. PHASE A: Agent selecciona/extrae tareas → Guarda queue     │
+│  2. PHASE QA: qa-test-generator genera tests SOLO para queue   │
+│  3. PHASE B: Agent implementa tareas → Hace tests GREEN        │
+│                                                                 │
+│  ✅ TDD Real: Tests escritos para lo que el agente encontró    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**After qa-test-generator completes:**
-
-```
-✅ **PHASE 0.8 COMPLETADA: Generación de Tests Reales**
-
-📊 Tests generados:
-   - Domain tests: {domain_test_files} archivos
-   - Application tests: {app_test_files} archivos
-   - Integration tests: {integration_test_files} archivos
-
-📁 Ubicación: tests/
-📄 tasks.json actualizado con test_files para cada tarea
-
-🔜 **Siguiente**: PHASE 2-3 - Implementación Híbrida
-```
+**Beneficios v4.5:**
+- Tests específicos para tareas aceptadas (no tests desperdiciados)
+- Para domain-agent v5.0: tests basados en conceptos EXTRAÍDOS
+- Verdadero TDD: test → implement → refactor por capa
 
 ---
 
-### STEP 6: PHASE 2-3 - Hybrid Execution (v4.4)
+### STEP 6: Domain Layer (TDD Per-Layer)
 
 **v4.4 Hybrid Flow:**
 
@@ -617,7 +608,7 @@ Task(
 )
 ```
 
-**Read extraction results and execute PHASE B:**
+**Read extraction results:**
 
 ```python
 # 🆕 v5.0: Read domain-agent's EXTRACTION results (not rejections)
@@ -638,8 +629,68 @@ queue_tasks = queue.get("queue", [])
 if not domain_tasks and not queue_tasks:
     print("⚠️ No domain tasks extracted - domain-agent may not have understood v5.0 mode")
     print("   Check if domain-extracted-tasks.json was created correctly")
+```
 
-# PHASE B: Execute each DOMAIN task one-by-one (DOMAIN-001, DOMAIN-002, etc.)
+**🆕 PHASE QA: Generate Domain Tests (TDD per-layer v4.5)**
+
+```python
+print("🧪 DOMAIN LAYER - PHASE QA: Generating Tests")
+
+# Convert domain_tasks to JSON for prompt
+import json
+domain_tasks_json = json.dumps(domain_tasks, indent=2)
+
+Task(
+    description="QA - Generate tests for domain layer",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **🆕 TDD PER-LAYER MODE (v4.5): Generate tests for DOMAIN layer ONLY**
+
+    Tasks to generate tests for (from domain-agent Phase A):
+    {domain_tasks_json}
+
+    YOUR MISSION:
+    1. Read docs/state/domain-extracted-tasks.json for full task details
+    2. For EACH domain task in the list above, write pytest files in tests/unit/domain/
+    3. Tests should verify:
+       - Entity creation and validation
+       - Value object immutability and validation
+       - Business rule enforcement (BR-XXX codes)
+       - Domain service behavior
+    4. Update domain-extracted-tasks.json with test_files array for each task
+    5. Generate tests/unit/domain/conftest.py with domain fixtures
+
+    OUTPUT:
+    - tests/unit/domain/entities/test_*.py
+    - tests/unit/domain/value_objects/test_*.py
+    - tests/unit/domain/services/test_*.py
+    - tests/unit/domain/conftest.py
+    - Update domain-extracted-tasks.json with test_files
+
+    **CRITICAL**:
+    - Generate tests ONLY for tasks listed above (not all tasks)
+    - Tests will be RED. Domain agent Phase B makes them GREEN.
+    - Use @pytest.mark.skipif pattern for imports
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+
+print("✅ Domain tests generated - ready for Phase B implementation")
+```
+
+**PHASE B: Execute each DOMAIN task (make tests GREEN)**
+
+⚠️ **CRITICAL: SEQUENTIAL EXECUTION REQUIRED**
+- Execute ONE task at a time
+- WAIT for each Task() to complete before starting the next
+- NEVER launch multiple Task() calls in parallel during Phase B
+- This prevents race conditions on shared state files
+
+```python
+# PHASE B: Execute each DOMAIN task SEQUENTIALLY (ONE AT A TIME)
+# ⚠️ DO NOT PARALLELIZE - Each task must complete before starting next
 for task in domain_tasks:
     task_id = task["task_id"]  # DOMAIN-001, DOMAIN-002, etc.
     task_title = task["title"]
@@ -885,9 +936,70 @@ if escalated:
     handle_escalated_tasks("use-case-agent", escalated)
 ```
 
-**PHASE B: Execute each task** (same pattern as domain layer)
+**🆕 PHASE QA: Generate Application Tests (TDD per-layer v4.5)**
 
 ```python
+print("🧪 APPLICATION LAYER - PHASE QA: Generating Tests")
+
+import json
+application_tasks_json = json.dumps(application_tasks, indent=2)
+
+Task(
+    description="QA - Generate tests for application layer",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **🆕 TDD PER-LAYER MODE (v4.5): Generate tests for APPLICATION layer ONLY**
+
+    Tasks to generate tests for (from use-case-agent Phase A):
+    {application_tasks_json}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details of tasks listed above
+    2. For EACH application task, write pytest files in tests/unit/application/
+    3. Tests should verify:
+       - Use case execution flow
+       - DTO validation and serialization
+       - Repository interface contracts (mock implementations)
+       - Application exceptions
+    4. Update tasks.json with test_files array for these tasks
+    5. Generate tests/unit/application/conftest.py with fixtures
+
+    OUTPUT:
+    - tests/unit/application/use_cases/test_*.py
+    - tests/unit/application/dtos/test_*.py
+    - tests/unit/application/conftest.py
+
+    **CRITICAL**:
+    - Generate tests ONLY for tasks listed above (not all tasks)
+    - Tests will be RED. Use-case agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+
+print("✅ Application tests generated - ready for Phase B implementation")
+```
+
+**PHASE B: Execute each task** (same pattern as domain layer)
+
+⚠️ **CRITICAL: SEQUENTIAL EXECUTION REQUIRED**
+- Execute ONE task at a time
+- WAIT for each Task() to complete before starting the next
+- NEVER launch multiple Task() calls in parallel during Phase B
+
+```python
+# PHASE B: Execute each APPLICATION task SEQUENTIALLY (ONE AT A TIME)
+# ⚠️ DO NOT PARALLELIZE - Each task must complete before starting next
+for task in application_tasks:
+    Task(
+        description=f"Use-case agent - Execute {task['task_id']}",
+        prompt=f"...(implementation prompt)...",
+        subagent_type="use-case-agent",
+        model="sonnet"
+    )
+    # WAIT for completion before next iteration
+
 # After completing PHASE B
 print(f"✅ APPLICATION LAYER COMPLETE")
 
@@ -1075,9 +1187,70 @@ if escalated:
     handle_escalated_tasks("infrastructure-agent-backend", escalated)
 ```
 
-**PHASE B: Execute each task** (same pattern)
+**🆕 PHASE QA: Generate Backend Integration Tests (TDD per-layer v4.5)**
 
 ```python
+print("🧪 INFRASTRUCTURE BACKEND - PHASE QA: Generating Tests")
+
+import json
+backend_tasks_json = json.dumps(backend_tasks, indent=2)
+
+Task(
+    description="QA - Generate tests for infrastructure backend",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **🆕 TDD PER-LAYER MODE (v4.5): Generate tests for INFRASTRUCTURE BACKEND ONLY**
+
+    Tasks to generate tests for (from infrastructure-agent Phase A):
+    {backend_tasks_json}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details of tasks listed above
+    2. For EACH backend task, write pytest files in tests/integration/
+    3. Tests should verify:
+       - Repository implementations (with test DB fixtures)
+       - API endpoint responses and status codes
+       - ORM model mappings
+       - Database operations
+    4. Update tasks.json with test_files array for these tasks
+    5. Generate tests/integration/conftest.py with DB fixtures
+
+    OUTPUT:
+    - tests/integration/repositories/test_*.py
+    - tests/integration/api/test_*.py
+    - tests/integration/conftest.py
+
+    **CRITICAL**:
+    - Generate tests ONLY for tasks listed above (not all tasks)
+    - Tests will be RED. Infrastructure agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+
+print("✅ Backend integration tests generated - ready for Phase B implementation")
+```
+
+**PHASE B: Execute each task** (same pattern)
+
+⚠️ **CRITICAL: SEQUENTIAL EXECUTION REQUIRED**
+- Execute ONE task at a time
+- WAIT for each Task() to complete before starting the next
+- NEVER launch multiple Task() calls in parallel during Phase B
+
+```python
+# PHASE B: Execute each BACKEND task SEQUENTIALLY (ONE AT A TIME)
+# ⚠️ DO NOT PARALLELIZE - Each task must complete before starting next
+for task in backend_tasks:
+    Task(
+        description=f"Infrastructure agent - Execute {task['task_id']}",
+        prompt=f"...(implementation prompt)...",
+        subagent_type="infrastructure-agent",
+        model="sonnet"
+    )
+    # WAIT for completion before next iteration
+
 # After completing PHASE B
 print(f"✅ INFRASTRUCTURE BACKEND COMPLETE")
 
@@ -1304,9 +1477,69 @@ if escalated:
     handle_escalated_tasks("infrastructure-agent-frontend", escalated)
 ```
 
-**PHASE B: Execute each task** (same pattern)
+**🆕 PHASE QA: Generate Frontend Tests (TDD per-layer v4.5)**
 
 ```python
+print("🧪 INFRASTRUCTURE FRONTEND - PHASE QA: Generating Tests")
+
+import json
+frontend_tasks_json = json.dumps(frontend_tasks, indent=2)
+
+Task(
+    description="QA - Generate tests for infrastructure frontend",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **🆕 TDD PER-LAYER MODE (v4.5): Generate tests for INFRASTRUCTURE FRONTEND ONLY**
+
+    Tasks to generate tests for (from infrastructure-agent Phase A):
+    {frontend_tasks_json}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details of tasks listed above
+    2. For EACH frontend task, write test files (Jest/Vitest/React Testing Library)
+    3. Tests should verify:
+       - Component rendering
+       - Form validation and submission
+       - API client calls (mocked)
+       - User interactions
+       - State management
+    4. Update tasks.json with test_files array for these tasks
+
+    OUTPUT:
+    - Frontend test files appropriate for the framework (Jest/Vitest)
+    - Component tests with React Testing Library patterns
+
+    **CRITICAL**:
+    - Generate tests ONLY for tasks listed above (not all tasks)
+    - Tests will be RED. Infrastructure agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+
+print("✅ Frontend tests generated - ready for Phase B implementation")
+```
+
+**PHASE B: Execute each task** (same pattern)
+
+⚠️ **CRITICAL: SEQUENTIAL EXECUTION REQUIRED**
+- Execute ONE task at a time
+- WAIT for each Task() to complete before starting the next
+- NEVER launch multiple Task() calls in parallel during Phase B
+
+```python
+# PHASE B: Execute each FRONTEND task SEQUENTIALLY (ONE AT A TIME)
+# ⚠️ DO NOT PARALLELIZE - Each task must complete before starting next
+for task in frontend_tasks:
+    Task(
+        description=f"Infrastructure agent - Execute {task['task_id']}",
+        prompt=f"...(implementation prompt)...",
+        subagent_type="infrastructure-agent",
+        model="sonnet"
+    )
+    # WAIT for completion before next iteration
+
 # After completing PHASE B
 print(f"✅ INFRASTRUCTURE FRONTEND COMPLETE")
 

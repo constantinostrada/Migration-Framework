@@ -1,4 +1,4 @@
-# Migration Phases - Task-Driven Workflow v4.4
+# Migration Phases - Task-Driven Workflow v4.5
 
 **📖 Documentation Navigation:**
 - **← Previous**: [CLAUDE.md](../../CLAUDE.md) - Framework overview
@@ -6,69 +6,32 @@
 
 ---
 
-## 🆕 v4.4 Task-Driven Mode
+## 🆕 v4.5 TDD Per-Layer Mode
 
-This framework executes migrations from **pre-generated task lists**. Tasks are provided as JSON files - NO SDD analysis or task generation.
+This framework executes migrations from **pre-generated task lists** with **TRUE TDD per layer**.
+
+**Key Change v4.5**: QA generates tests AFTER each agent's Phase A, not upfront.
 
 ---
 
-## 🔄 Hybrid Two-Phase Execution
+## 🔄 New Three-Phase Execution Per Layer
 
 | Phase | Mode | What Happens |
 |-------|------|--------------|
-| **PHASE A** | SELECTION | Agent reads tasks, identifies theirs, validates, saves queue. **NO IMPLEMENTATION** |
-| **PHASE B** | EXECUTION | Orchestrator sends ONE task at a time. Agent implements, returns. **REPEAT** |
+| **PHASE A** | SELECTION/EXTRACTION | Agent identifies/extracts tasks, saves queue. **NO IMPLEMENTATION** |
+| **PHASE QA** | TEST GENERATION | qa-test-generator creates tests for ONLY the tasks in queue. **TDD** |
+| **PHASE B** | EXECUTION | Agent implements ONE task at a time, makes tests GREEN. **REPEAT** |
 
 **Benefits**:
-- Agents never see more than 1 task during implementation
-- No context overload (even with 200 tasks)
-- Full traceability via queue files
-- Agents complete ALL assigned tasks
+- True TDD: Tests written specifically for what the agent found
+- No wasted tests for rejected/reclassified tasks
+- Tests match actual extracted domain concepts (for domain-agent v5.0)
 
 **Queue Files**: `docs/state/agent-queues/`
 - `domain-queue.json`
 - `application-queue.json`
 - `infrastructure-backend-queue.json`
 - `infrastructure-frontend-queue.json`
-
----
-
-## 🔄 Task Rejection & Re-Classification
-
-Agents can REJECT incorrectly classified tasks and suggest the correct layer.
-
-**During PHASE A**, each agent:
-1. Identifies candidate tasks by `layer` field
-2. **VALIDATES each task** - Is this REALLY my layer?
-3. **Accepts valid tasks** → Adds to queue
-4. **Rejects invalid tasks** → Re-classifies in tasks.json
-
-**Validation Criteria:**
-
-| Agent | ACCEPT | REJECT |
-|-------|--------|--------|
-| **domain-agent** | Entities, Value Objects, Business Rules (pure Python) | DTOs, Use Cases, ORM, APIs, Components |
-| **use-case-agent** | Use Cases, DTOs, Repository Interfaces | Entities, ORM implementations, APIs |
-| **infrastructure-agent** | ORM, Repositories (concrete), APIs, React Components | Entities, Value Objects, Use Cases, DTOs |
-
-**Queue File with Rejections:**
-```json
-{
-  "agent": "use-case-agent",
-  "total_tasks": 10,
-  "completed": 0,
-  "rejected_tasks": [
-    {
-      "task_id": "TASK-045",
-      "title": "Implement CustomerRepositoryImpl",
-      "original_layer": "application",
-      "suggested_layer": "infrastructure_backend",
-      "reason": "Repository IMPLEMENTATION is infrastructure"
-    }
-  ],
-  "queue": [...]
-}
-```
 
 ---
 
@@ -103,7 +66,6 @@ for task in all_tasks:
 for task in all_tasks:
     title = task["title"].lower()
     description = task.get("description", "").lower()
-    deliverables = " ".join(task.get("deliverables", [])).lower()
 
     # Domain layer
     if any(kw in title or kw in description for kw in ["entity", "value object", "business rule"]):
@@ -120,7 +82,7 @@ for task in all_tasks:
     else:
         task["layer"] = None  # Will be classified during PHASE A
 
-    # Add v4.4 fields
+    # Add v4.5 fields
     task["owner"] = None
     task["status"] = "pending"
     task["test_files"] = []
@@ -130,124 +92,103 @@ for task in all_tasks:
 ```python
 Write: docs/state/tasks.json
 {
-  "framework_version": "4.4-task-driven",
+  "framework_version": "4.5-tdd-per-layer",
   "imported_from": "{user_provided_path}",
   "total_tasks": len(all_tasks),
   "tasks": all_tasks
 }
 ```
 
-5. **Create agent-queues directory**:
+5. **Create directories**:
 ```bash
 mkdir -p docs/state/agent-queues
+mkdir -p tests/unit/domain tests/unit/application tests/integration
 ```
 
 ---
 
-### **PHASE 2: Test Generation (TDD)**
-
-**Objective**: Generate REAL pytest files before implementation
-
-**Agent**: qa-test-generator
-
-**Steps:**
-
-1. **Invoke qa-test-generator**:
-```python
-Task(
-    description="Generate REAL pytest files for TDD",
-    prompt="""
-    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
-
-    **YOUR MISSION**:
-    1. Read ALL tasks from docs/state/tasks.json
-    2. For EACH implementation task, write ACTUAL pytest files:
-       - Domain tasks → tests/unit/domain/
-       - Application tasks → tests/unit/application/
-       - Infrastructure tasks → tests/integration/
-    3. Use @pytest.mark.skipif(not IMPORTS_AVAILABLE, ...) pattern
-    4. Update tasks.json with test_files array
-    5. Generate conftest.py with shared fixtures
-
-    **OUTPUT**:
-    - tests/unit/domain/**/*.py (REAL pytest files)
-    - tests/unit/application/**/*.py
-    - tests/integration/**/*.py
-    - tests/conftest.py
-    - docs/state/tasks.json (updated with test_files)
-
-    **CRITICAL**: Tests will be in RED state. Implementation agents make them GREEN.
-    """,
-    subagent_type="qa-test-generator",
-    model="sonnet"
-)
-```
-
-2. **Verify tests created**:
-```python
-Glob: tests/**/*.py
-assert len(test_files) > 0
-
-Read: docs/state/tasks.json
-# Verify test_files populated
-```
-
----
-
-### **PHASE 3: Domain Layer (Hybrid) - v5.0 DOMAIN EXTRACTOR**
+### **PHASE 2: Domain Layer (TDD Per-Layer)**
 
 **Agent**: domain-agent
 
-**🆕 v5.0 PARADIGM**: Domain agent is now a **DOMAIN EXTRACTOR**, not a task validator.
-It reads ALL tasks (even infrastructure) and EXTRACTS implicit domain concepts to CREATE its own domain tasks.
+**🆕 v5.0 PARADIGM**: Domain agent is a **DOMAIN EXTRACTOR**, not a task validator.
 
-**PHASE A: Domain Extraction**
+#### PHASE 2A: Domain Extraction
 
 ```python
 Task(
     description="Domain agent - Phase A: Domain Extraction",
     prompt="""
-    You are domain-agent. Read .claude/agents/domain-agent.md for instructions.
+    # DOMAIN AGENT v5.0 - DOMAIN EXTRACTOR MODE
 
-    **PHASE A: DOMAIN EXTRACTION (v5.0)**
+    ⚠️ CRITICAL: You are a DOMAIN EXTRACTOR, NOT a task validator.
+    ⚠️ DO NOT filter/reject tasks. EXTRACT domain concepts and CREATE domain tasks.
 
-    YOUR MISSION:
-    1. Read ALL tasks from docs/state/tasks.json (not just layer="domain")
+    ## YOUR MISSION (PHASE A - EXTRACTION ONLY)
+
+    1. Read ALL tasks from docs/state/tasks.json (ALL 110 tasks)
     2. For EACH task, extract domain concepts:
-       - What entities are mentioned? (Customer, Account, Transaction)
-       - What business rules are implied? (MORTGAGE cannot use PAYMENT)
-       - What value objects are needed? (Money, Email, CreditScore)
-       - What domain services are required?
+       - ENTITIES: Customer, Account, Transaction, etc.
+       - VALUE OBJECTS: Money, Email, CreditScore, etc.
+       - BUSINESS RULES: "MORTGAGE cannot use PAYMENT", "daily limit $10,000"
+       - DOMAIN SERVICES: Validation services, calculation services
     3. CREATE your own domain tasks (DOMAIN-001, DOMAIN-002, etc.)
     4. Save to: docs/state/domain-extracted-tasks.json
     5. Save queue to: docs/state/agent-queues/domain-queue.json
 
-    **YOU ARE A DOMAIN EXTRACTOR, NOT A TASK VALIDATOR.**
-    **DO NOT REJECT TASKS. EXTRACT DOMAIN FROM THEM.**
-    **DO NOT IMPLEMENT ANYTHING YET.**
+    **DO NOT IMPLEMENT. ONLY EXTRACT AND CREATE TASKS.**
     """,
     subagent_type="domain-agent",
     model="sonnet"
 )
 ```
 
-**Read extraction results:**
-```python
-Read: docs/state/domain-extracted-tasks.json
-domain_tasks = data["extracted_domain_tasks"]
-extraction_summary = data["extraction_summary"]
+#### PHASE 2-QA: Generate Domain Tests (TDD)
 
-print(f"📦 Entities extracted: {len(extraction_summary['entities_found'])}")
-print(f"💎 Value Objects: {len(extraction_summary['value_objects_found'])}")
-print(f"📜 Business Rules: {len(extraction_summary['business_rules_found'])}")
-print(f"📋 Domain Tasks Created: {len(domain_tasks)}")
+```python
+# Read what domain-agent extracted
+Read: docs/state/agent-queues/domain-queue.json
+domain_tasks = queue["queue"]
+
+Task(
+    description="QA - Generate tests for domain layer",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **TDD MODE: Generate tests for DOMAIN layer ONLY**
+
+    Tasks to generate tests for:
+    {json.dumps(domain_tasks, indent=2)}
+
+    YOUR MISSION:
+    1. Read docs/state/domain-extracted-tasks.json for full task details
+    2. For EACH domain task, write pytest files in tests/unit/domain/
+    3. Tests should verify:
+       - Entity creation and validation
+       - Value object immutability and validation
+       - Business rule enforcement
+       - Domain service behavior
+    4. Update domain-extracted-tasks.json with test_files array
+    5. Generate tests/unit/domain/conftest.py with fixtures
+
+    OUTPUT:
+    - tests/unit/domain/entities/test_*.py
+    - tests/unit/domain/value_objects/test_*.py
+    - tests/unit/domain/services/test_*.py
+    - tests/unit/domain/conftest.py
+
+    **CRITICAL**: Tests will be RED. Domain agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
 ```
 
-**PHASE B: Execute Each Domain Task**
+#### PHASE 2B: Implement Domain Tasks
 
 ```python
 for task in domain_tasks:
-    task_id = task["task_id"]  # DOMAIN-001, DOMAIN-002, etc.
+    task_id = task["task_id"]
     task_title = task["title"]
 
     Task(
@@ -260,23 +201,18 @@ for task in domain_tasks:
         Implement THIS domain task: {task_id} - {task_title}
 
         YOUR MISSION:
-        1. Read your extracted task from docs/state/domain-extracted-tasks.json
-        2. Check if tests exist (tests/unit/domain/)
-        3. Implement PURE domain code (entities, value objects, domain services)
-        4. Run tests if they exist
-        5. Update domain-extracted-tasks.json (status = "completed")
-        6. Update queue file
+        1. Read test files for this task (tests/unit/domain/)
+        2. Implement PURE domain code to make tests GREEN
+        3. Run: pytest tests/unit/domain/ -v
+        4. Update domain-extracted-tasks.json (status = "completed")
 
         **CRITICAL**:
         - NO framework dependencies (pure Python only)
-        - Use dataclasses, typing, enum, abc
-        - Implement business rules from task description
+        - Make tests GREEN
         """,
         subagent_type="domain-agent",
         model="sonnet"
     )
-
-    print(f"✅ Completed: {task_id}")
 ```
 
 **Validate:**
@@ -286,11 +222,11 @@ pytest tests/unit/domain/ -v
 
 ---
 
-### **PHASE 4: Application Layer (Hybrid)**
+### **PHASE 3: Application Layer (TDD Per-Layer)**
 
 **Agent**: use-case-agent
 
-**PHASE A: Task Selection + Validation**
+#### PHASE 3A: Task Selection
 
 ```python
 Task(
@@ -315,7 +251,73 @@ Task(
 )
 ```
 
-**PHASE B: Execute Each Task** (same pattern as domain)
+#### PHASE 3-QA: Generate Application Tests (TDD)
+
+```python
+Read: docs/state/agent-queues/application-queue.json
+application_tasks = queue["queue"]
+
+Task(
+    description="QA - Generate tests for application layer",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **TDD MODE: Generate tests for APPLICATION layer ONLY**
+
+    Tasks to generate tests for:
+    {json.dumps(application_tasks, indent=2)}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details
+    2. For EACH application task, write pytest files in tests/unit/application/
+    3. Tests should verify:
+       - Use case execution flow
+       - DTO validation
+       - Repository interface contracts (mock implementations)
+       - Application exceptions
+    4. Update tasks.json with test_files array for these tasks
+    5. Generate tests/unit/application/conftest.py with fixtures
+
+    OUTPUT:
+    - tests/unit/application/use_cases/test_*.py
+    - tests/unit/application/dtos/test_*.py
+    - tests/unit/application/conftest.py
+
+    **CRITICAL**: Tests will be RED. Use-case agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+```
+
+#### PHASE 3B: Implement Application Tasks
+
+```python
+for task in application_tasks:
+    task_id = task["task_id"]
+    task_title = task["title"]
+
+    Task(
+        description=f"Use-case agent - Execute {task_id}",
+        prompt=f"""
+        You are use-case-agent. Read .claude/agents/use-case-agent.md for instructions.
+
+        **PHASE B: SINGLE TASK EXECUTION**
+
+        Implement THIS task: {task_id} - {task_title}
+
+        YOUR MISSION:
+        1. Read test files for this task
+        2. Implement code to make tests GREEN
+        3. Run: pytest tests/unit/application/ -v
+        4. Update tasks.json (status = "completed")
+
+        **CRITICAL**: Make tests GREEN. Don't write tests.
+        """,
+        subagent_type="use-case-agent",
+        model="sonnet"
+    )
+```
 
 **Validate:**
 ```bash
@@ -324,11 +326,11 @@ pytest tests/unit/application/ -v
 
 ---
 
-### **PHASE 5: Infrastructure Backend (Hybrid)**
+### **PHASE 4: Infrastructure Backend (TDD Per-Layer)**
 
-**Agent**: infrastructure-agent (1st invocation)
+**Agent**: infrastructure-agent
 
-**PHASE A: Task Selection + Validation**
+#### PHASE 4A: Task Selection
 
 ```python
 Task(
@@ -353,7 +355,48 @@ Task(
 )
 ```
 
-**PHASE B: Execute Each Task** (same pattern)
+#### PHASE 4-QA: Generate Backend Integration Tests (TDD)
+
+```python
+Read: docs/state/agent-queues/infrastructure-backend-queue.json
+backend_tasks = queue["queue"]
+
+Task(
+    description="QA - Generate tests for infrastructure backend",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **TDD MODE: Generate tests for INFRASTRUCTURE BACKEND ONLY**
+
+    Tasks to generate tests for:
+    {json.dumps(backend_tasks, indent=2)}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details
+    2. For EACH backend task, write pytest files in tests/integration/
+    3. Tests should verify:
+       - Repository implementations (with test DB)
+       - API endpoint responses and status codes
+       - ORM model mappings
+       - Database migrations
+    4. Update tasks.json with test_files array for these tasks
+    5. Generate tests/integration/conftest.py with DB fixtures
+
+    OUTPUT:
+    - tests/integration/repositories/test_*.py
+    - tests/integration/api/test_*.py
+    - tests/integration/conftest.py
+
+    **CRITICAL**: Tests will be RED. Infrastructure agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+```
+
+#### PHASE 4B: Implement Backend Tasks
+
+(Same pattern as previous layers)
 
 **Validate:**
 ```bash
@@ -362,60 +405,21 @@ pytest tests/integration/ -v
 
 ---
 
-### **PHASE 6: UI Design & Approval**
+### **PHASE 5: UI Design & Approval**
 
 **Agents**: shadcn-ui-agent, ui-approval-agent
 
-1. **Design UI**:
-```python
-Task(
-    description="Design UI",
-    prompt="""
-    Read .claude/agents/shadcn-ui-agent.md for instructions.
-    Design UI for module using shadcn/ui components.
-    Output: docs/ui-design/{module}-design.md
-    """,
-    subagent_type="shadcn-ui-agent",
-    model="sonnet"
-)
-```
-
-2. **Generate mockup**:
-```python
-Task(
-    description="Generate UI mockup",
-    prompt="""
-    Read .claude/agents/ui-approval-agent.md for instructions.
-    Generate HTML mockup: docs/ui-mockups/{module}-mockup.html
-    """,
-    subagent_type="ui-approval-agent",
-    model="sonnet"
-)
-```
-
-3. **Get user approval**:
-```python
-AskUserQuestion(questions=[{
-    "question": "Please review UI mockup. What's your feedback?",
-    "header": "UI Approval",
-    "options": [
-        {"label": "APPROVE", "description": "Proceed with implementation"},
-        {"label": "CHANGES", "description": "Request modifications"},
-        {"label": "REJECT", "description": "Redesign"}
-    ],
-    "multiSelect": False
-}])
-```
+(Same as before - no changes)
 
 ---
 
-### **PHASE 7: Infrastructure Frontend (Hybrid)**
+### **PHASE 6: Infrastructure Frontend (TDD Per-Layer)**
 
 **Agent**: infrastructure-agent (2nd invocation)
 
 **⚠️ PREREQUISITE**: UI mockup MUST be approved
 
-**PHASE A: Task Selection + Validation**
+#### PHASE 6A: Task Selection
 
 ```python
 Task(
@@ -440,7 +444,46 @@ Task(
 )
 ```
 
-**PHASE B: Execute Each Task** (same pattern)
+#### PHASE 6-QA: Generate Frontend Tests (TDD)
+
+```python
+Read: docs/state/agent-queues/infrastructure-frontend-queue.json
+frontend_tasks = queue["queue"]
+
+Task(
+    description="QA - Generate tests for infrastructure frontend",
+    prompt=f"""
+    You are qa-test-generator. Read .claude/agents/qa-test-generator.md for instructions.
+
+    **TDD MODE: Generate tests for INFRASTRUCTURE FRONTEND ONLY**
+
+    Tasks to generate tests for:
+    {json.dumps(frontend_tasks, indent=2)}
+
+    YOUR MISSION:
+    1. Read docs/state/tasks.json for full task details
+    2. For EACH frontend task, write test files
+    3. Tests should verify:
+       - Component rendering
+       - Form validation
+       - API client calls (mocked)
+       - User interactions
+    4. Update tasks.json with test_files array
+
+    OUTPUT:
+    - Frontend test files (Jest/Vitest)
+    - Component tests
+
+    **CRITICAL**: Tests will be RED. Infrastructure agent Phase B makes them GREEN.
+    """,
+    subagent_type="qa-test-generator",
+    model="sonnet"
+)
+```
+
+#### PHASE 6B: Implement Frontend Tasks
+
+(Same pattern)
 
 **Validate:**
 ```bash
@@ -450,100 +493,73 @@ npm run test
 
 ---
 
-### **PHASE 8: E2E Testing**
+### **PHASE 7: E2E Testing**
 
 **Agent**: e2e-qa-agent
 
-**Max 3 iterations**:
-
-```python
-for iteration in range(1, 4):
-    Task(
-        description=f"Execute E2E tests - Iteration {iteration}",
-        prompt=f"""
-        You are e2e-qa-agent. Execute E2E tests using Playwright MCP.
-        Write report: docs/qa/e2e-report-iter-{iteration}.json
-        """,
-        subagent_type="e2e-qa-agent",
-        model="sonnet"
-    )
-
-    Read: docs/qa/e2e-report-iter-{iteration}.json
-    if pass_rate >= 0.95:
-        print("✅ E2E tests passed!")
-        break
-
-    if iteration < 3:
-        # Fix failures and retry
-        fix_failures_with_agents()
-```
-
-**Strategic decision (after 3 iterations):**
-```python
-if pass_rate < 0.95:
-    AskUserQuestion(questions=[{
-        "question": f"E2E pass rate: {pass_rate*100}% after 3 iterations. What to do?",
-        "header": "E2E Decision",
-        "options": [
-            {"label": "Continue", "description": "1 more iteration"},
-            {"label": "Deliver", "description": "Accept and document issues"},
-            {"label": "Stop", "description": "Manual review needed"}
-        ],
-        "multiSelect": False
-    }])
-```
+(Same as before - max 3 iterations)
 
 ---
 
-### **PHASE 9: Completion**
+### **PHASE 8: Completion**
 
 **Success Criteria:**
 - ✅ All tasks completed
 - ✅ All tests GREEN
 - ✅ E2E pass rate ≥ 95%
 
-**Final Report:**
-```
-═══════════════════════════════════════════════════════════
-✅ MIGRATION COMPLETE (v4.4 Task-Driven)
-═══════════════════════════════════════════════════════════
-
-📊 Statistics:
-   - Total tasks: {total}
-   - Completed: {completed}
-   - Tests: {passed}/{total}
-
-📁 Output: output/{project}/
-
-🚀 Run:
-   cd output/{project}
-   docker-compose up
-
-═══════════════════════════════════════════════════════════
-```
-
 ---
 
-## 📊 Queue File Structure
+## 📊 New Flow Diagram
 
-```json
-{
-  "agent": "domain-agent",
-  "created_at": "2026-01-06T10:00:00Z",
-  "total_tasks": 15,
-  "completed": 15,
-  "rejected_tasks": [],
-  "queue": [
-    {
-      "position": 1,
-      "task_id": "TASK-001",
-      "title": "Implement Customer Entity",
-      "module": "Customer",
-      "status": "completed",
-      "test_files": ["tests/unit/domain/entities/test_customer.py"]
-    }
-  ]
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PHASE 1: Task Import                         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 2: Domain Layer                                           │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│  │  Phase A    │ →  │  Phase QA   │ →  │  Phase B    │         │
+│  │ (Extract)   │    │ (Tests)     │    │ (Implement) │         │
+│  └─────────────┘    └─────────────┘    └─────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 3: Application Layer                                      │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│  │  Phase A    │ →  │  Phase QA   │ →  │  Phase B    │         │
+│  │ (Select)    │    │ (Tests)     │    │ (Implement) │         │
+│  └─────────────┘    └─────────────┘    └─────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 4: Infrastructure Backend                                 │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│  │  Phase A    │ →  │  Phase QA   │ →  │  Phase B    │         │
+│  │ (Select)    │    │ (Tests)     │    │ (Implement) │         │
+│  └─────────────┘    └─────────────┘    └─────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 5: UI Design & Approval                                   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 6: Infrastructure Frontend                                │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│  │  Phase A    │ →  │  Phase QA   │ →  │  Phase B    │         │
+│  │ (Select)    │    │ (Tests)     │    │ (Implement) │         │
+│  └─────────────┘    └─────────────┘    └─────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 7: E2E Testing (max 3 iterations)                         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ PHASE 8: Completion                                             │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---

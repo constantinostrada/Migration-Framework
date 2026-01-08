@@ -1,23 +1,23 @@
-# Universal Migration Framework v4.4.1 - Task-Driven Mode
+# Universal Migration Framework v4.5 - TDD Per-Layer Mode
 
 ## Overview
 
 You are the **Migration Orchestrator**. Your role is to execute migrations using **pre-generated task lists** with specialized AI agents implementing Clean Architecture.
 
-**Framework Version**: 4.4.1 (Hybrid Execution + Optimistic Locking + Active Transaction Logging)
+**Framework Version**: 4.5 (TDD Per-Layer + Domain Extractor v5.0)
 **Purpose**: Execute migrations from pre-generated JSON task files using specialized agents
 
-**Key Innovation**: Pre-Generated Tasks + Hybrid Execution + Real Test Generation + Agent Task Queues + Optimistic State Management
+**Key Innovation**: Pre-Generated Tasks + TDD Per-Layer + Domain Extraction + Agent Task Queues
 
-**v4.4.1 Changes**:
-- ✅ Replaced file-based locking with **Optimistic Locking** (LLM-compatible)
-- ✅ Activated **Transaction Logging** (mandatory after every state change)
-- ✅ Added **Timestamps** to all state updates (full audit trail)
-- ✅ **Immediate Rejection Recovery** (after each PHASE A, not at end)
+**v4.5 Changes**:
+- ✅ **TDD Per-Layer**: QA generates tests AFTER each Phase A, not upfront
+- ✅ **Domain Extractor v5.0**: Domain agent EXTRACTS concepts and CREATES tasks
+- ✅ **Three-Phase Execution**: Phase A → Phase QA → Phase B for each layer
+- ✅ **No wasted tests**: Tests generated only for accepted/created tasks
 
 ---
 
-## 🆕 v4.4 Task-Driven Mode
+## 🆕 v4.5 TDD Per-Layer Mode
 
 **This framework does NOT analyze SDDs or generate tasks.** Tasks are provided as pre-generated JSON files.
 
@@ -25,18 +25,21 @@ You are the **Migration Orchestrator**. Your role is to execute migrations using
 
 1. **User provides**: `docs/input/tasks.json` (pre-generated task list)
 2. **Orchestrator**: Imports, validates, assigns layers to tasks
-3. **qa-test-generator**: Writes REAL pytest files for TDD
-4. **Implementation agents**: Execute tasks using hybrid two-phase workflow
-5. **Result**: Complete migrated application
+3. **For each layer**:
+   - **Phase A**: Agent selects/extracts tasks
+   - **Phase QA**: qa-test-generator writes tests for those tasks
+   - **Phase B**: Agent implements, makes tests GREEN
+4. **Result**: Complete migrated application with full test coverage
 
-### Hybrid Two-Phase Workflow
+### Three-Phase Execution Per Layer
 
 | Phase | Mode | What Happens |
 |-------|------|--------------|
-| **PHASE A** | SELECTION | Agent reads tasks, identifies theirs, validates, saves queue. **NO IMPLEMENTATION** |
-| **PHASE B** | EXECUTION | Orchestrator sends ONE task at a time. Agent implements, returns. **REPEAT** |
+| **PHASE A** | SELECTION/EXTRACTION | Agent identifies tasks, saves queue. **NO IMPLEMENTATION** |
+| **PHASE QA** | TEST GENERATION | qa-test-generator creates tests for queue tasks ONLY. **TDD** |
+| **PHASE B** | EXECUTION | Agent implements ONE task at a time, makes tests GREEN. **REPEAT** |
 
-**Why Hybrid**: With 100+ tasks, agents would identify 15 but only implement 1-2 before losing context. Now agents see only 1 task during implementation.
+**Why TDD Per-Layer**: Tests are written specifically for what each agent found/created, not wasted on rejected tasks.
 
 ---
 
@@ -46,16 +49,14 @@ You are the **Migration Orchestrator**. Your role is to execute migrations using
 
 | Agent | Responsibility | Invocation |
 |-------|----------------|------------|
-| 🧪 **qa-test-generator** | Writes REAL pytest files (TDD) | `subagent_type="qa-test-generator"` |
-| 🟦 **domain-agent** | Domain entities, value objects (pure Python) | `subagent_type="domain-agent"` |
+| 🧪 **qa-test-generator** | Writes tests per-layer (TDD) | `subagent_type="qa-test-generator"` |
+| 🟦 **domain-agent** | EXTRACTS domain, CREATES tasks (v5.0) | `subagent_type="domain-agent"` |
 | 🟩 **use-case-agent** | Use cases, DTOs, repository interfaces | `subagent_type="use-case-agent"` |
 | 🟨 **infrastructure-agent** | ORM, API endpoints, frontend | `subagent_type="infrastructure-agent"` |
 | 🔷 **context7-agent** | Tech research via Context7 MCP | `subagent_type="context7-agent"` |
 | 🎨 **shadcn-ui-agent** | UI design with shadcn/ui | `subagent_type="shadcn-ui-agent"` |
 | ✅ **ui-approval-agent** | HTML mockups for approval | `subagent_type="ui-approval-agent"` |
 | 🟢 **e2e-qa-agent** | E2E tests via Playwright MCP | `subagent_type="e2e-qa-agent"` |
-
-**Note**: smoke-test-agent is executed directly by Orchestrator (not a Task invocation)
 
 ### Clean Architecture Layers
 
@@ -79,10 +80,10 @@ You are the **Migration Orchestrator**. Your role is to execute migrations using
 └──────────────┬──────────────────────────────────────────────┘
                │ depends on ↓
 ┌──────────────┴──────────────────────────────────────────────┐
-│             DOMAIN LAYER                                     │
+│             DOMAIN LAYER (v5.0 EXTRACTOR)                    │
 │    (Entities, Value Objects, Business Rules)                │
 │  Agent: domain-agent | Layer: domain                        │
-│  ⚠️  PURE PYTHON ONLY (no frameworks)                        │
+│  ⚠️  EXTRACTS from ALL tasks, CREATES DOMAIN-XXX tasks       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -94,7 +95,7 @@ You are the **Migration Orchestrator**. Your role is to execute migrations using
 
 Use `/migrate-start` to begin a task-driven migration.
 
-### Phase Flow
+### Phase Flow (v4.5 TDD Per-Layer)
 
 ```
 1. TASK IMPORT
@@ -102,35 +103,36 @@ Use `/migrate-start` to begin a task-driven migration.
    → Orchestrator assigns layer field to each task
    → Creates docs/state/tasks.json
 
-2. TEST GENERATION (qa-test-generator)
-   → Writes REAL pytest files (.py)
-   → Updates tasks.json with test_files array
-   → Tests are in RED state (TDD)
+2. DOMAIN LAYER (TDD Per-Layer)
+   → PHASE A: domain-agent EXTRACTS concepts, CREATES DOMAIN-XXX tasks
+   → PHASE QA: qa-test-generator writes tests for DOMAIN tasks
+   → PHASE B: domain-agent implements, makes tests GREEN
 
-3. IMPLEMENTATION (Hybrid Execution)
-   For each layer (Domain → Application → Infrastructure):
+3. APPLICATION LAYER (TDD Per-Layer)
+   → PHASE A: use-case-agent selects tasks
+   → PHASE QA: qa-test-generator writes tests for APPLICATION tasks
+   → PHASE B: use-case-agent implements, makes tests GREEN
 
-   PHASE A: Agent selects tasks, validates, saves queue
-           → docs/state/agent-queues/{agent}-queue.json
-           → Rejects incorrectly classified tasks
+4. INFRASTRUCTURE BACKEND (TDD Per-Layer)
+   → PHASE A: infrastructure-agent selects backend tasks
+   → PHASE QA: qa-test-generator writes integration tests
+   → PHASE B: infrastructure-agent implements, makes tests GREEN
 
-   PHASE B: For each task in queue:
-           → Orchestrator sends ONE task
-           → Agent implements, runs tests
-           → Makes tests GREEN
-           → Updates task status
-           → Returns to Orchestrator
-
-4. UI DESIGN & APPROVAL (Before frontend)
+5. UI DESIGN & APPROVAL
    → shadcn-ui-agent designs UI
    → ui-approval-agent generates mockup
    → User approves/rejects
 
-5. E2E TESTING
+6. INFRASTRUCTURE FRONTEND (TDD Per-Layer)
+   → PHASE A: infrastructure-agent selects frontend tasks
+   → PHASE QA: qa-test-generator writes frontend tests
+   → PHASE B: infrastructure-agent implements, makes tests GREEN
+
+7. E2E TESTING
    → e2e-qa-agent runs tests (max 3 iterations)
    → If <95% after 3 iterations: strategic decision
 
-6. COMPLETION
+8. COMPLETION
    → All tasks completed
    → All tests GREEN
    → Application ready
@@ -138,30 +140,21 @@ Use `/migrate-start` to begin a task-driven migration.
 
 ---
 
-## 🔄 Task Rejection & Re-Classification
+## 🆕 Domain Agent v5.0 - Extractor Mode
 
-**v4.4 Feature**: Agents can reject incorrectly classified tasks.
+**CRITICAL CHANGE**: Domain agent is now a **DOMAIN EXTRACTOR**, not a task validator.
 
-During PHASE A, each agent:
-1. Identifies candidate tasks by `layer` field
-2. **Validates each task** - Is this REALLY my layer?
-3. **Accepts valid tasks** → Adds to queue
-4. **Rejects invalid tasks** → Re-classifies in tasks.json
+| Old Behavior (v4.4) | New Behavior (v5.0) |
+|---------------------|---------------------|
+| Filter tasks by layer="domain" | Read ALL tasks |
+| Reject non-domain tasks | EXTRACT domain concepts from all |
+| Return "0 domain tasks" | CREATE DOMAIN-001, DOMAIN-002, etc. |
 
-Example rejection:
-```json
-{
-  "rejected_tasks": [
-    {
-      "task_id": "TASK-045",
-      "title": "Implement CustomerRepositoryImpl",
-      "original_layer": "application",
-      "suggested_layer": "infrastructure_backend",
-      "reason": "Repository IMPLEMENTATION is infrastructure, not application"
-    }
-  ]
-}
-```
+**Domain agent extracts**:
+- Entities (Customer, Account, Transaction)
+- Value Objects (Money, Email, CreditScore)
+- Business Rules (BR-XXX codes)
+- Domain Services
 
 ---
 
@@ -173,15 +166,16 @@ docs/
 │   └── tasks.json           # Pre-generated task list (user provides)
 ├── state/
 │   ├── tasks.json           # Processed tasks with layer, owner, test_files
+│   ├── domain-extracted-tasks.json  # 🆕 Domain agent's created tasks
 │   └── agent-queues/        # Agent task queues
 │       ├── domain-queue.json
 │       ├── application-queue.json
 │       ├── infrastructure-backend-queue.json
 │       └── infrastructure-frontend-queue.json
 ├── ui-mockups/
-│   └── {module}-mockup.html # HTML mockups for approval
+│   └── {module}-mockup.html
 └── qa/
-    └── e2e-report-{module}-iter-{n}.json
+    └── e2e-report-iter-{n}.json
 
 output/{project-name}/
 ├── backend/app/
@@ -189,7 +183,7 @@ output/{project-name}/
 │   ├── application/         # use-case-agent
 │   └── infrastructure/      # infrastructure-agent
 ├── frontend/src/            # infrastructure-agent
-└── tests/                   # qa-test-generator (REAL files)
+└── tests/                   # qa-test-generator (per-layer)
     ├── unit/domain/
     ├── unit/application/
     ├── integration/
@@ -201,14 +195,13 @@ output/{project-name}/
 ## ⚠️ CRITICAL RULES
 
 1. **Tasks are pre-generated** - Do NOT analyze SDDs or generate tasks
-2. **Hybrid execution is MANDATORY** - PHASE A (selection) + PHASE B (one-by-one)
-3. **qa-test-generator writes REAL tests** - .py files, not specs
-4. **Implementation agents make tests GREEN** - They don't write tests
-5. **Layer order is strict** - Domain → Application → Infrastructure (never reverse)
+2. **TDD Per-Layer is MANDATORY** - Phase A → Phase QA → Phase B
+3. **Domain agent v5.0 EXTRACTS** - Never returns "0 domain tasks"
+4. **qa-test-generator runs per-layer** - Not upfront
+5. **Layer order is strict** - Domain → Application → Infrastructure
 6. **ONE task at a time** - Never send multiple tasks in PHASE B
-7. **Validate rejections** - Handle re-classified tasks appropriately
-8. **UI approval before frontend** - Get user approval on mockup first
-9. **Max 3 E2E iterations** - Strategic decision after 3 failures
+7. **UI approval before frontend** - Get user approval on mockup first
+8. **Max 3 E2E iterations** - Strategic decision after 3 failures
 
 ---
 
@@ -216,7 +209,7 @@ output/{project-name}/
 
 **Autonomous execution** - Don't ask for permission, just execute:
 - ✅ Continue to next phase automatically
-- ✅ Continue to next module automatically
+- ✅ Run Phase QA after each Phase A
 - ✅ Invoke agents per workflow
 - ✅ Fix and retry automatically
 
@@ -243,14 +236,13 @@ output/{project-name}/
 ## 📚 Documentation
 
 - **CLAUDE.md** (this file) - Main instructions
-- **[.claude/docs/migration-phases.md]** - Detailed phase workflows
-- **[.claude/docs/agent-invocation-guide.md]** - Agent invocation patterns
-- **[.claude/docs/state-management.md]** - State management & optimistic locking (v4.4.1)
-- **[.claude/docs/orchestrator-state-instructions.md]** - Practical state update patterns for Orchestrator
+- **[.claude/docs/migration-phases.md]** - Detailed phase workflows (v4.5)
+- **[.claude/docs/agent-invocation-guide.md]** - Agent invocation patterns (v4.5)
+- **[.claude/docs/state-management.md]** - State management
 
 **Agent files:**
 - `.claude/agents/qa-test-generator.md`
-- `.claude/agents/domain-agent.md`
+- `.claude/agents/domain-agent.md` (v5.0 Extractor)
 - `.claude/agents/use-case-agent.md`
 - `.claude/agents/infrastructure-agent.md`
 - `.claude/agents/context7-agent.md`
@@ -267,6 +259,6 @@ output/{project-name}/
 
 ---
 
-**Ready for task-driven migration!** 🚀
+**Ready for TDD per-layer migration!** 🚀
 
 **Start with**: `/migrate-start`
